@@ -3991,15 +3991,26 @@ try{smartOn=localStorage.getItem('dutybuddy.smart')!=='0';}catch(e){}
   try{var k='dutybuddy.bktip', last=+localStorage.getItem(k)||0; if(!last){localStorage.setItem(k,String(Date.now()));} else if(Date.now()-last>7*864e5){localStorage.setItem(k,String(Date.now())); setTimeout(function(){try{toast('Tip: your data lives only in this app. Before you delete the app icon, back it up: menu, Move data between devices, Copy.');}catch(e){}},4000);}}catch(e){}})();
 /* fill the whole screen (under the camera, down to the bottom edge) even when iOS reports a shorter page */
 (function(){
-  var root=document.documentElement, H0=0, KBEST=false, IOS=/iPhone|iPad|iPod/.test(navigator.userAgent)||(/Macintosh/.test(navigator.userAgent)&&navigator.maxTouchPoints>1);
-  function fit(){
+  var MODE='none', root=document.documentElement, H0=0, KBEST=false, IOS=/iPhone|iPad|iPod/.test(navigator.userAgent)||(/Macintosh/.test(navigator.userAgent)&&navigator.maxTouchPoints>1);
+  function dbg(){
     try{
+      var on=false; try{on=localStorage.getItem('dutybuddy.kbdbg')==='1';}catch(e){}
+      var d=document.getElementById('kbdbg'); if(!on){if(d)d.remove(); return;}
+      if(!d){d=document.createElement('div'); d.id='kbdbg'; d.style.cssText='position:fixed;left:6px;right:6px;top:calc(var(--sat,44px) + 56px);z-index:2147483000;font:10px/1.3 monospace;background:rgba(0,0,0,.78);color:#7CFC9A;padding:4px 6px;border-radius:6px;pointer-events:none;white-space:pre-wrap'; document.body.appendChild(d);}
+      var v=window.visualViewport, ae=document.activeElement;
+      d.textContent='b:'+(typeof APPVER!=='undefined'?APPVER:'?')+' mode:'+MODE+' kb:'+root.classList.contains('kb')+' foc:'+(ae&&ae.tagName||'-')+'\nih:'+window.innerHeight+' vvh:'+(v?Math.round(v.height):'-')+' vvTop:'+(v?Math.round(v.offsetTop):'-')+' sc:'+(v?v.scale.toFixed(2):'-')+'\nH0:'+H0+' appH:'+getComputedStyle(root).getPropertyValue('--appH')+' sh:'+screen.height+' est:'+KBEST;
+    }catch(e){}
+  }
+  function fit(){
+    try{ dbg();
       if(root.classList.contains('rot'))return;
       var vv0=window.visualViewport, ae=document.activeElement, typing=!!(ae&&/^(INPUT|TEXTAREA)$/.test(ae.tagName)&&!/^(file|checkbox|radio|button)$/.test(ae.type||'')), cur0=Math.min(window.innerHeight,vv0?vv0.height:1e9), por0=window.innerHeight>=window.innerWidth, sh0=Math.max(screen.height,screen.width);
       if(!typing){H0=Math.max(window.innerHeight,vv0?vv0.height:0,(por0&&sh0-window.innerHeight<=140)?sh0:0); root.classList.remove('kb'); KBEST=false;}
       if(typing&&H0&&por0&&(!vv0||Math.abs(vv0.scale-1)<0.05)){
-        if(H0-cur0>120){root.style.setProperty('--appH',Math.round(cur0)+'px'); root.style.setProperty('--appTop',Math.round(vv0?vv0.offsetTop:0)+'px'); root.classList.add('kb'); var ac0=document.activeElement; if(ac0&&ac0.scrollIntoView)try{ac0.scrollIntoView({block:'nearest'});}catch(e){} return;}
-        if(KBEST&&IOS){root.style.setProperty('--appH',Math.round(H0*0.45>0?H0-H0*0.45:H0)+'px'); root.style.setProperty('--appTop','0px'); root.classList.add('kb'); return;}
+        if(H0-cur0>120){try{localStorage.setItem('dutybuddy.kbh',String(Math.round(H0-cur0)));}catch(e){} MODE='vv'; root.style.setProperty('--appH',Math.round(cur0)+'px'); root.style.setProperty('--appTop',Math.round(vv0?vv0.offsetTop:0)+'px'); root.classList.add('kb'); var ac0=document.activeElement; if(ac0&&ac0.scrollIntoView)try{ac0.scrollIntoView({block:'nearest'});}catch(e){} return;}
+        var cmp=document.getElementById('composer'), vb=(vv0?vv0.offsetTop+vv0.height:window.innerHeight);
+        if(cmp){var cb2=cmp.getBoundingClientRect().bottom; if(cb2>vb+2&&cb2-vb<500){var nh=Math.round((parseFloat(getComputedStyle(root).getPropertyValue('--appH'))||H0)-(cb2-vb)); if(nh>200){MODE='geo'; root.style.setProperty('--appH',nh+'px'); root.classList.add('kb'); dbg(); return;}}}
+        if(KBEST&&IOS){var kh=0; try{kh=parseFloat(localStorage.getItem('dutybuddy.kbh'))||0;}catch(e){} if(!(kh>200&&kh<600))kh=Math.round(H0*0.45); MODE='est'; root.style.setProperty('--appH',Math.round(H0-kh)+'px'); root.style.setProperty('--appTop','0px'); root.classList.add('kb'); dbg(); return;}
       }
       var sa=(navigator.standalone===true)||(window.matchMedia&&matchMedia('(display-mode: standalone)').matches);
       if(!sa){root.style.removeProperty('--appH'); if(!(window.visualViewport&&window.innerHeight-window.visualViewport.height>120))root.style.removeProperty('--appTop');}
@@ -4015,8 +4026,8 @@ try{smartOn=localStorage.getItem('dutybuddy.smart')!=='0';}catch(e){}
     }catch(e){}
   }
   var kbT=[]; function kbClr(){kbT.forEach(clearTimeout); kbT=[];}
-  document.addEventListener('focusin',function(e){if(!/^(INPUT|TEXTAREA)$/.test((e.target&&e.target.tagName)||''))return; kbClr(); [30,150,350,650].forEach(function(t){kbT.push(setTimeout(fit,t));}); kbT.push(setTimeout(function(){var v=window.visualViewport; if(H0&&Math.min(window.innerHeight,v?v.height:1e9)>=H0-120){KBEST=true; fit();}},900));});
-  document.addEventListener('focusout',function(){kbClr(); KBEST=false; [60,300].forEach(function(t){kbT.push(setTimeout(fit,t));});});
+  document.addEventListener('focusin',function(e){if(!/^(INPUT|TEXTAREA)$/.test((e.target&&e.target.tagName)||''))return; kbClr(); [30,150,350,650,1200].forEach(function(t){kbT.push(setTimeout(fit,t));}); kbT.push(setTimeout(function(){var v=window.visualViewport; if(H0&&Math.min(window.innerHeight,v?v.height:1e9)>=H0-120){KBEST=true; fit();}},350));});
+  document.addEventListener('focusout',function(){kbClr(); KBEST=false; [60,300,900].forEach(function(t){kbT.push(setTimeout(fit,t));});});
   fit(); ['resize','orientationchange','pageshow'].forEach(function(t){window.addEventListener(t,function(){setTimeout(fit,60);});});
   document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')setTimeout(fit,60);});
   if(window.visualViewport){visualViewport.addEventListener('resize',fit); visualViewport.addEventListener('scroll',fit);}
@@ -4062,7 +4073,7 @@ try{smartOn=localStorage.getItem('dutybuddy.smart')!=='0';}catch(e){}
   }
   window.addEventListener('resize',apply); window.addEventListener('orientationchange',function(){setTimeout(apply,60);}); apply();
 })();
-var APPVER='d89eb88f';
+var APPVER='27725078';
 var KEYNAME='dutybuddy.apikey', inClaude=false;
 function storedKey(){try{return localStorage.getItem(KEYNAME)||'';}catch(e){return '';}}
 function keyOn(){try{return localStorage.getItem('dutybuddy.keyoff')!=='1';}catch(e){return true;}}
@@ -6921,6 +6932,7 @@ function renderSettings(){
     sBtns([[isMain()?'Change to phone':'Change to main computer',function(){$('mainBtn').click(); renderSettings();}]],body);
   } else if(v.name==='about'){
     sCard('Duty Buddy',['Version '+((typeof APPVER!=='undefined'&&APPVER!=='__'+'VER__')?APPVER:'web'),'Prototype. Stock lists and chats are saved in this browser only. Deleting the app icon from the home screen deletes this data, so back it up first (Settings, Backup and move data).','A photo leaves your phone only when Online mode is on.'],body);
+    (function(){var on=false; try{on=localStorage.getItem('dutybuddy.kbdbg')==='1';}catch(e){} var cd=el('div','scard'); cd.appendChild(el('h3',null,'Keyboard check')); cd.appendChild(el('p',null,'Turn this on, open a chat, tap the message box and take a screenshot. A small green strip shows what the phone reports, so I can see why the keyboard covers the box.')); cd.appendChild(mkBtn(on?'Turn off the keyboard check':'Turn on the keyboard check','ghost',function(){try{localStorage.setItem('dutybuddy.kbdbg',on?'0':'1');}catch(e){} try{window.__fitScreen&&window.__fitScreen();}catch(e){} renderSettings();})); body.appendChild(cd);})();
   }
 }
 function closeMenu(){$('menu').hidden=true; $('menuBtn').setAttribute('aria-expanded','false');}
