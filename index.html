@@ -3421,13 +3421,15 @@ function makeGeminiSample(key){
       var ps=[]; for(var i=0;i<opts.images.length;i++){ps.push({inline_data:{mime_type:opts.images[i].type||'image/jpeg',data:await b64(opts.images[i])}});}
       contents[contents.length-1].parts=ps.concat(contents[contents.length-1].parts);
     }
-    var list=MODELS[opts.modelTier||'default']||MODELS['default'], lastErr=null;
+    var list=(MODELS[opts.modelTier||'default']||MODELS['default']).slice(), lastErr=null;
+    list=list.concat(list.slice(0,2)); /* second round for busy servers */
     for(var mi=0;mi<list.length;mi++){
+      if(mi>0&&lastErr&&lastErr.status>=500)await new Promise(function(r){setTimeout(r,mi<3?700:2000);});
       var res;
       try{
         res=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+list[mi]+':generateContent',{method:'POST',signal:opts.signal,headers:{'content-type':'application/json','x-goog-api-key':key},body:JSON.stringify({contents:contents,generationConfig:{maxOutputTokens:8192}})});
       }catch(e){var er=new Error('network'); er.code=(e&&e.name==='AbortError')?'cancelled':'upstream_error'; throw er;}
-      if(res.status===404){lastErr=new Error('model '+list[mi]+' not found'); lastErr.code='upstream_error'; continue;}
+      if(res.status===404||res.status===429||res.status>=500){lastErr=new Error('gemini '+res.status+(res.status>=500?', Google is busy':res.status===429?', limit reached':', model not found')); lastErr.code=res.status===429?'rate_limited':'upstream_error'; lastErr.status=res.status; continue;}
       if(!res.ok){var e2=new Error('gemini '+res.status); e2.code=(res.status===401||res.status===403||res.status===400)?'not_granted':res.status===429?'rate_limited':'upstream_error'; throw e2;}
       var j=await res.json(), cd=(j.candidates||[])[0]||{};
       return {text:((cd.content&&cd.content.parts)||[]).map(function(x){return x.text||'';}).join(''),truncated:cd.finishReason==='MAX_TOKENS'};
