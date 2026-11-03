@@ -3387,6 +3387,7 @@ function push(id,m){var c=S.chats[id]; m.ts=Date.now(); c.msgs.push(m); if(m.fro
 function refreshChat(id){if(cur===id&&!$('chatView').hidden){renderMsgs(); renderHead(); renderChips();}}
 var smartOn=true, aiOff=false, samplePromise=null, KBHINT={};
 try{smartOn=localStorage.getItem('dutybuddy.smart')!=='0';}catch(e){}
+var APPVER='160df999';
 var KEYNAME='dutybuddy.apikey', inClaude=false;
 function storedKey(){try{return localStorage.getItem(KEYNAME)||'';}catch(e){return '';}}
 function keyOn(){try{return localStorage.getItem('dutybuddy.keyoff')!=='1';}catch(e){return true;}}
@@ -6062,7 +6063,7 @@ function keySheet(){
   var ov=el('div'); ov.style.cssText='position:fixed;inset:0;z-index:70;background:rgba(0,0,0,.5);display:flex;align-items:flex-end;justify-content:center';
   var sh=el('div'); sh.style.cssText='width:100%;max-width:480px;max-height:88%;overflow:auto;background:var(--surface);color:var(--ink);border-radius:18px 18px 0 0;padding:14px 14px calc(16px + env(safe-area-inset-bottom,0px))';
   function done(){ov.remove(); smartLabel();}
-  sh.appendChild(el('h3',null,'Online mode')).style.cssText='margin:2px 0 6px;font-size:17px';
+  sh.appendChild(el('h3',null,'Online mode')).style.cssText='margin:2px 0 6px;font-size:17px'; var vv=el('p',null,'App version: '+(typeof APPVER!=='undefined'&&APPVER!=='__'+'VER__'?APPVER:'web')); vv.style.cssText='margin:0 0 8px;font-size:12px;color:var(--muted)'; sh.appendChild(vv);
   [ 'The app always works without internet, with simple answers. With an API key and internet, answers become natural and photos of lists, invoices and labels can be read. Paste a Google Gemini key (starts with AIza or AQ., free from Google AI Studio) or an Anthropic key (starts with sk-ant-). You paste it once.',
     'With a free Google key, Google may use what you send to improve its products, so do not send anything confidential. A paid Anthropic key does not have that.',
     'The key is stored only on this phone. Usage is billed by Anthropic to the key owner, a few fils per question. Do not share the key and do not use a key with a high spending limit. Remove it any time.'].forEach(function(t){var p=el('p',null,t); p.style.cssText='margin:0 0 8px;font-size:14px;color:var(--muted)'; sh.appendChild(p);});
