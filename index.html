@@ -154,8 +154,15 @@ button{cursor:pointer}
 .chip:hover{background:var(--chip-on)}
 
 .composer{flex:none;display:flex;align-items:flex-end;gap:8px;background:var(--chat-bg);padding:6px var(--gr) max(5px,calc(var(--sab) - 28px)) var(--gl)}
-.field{flex:1;min-width:0;display:flex;align-items:flex-end;background:var(--surface);border-radius:24px;padding:2px 4px;min-height:48px}
+.field{flex:1;min-width:0;display:flex;flex-wrap:wrap;align-items:flex-end;background:var(--surface);border-radius:24px;padding:2px 4px;min-height:48px}
 .field .icon-btn{color:var(--muted)}
+#thumbs{order:-1;flex:0 0 100%;display:flex;gap:10px;overflow-x:auto;padding:10px 10px 4px;touch-action:pan-x}
+#thumbs[hidden]{display:none}
+#thumbs .th{position:relative;flex:none;width:56px;height:56px}
+#thumbs .th img{width:56px;height:56px;object-fit:cover;border-radius:10px;border:1px solid var(--line);display:block}
+#thumbs .th button{position:absolute;top:-6px;right:-6px;width:22px;height:22px;border-radius:11px;border:0;background:var(--ink);color:var(--surface);font-size:14px;line-height:1;padding:0}
+#thumbs .cnt{flex:none;align-self:center;font-size:12px;color:var(--muted);padding-right:6px}
+html{background:var(--outer)}
 .field textarea{flex:1;min-width:0;border:0;outline:0;resize:none;background:transparent;font-size:16px;line-height:1.35;padding:12px 4px;max-height:120px}
 .field textarea::placeholder{color:var(--muted);opacity:1}
 .field:focus-within{outline:2px solid var(--focus)}
@@ -385,13 +392,14 @@ input,textarea,[contenteditable]{-webkit-user-select:text;user-select:text}
         <button id="attachBtn" class="icon-btn" type="button" aria-label="Send a photo or a file">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8.5A1.5 1.5 0 0 1 5.5 7h2l1.2-2h6.6l1.2 2h2A1.5 1.5 0 0 1 20 8.5v9a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 17.5z"/><circle cx="12" cy="13" r="3.4"/></svg>
         </button>
+        <div id="thumbs" hidden></div>
         <label class="sr" for="text">Message</label>
         <textarea id="text" rows="1" placeholder="Message"></textarea>
         <button id="micBtn" class="icon-btn" type="button" aria-label="Dictate by voice">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/></svg>
         </button>
       </div>
-      <input id="file" type="file" accept=".csv,.tsv,.txt,.md,.xlsx,.xls,.ods,.pdf,.heic,.heif,image/*,text/plain,text/csv" hidden>
+      <input id="file" type="file" multiple accept=".csv,.tsv,.txt,.md,.xlsx,.xls,.ods,.pdf,.heic,.heif,image/*,text/plain,text/csv" hidden>
       <button class="send" type="submit" aria-label="Send">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12 20 4l-4 16-4.5-6.5z"/><path d="m11.5 13.5 4.5-6"/></svg>
       </button>
@@ -1016,11 +1024,12 @@ function stripUnit(s){
 }
 function parsePiece(s,allowComma){
   s=s.trim().replace(/^[\-\u2022*]\s+/,'').trim(); var m;
+  if((m=s.match(/^(\d+(?:\.\d+)?)\s+(\d{5,})$/)))return {name:m[2],qty:parseFloat(m[1]),kind:'lead'};
   if((m=s.match(/^(.+?)\s*[:=]\s*(\d+(?:\.\d+)?)\b.*$/)))return {name:m[1].trim(),qty:parseFloat(m[2]),kind:'sep'};
   if((m=s.match(/^(.+?)\s+(?:x|\u00d7|-|\u2013)\s*(\d+(?:\.\d+)?)$/i)))return {name:m[1].trim(),qty:parseFloat(m[2]),kind:'sep'};
   if(allowComma&&(m=s.match(/^(.+?)\s*,\s*(\d+(?:\.\d+)?)\s*[A-Za-z]*$/)))return {name:m[1].trim(),qty:parseFloat(m[2]),kind:'sep'};
   if((m=s.match(/^(\d+(?:\.\d+)?)\s*(?:x|\u00d7)?\s*(?:pcs?|units?|portions?)?\s*(?:of\s+)?([A-Za-z].*)$/i)))return {name:m[2].trim(),qty:parseFloat(m[1]),kind:'lead'};
-  if((m=s.match(/^(.+?)\s+(\d+(?:\.\d+)?)$/))&&!isYear(m[2]))return {name:m[1].trim(),qty:parseFloat(m[2]),kind:'trail'};
+  if((m=s.match(/^(.+?)\s+(\d{1,5}(?:\.\d+)?)$/))&&!isYear(m[2]))return {name:m[1].trim(),qty:parseFloat(m[2]),kind:'trail'};
   return {name:s,qty:null,kind:'none'};
 }
 function isQuestion(s){return /\?/.test(s)||/^\s*(how|what|which|do|does|did|is|are|show|list|any|can|where|tell)\b/i.test(s);}
@@ -1288,6 +1297,7 @@ function scoreName(q,n,W){
   function near(t,arr){
     if(arr.indexOf(t)>-1)return 1;
     if(t.length>=4&&arr.some(function(u){return u.length>=4&&(u.indexOf(t)===0||t.indexOf(u)===0);}))return 0.8;
+    if(t.length>=5&&arr.some(function(u){return u.length>=5&&Math.abs(u.length-t.length)<=1&&lev(t,u)<=1;}))return 0.75;
     return 0;
   }
   var ta=0, ha=0, tb=0, hb=0;
@@ -1499,6 +1509,8 @@ function doUndo(a,c){
   return {text:'Undone. Stock is back to '+num(t)+' '+plural(a,t)+'.'};
 }
 function doChange(a,c,text,mode){
+  (function(){var m=String(text).trim().match(/^([^\n]*?\S)\s+(add(?:ed)?|received?|delivered|restock(?:ed)?|arrived|sold|used|served|consumed|wasted|removed?)\b[:\s]*(\d+(?:[.,]\d+)?)?\s*(?:bottles?|btls?|glass(?:es)?|gls?)?\s*(?:(?:to|in|into|from|out of|off)\s+)?(?:the\s+)?(?:stock)?\s*$/i);
+    if(m&&!/^(?:add|added|received?|delivery|delivered|restock|arrived|sold|sales?|used|served|consumed|wasted|removed?)\b/i.test(m[1])&&/[a-z]{2}/i.test(m[1])){text=m[2]+' '+(m[3]||1)+' '+m[1];}})();
   var vre=mode==='sub'?/^[^\n]*?\b(?:sold|sales?|used|served|consumed|wasted|removed?)\b[:\s\-]*/i:/^[^\n]*?\b(?:add(?:ed)?|received?|delivery|delivered|restock(?:ed)?|arrived)\b[:\s\-]*/i;
   var body=text.replace(vre,'').replace(/^\s*(?:in|into|to|from|out of|off|the)?\s*(?:the\s+)?stock\b[:\s\-]*/i,''), multi=/\n/.test(body.trim());
   var pieces=(multi?body.split(/\n+/):body.split(/[\n,;]+|\s+&\s+|\s+and\s+/i)).map(function(s){return s.trim();}).filter(Boolean);
@@ -2133,14 +2145,39 @@ async function sendAnyFile(file){
   var out=fileRoute(a,c,text,nm,ft.note||''); out.forEach(function(m){m.from='bot'; push(id,m);}); save(); refreshChat(id); renderList();
 }
 /* ---------- photo with a note ---------- */
-var pendPhoto=null;
+var pendPhoto=null, pendList=[];
 function setPendPhoto(f){
-  pendPhoto=f||null; var b=$('pendBar'); if(!b)return; b.textContent='';
-  if(!pendPhoto){b.hidden=true; $('text').placeholder='Message'; return;}
-  var im=el('img'); im.src=URL.createObjectURL(f); im.alt='Photo to send';
-  var t=el('span',null,'Add a note, then tap send. For example: “delivery from Pacific”, “sold today” or “cost list”.');
-  var x=el('button',null,'\u00d7'); x.type='button'; x.setAttribute('aria-label','Remove photo'); x.addEventListener('click',function(){setPendPhoto(null);});
-  b.appendChild(im); b.appendChild(t); b.appendChild(x); b.hidden=false; $('text').placeholder='Add a note (optional)'; try{$('text').focus();}catch(e){}
+  if(!f){pendList=[]; } else if(pendList.length<10){pendList.push(f);} else toast('Up to 10 pictures at a time.');
+  pendPhoto=pendList[0]||null; renderThumbs();
+}
+function renderThumbs(){
+  var b=$('thumbs'); if(!b)return; b.textContent=''; var pb=$('pendBar'); if(pb)pb.hidden=true;
+  if(!pendList.length){b.hidden=true; $('text').placeholder='Message'; return;}
+  pendList.forEach(function(f,i){
+    var w=el('div','th'), im=el('img'); im.src=URL.createObjectURL(f); im.alt='Picture '+(i+1); var x=el('button',null,'\u00d7'); x.type='button'; x.setAttribute('aria-label','Remove picture '+(i+1));
+    x.addEventListener('click',function(){pendList.splice(i,1); pendPhoto=pendList[0]||null; renderThumbs();}); w.appendChild(im); w.appendChild(x); b.appendChild(w);
+  });
+  if(pendList.length>1)b.appendChild(el('div','cnt',pendList.length+' photos'));
+  b.hidden=false; $('text').placeholder=pendList.length>1?'Note for all':'Add a note'; try{$('text').focus();}catch(e){}
+}
+function waitBotIdle(id,startLen){
+  return new Promise(function(res){
+    var t0=Date.now(), quiet=0;
+    (function tick(){
+      var c=S.chats[id], n=c?c.msgs.length:0, last=n?c.msgs[n-1]:null;
+      if(n>startLen&&last&&last.from==='bot'&&!typingEl){quiet+=400; if(quiet>=1600){res(); return;}} else quiet=0;
+      if(Date.now()-t0>90000){res(); return;}
+      setTimeout(tick,400);
+    })();
+  });
+}
+async function sendPendList(id,note){
+  var list=pendList.slice(); pendList=[]; pendPhoto=null; renderThumbs();
+  for(var i=0;i<list.length;i++){
+    if(cur!==id)break; var c=S.chats[id], n0=c.msgs.length;
+    sendPhoto(list[i],(list.length>1?'('+(i+1)+'/'+list.length+') ':'')+note);
+    if(i<list.length-1)await waitBotIdle(id,n0+1);
+  }
 }
 window.addEventListener('hashchange',function(){setPendPhoto(null);});
 function noteKind(n){
@@ -2235,12 +2272,18 @@ function dymRef(it){return it.code||it.name;}
 function suggestCmds(a,c,text){
   var low=String(text).toLowerCase(), words=low.split(/[^a-z0-9\u00e7\u011f\u0131\u00f6\u015f\u00fc]+/).filter(Boolean), out=[];
   function add(x){if(x&&out.indexOf(x)<0)out.push(x);}
-  var nm=low.match(/(\d+(?:[.,]\d+)?)\s*(?:aed|dirhams?|dhs?)?\s*$/)||low.match(/\b(\d+(?:[.,]\d+)?)\b/), num0=nm?nm[1].replace(',','.'):'';
+  var lowN=low.replace(/\b\d+\s*(?:ml|cl|l)\b/g,' ').replace(/\b(?:187|375|750|1500|3000)\b/g,' ').replace(/\b\d{5,}\b/g,' '), nm=lowN.match(/\b(?:add|added|sold|sell|received?|wasted|delivery)\s+(\d+(?:[.,]\d+)?)\b/)||lowN.match(/\b(\d+(?:[.,]\d+)?)\s+(?:bottles?|btls?|to\b|in\b)/)||lowN.match(/(\d+(?:[.,]\d+)?)\s*(?:aed|dirhams?|dhs?)?\s*$/)||lowN.match(/\b(\d+(?:[.,]\d+)?)\b/), num0=nm?nm[1].replace(',','.'):'';
   var cands=[], cl=codeLookup(c.inv,text); cl.forEach(function(i){cands.push(i);});
-  if(!cands.length&&c.inv.length){var cw=contentWords(text).filter(function(w){return !DYMV.sold.split(' ').concat(DYMV.add.split(' '),DYMV.waste.split(' '),DYMV.cost.split(' '),DYMV.update.split(' ')).some(function(v){return v===w;});}).join(' '); if(cw){rankMatches(c.inv,cw,idfWeights(c.inv),2).forEach(function(x){cands.push(x.it);});}}
-  var it=cands[0], ref=it?dymRef(it):'', hasN=/^\d+(\.\d+)?$/.test(num0)&&!(it&&it.code&&normCode(it.code)===num0), q=hasN?num0:'1';
+  if(!cands.length&&c.inv.length){var cw=contentWords(lowN).filter(function(w){return !DYMV.sold.split(' ').concat(DYMV.add.split(' '),DYMV.waste.split(' '),DYMV.cost.split(' '),DYMV.update.split(' ')).some(function(v){return v===w;});}).join(' '); if(cw){rankMatches(c.inv,cw,idfWeights(c.inv),3).forEach(function(x){cands.push(x.it);});}}
+  var byName=!cl.length&&cands.length>0, it=cands[0], ref=it?dymRef(it):'', hasN=/^\d+(\.\d+)?$/.test(num0)&&!(it&&it.code&&normCode(it.code)===num0), q=hasN?num0:'1';
   var isS=dymHas(words,'sold'), isA=dymHas(words,'add'), isW=dymHas(words,'waste'), isC=a.pour>0&&dymHas(words,'cost'), isU=dymHas(words,'update');
   if(isC&&isU&&!it)add('price and cost update');
+  if(byName&&(dymHas(words,'sold')||dymHas(words,'add')||dymHas(words,'waste'))&&!(a.pour>0&&dymHas(words,'cost'))){
+    var vb=dymHas(words,'sold')?'Sold':dymHas(words,'waste')?'Wasted':'Add';
+    cands.slice(0,3).forEach(function(ci){var lb=ci.name+(ci.code?' ('+ci.code+')':''); out.push({label:lb,text:'Choose amount: '+vb.toLowerCase()+' '+dymRef(ci)});});
+    if(hasN)c.pendQty={verb:vb,ref:dymRef(cands[0]),q:num0}; else c.pendQty=null;
+    return out;
+  }
   if(it){
     if(isC)add(hasN?'Set cost of '+ref+' to '+num0:'What is the cost of '+ref+'?');
     if(isW)add('Wasted '+q+' '+ref);
@@ -2638,6 +2681,15 @@ function respond(id,text){
   var a=byId[id], c=S.chats[id];
   var lines=text.split(/\n+/).map(function(s){return s.trim();}).filter(Boolean);
   var first=lines[0]||'';
+  var pq=c.pendQty; c.pendQty=null;
+  if(pq&&/^\d+(?:[.,]\d+)?$/.test(first))return respond(id,pq.verb+' '+first.replace(',','.')+' '+pq.ref);
+  var qm=first.match(/^choose amount: (add|sold|wasted) (.+)$/i);
+  if(qm){
+    var ref=qm[2].trim(), verb=qm[1][0].toUpperCase()+qm[1].slice(1).toLowerCase(), it0=(c.inv||[]).filter(function(i){return (i.code&&i.code===ref)||i.name===ref;})[0], qs=[];
+    if(pq&&pq.q)qs.push(pq.q); [1,2,3,6,12].forEach(function(n){if(qs.indexOf(String(n))<0)qs.push(String(n));});
+    c.pendQty={verb:verb,ref:ref,q:pq&&pq.q};
+    return [{text:'How many for '+(it0?it0.name+(it0.code?' ('+it0.code+')':''):ref)+'? Tap an amount, or type any number.',sug:qs.slice(0,6).map(function(n){return {label:verb+' '+n,text:verb+' '+n+' '+ref};})}];
+  }
   if(/^(undo|revert)\b/i.test(first))return [doUndo(a,c)];
   if(/^(help|commands|what can you do)\b/i.test(first)||first==='?')return [helpMsg(a,c)];
   var fu1=handleFileUse(a,c,text); if(fu1)return fu1;
@@ -3822,7 +3874,7 @@ try{smartOn=localStorage.getItem('dutybuddy.smart')!=='0';}catch(e){}
   }
   window.addEventListener('resize',apply); window.addEventListener('orientationchange',function(){setTimeout(apply,60);}); apply();
 })();
-var APPVER='71e3ed77';
+var APPVER='c4d4b23d';
 var KEYNAME='dutybuddy.apikey', inClaude=false;
 function storedKey(){try{return localStorage.getItem(KEYNAME)||'';}catch(e){return '';}}
 function keyOn(){try{return localStorage.getItem('dutybuddy.keyoff')!=='1';}catch(e){return true;}}
@@ -6594,13 +6646,13 @@ function route(){
   else if(h==='team'||byId[h])openChat(h);
   else showList();
 }
-$('composer').addEventListener('submit',function(e){e.preventDefault(); var ta=$('text'); var v=ta.value; ta.value=''; grow(); if(pendPhoto){var pf=pendPhoto; setPendPhoto(null); sendPhoto(pf,v.trim()); return;} send(v);});
+$('composer').addEventListener('submit',function(e){e.preventDefault(); var ta=$('text'); var v=ta.value; ta.value=''; grow(); if(pendList.length){sendPendList(cur,v.trim()); return;} send(v);});
 $('text').addEventListener('input',grow);
 $('text').addEventListener('keydown',function(e){
   if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing){e.preventDefault(); if($('composer').requestSubmit)$('composer').requestSubmit(); else $('composer').dispatchEvent(new Event('submit',{cancelable:true}));}
 });
 $('attachBtn').addEventListener('click',function(){$('file').click();});
-$('file').addEventListener('change',function(){var f=this.files&&this.files[0]; this.value=''; if(f)sendAnyFile(f);});
+$('file').addEventListener('change',async function(){var fs=Array.prototype.slice.call(this.files||[]); this.value=''; for(var i=0;i<fs.length;i++){await sendAnyFile(fs[i]);}});
 $('micBtn').addEventListener('click',function(){
   $('text').focus();
   toast('Tap the microphone key on your keyboard and speak. Your words appear in the box, so you can fix them before sending.');
