@@ -281,7 +281,7 @@ button{cursor:pointer}
 <div id="app">
   <section id="listView" class="view" aria-label="Assistants">
     <div id="menu" class="menu" hidden>
-      <p>Prototype. Stock lists and chats are saved in this browser only. A photo leaves this page only when you tap “Read with Claude”.</p>
+      <p>Prototype. Stock lists and chats are saved in this browser only. A photo leaves your phone only if you turned on Online mode.</p>
       <button id="smartBtn" class="btn ghost" type="button">Smart replies</button>
       <button id="keyBtn" class="btn ghost" type="button" hidden>Online mode</button>
       <p id="syncInfo">Sync: starting</p>
@@ -300,7 +300,7 @@ button{cursor:pointer}
     <div id="syncBar" style="display:none;margin:2px var(--gr) 0 var(--gl);padding:6px 10px;border-radius:10px;font-size:12px;background:var(--soft);color:var(--muted)"></div>
     <div class="note">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
-      Prototype · stays in this browser. Only “Read with Claude” sends a photo online
+      Prototype · stays in this browser. A photo goes online only in Online mode
     </div>
     <ul id="chatList" class="chat-list"></ul>
     </div>
@@ -2053,9 +2053,31 @@ async function sendAnyFile(file){
   if(!text){push(id,{from:'bot',text:'“'+nm+'” is empty, or I could not find any text in it.'}); save(); refreshChat(id); return;}
   var out=fileRoute(a,c,text,nm,ft.note||''); out.forEach(function(m){m.from='bot'; push(id,m);}); save(); refreshChat(id); renderList();
 }
+/* ---------- free offline picture reader (Tesseract, runs on the phone) ---------- */
+var TESSL='https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';
+async function ocrText(file){
+  await loadLib(TESSL);
+  if(!window.Tesseract)throw new Error('ocr');
+  var blob=await toJpeg(file);
+  var r=await window.Tesseract.recognize(blob,'eng');
+  return String((r&&r.data&&r.data.text)||'').replace(/[ \t]+\n/g,'\n').replace(/\n{3,}/g,'\n\n').trim();
+}
+var OCRWARN='I read it with the phone\u2019s own text reader, which can mistake a digit or a name, so please check the lines. ';
+async function ocrPhotoFlow(id,file){
+  var a=byId[id], c=S.chats[id], t='';
+  push(id,{from:'bot',text:'Reading the picture on your phone. The first time it downloads a small reader, so keep the internet on for a moment.'}); save(); refreshChat(id); showTyping();
+  try{t=await ocrText(file);}catch(e){hideTyping(); push(id,{from:'bot',text:'I could not start the picture reader. The first time it needs the internet. You can also type or paste the text.'}); save(); refreshChat(id); return;}
+  hideTyping();
+  if(t.replace(/\s/g,'').length<8){push(id,{from:'bot',text:'I could not find any text in that picture. Try a flatter, brighter photo, one page at a time.'}); save(); refreshChat(id); return;}
+  var out=fileRoute(a,c,t,'your photo',OCRWARN); out.forEach(function(m){m.from='bot'; push(id,m);}); save(); refreshChat(id); renderList();
+}
+function photoOrOcr(id,file){
+  getSample().catch(function(){return null;}).then(function(sm){
+    if(sm&&(byId[id].pour>0||byId[id].stock))invoiceFlow(id,file); else ocrPhotoFlow(id,file);
+  });
+}
 function sendPhotoQuiet(file){
-  var id=cur, c=S.chats[id]; if(byId[id].pour>0||byId[id].stock){invoiceFlow(id,file); return;}
-  hideTyping(); push(id,{from:'bot',text:'I can read photos of stock lists and invoices. For this assistant, please type or paste the text.'}); save(); refreshChat(id);
+  var id=cur; photoOrOcr(id,file);
 }
 function fileRoute(a,c,text,nm,note){
   if(a.id==='omar'){
@@ -2855,7 +2877,7 @@ async function kbDetail(o,d){
   try{
     var sample=null; try{sample=await getSample();}catch(e){}
     var lim=null; if(sample){try{lim=await sample.limits();}catch(e){}}
-    if(!sample||!lim||!lim.images){d.detNote='Detailed check needs Claude online. Open this app inside Claude and it will continue.'; kbBarUpdate(); return;}
+    if(!sample||!lim||!lim.images){d.detNote='Detailed check needs Online mode (menu, Online mode, add your Anthropic key).'; kbBarUpdate(); return;}
     d.detNote='';
     var todo=d.pgs.filter(function(x){return !x.det&&!x.nodet;}).sort(function(a,b){return a.p-b.p;}), n=0; CAPSTAT[d.id]={n:0,total:todo.length,label:'checking pages'};
     for(var i=0;i<todo.length;i++){
@@ -3505,7 +3527,7 @@ function sendPhoto(file){
   push(id,{from:'me',text:'',img:url,photo:true}); save(); renderMsgs(); showTyping();
   if(byId[id].seating){rsvPhotoFlow(id,file); return;}
   if(id==='karim'){cvFlow(id,file); return;} if(id==='leo'){gisFlow(id,file); return;} if(id==='victor'){salesPhotoFlow(id,file); return;}
-  if(byId[id].pour>0||byId[id].stock){invoiceFlow(id,file); return;}
+  photoOrOcr(id,file); return;
   setTimeout(function(){
     hideTyping();
     var it=c.inv[0], ex=it?(byId[id].pour?'Sold 5 glasses '+(it.code||short(it.name)):'Sold 3 '+(it.code||short(it.name))):'Sold 3 House Red';
@@ -3518,7 +3540,7 @@ function sendPhoto(file){
 var INVPROMPT='You read a photo of a restaurant document. Decide what it is. The first line is exactly one of:\nTYPE: delivery (a supplier invoice or delivery note: stock coming in)\nTYPE: sales (a sales or items-sold report: stock going out)\nTYPE: unknown\nTYPE: label (a photo of a wine bottle or a wine label, with no quantities; write nothing else)\nTYPE: other (not about drinks)\nThen, only if printed, one line PO: with the purchase order, picklist or invoice number (digits as printed, for example PO: 01386199), and one line DATE: with the document date as YYYY-MM-DD. Dates on these documents are month/day/year, so 10/30/2026 is DATE: 2026-10-30. Skip a line that is not printed.\nThen one line per wine, champagne, sake, spirit or other drink item, exactly like this: code|name|qty\nOn a pick list the Item column reads “code - description”: the code is the number before the dash. The quantity is the number picked next to the unit (EACH 6 gives 6, BOTTLES2 gives 2, BOTTLES 12 gives 12). Ignore handwritten notes such as W-37, circles, signatures and stamps.\n- code: the item code if one is printed, otherwise leave it empty.\n- name: copy the description exactly as printed. Do not correct, translate or shorten it.\n- qty: the quantity delivered or sold, in bottles or units, digits only (a decimal point is allowed). If you cannot read it, write ?.\nSkip food, totals, taxes, dates and headers. Write nothing else.';
 async function readInvoice(file){
   var sample=null; try{sample=await getSample();}catch(e){sample=null;}
-  if(!sample)return {err:'Reading pictures needs Claude online, which is not available in this view. You can type it instead, for example “Add 12 Sancerre” or “Sold 3 Sancerre”.'};
+  if(!sample)return {err:'Reading pictures needs Online mode. Open the menu (three dots), tap Online mode and add your Anthropic key. Until then, type or paste the text.'};
   var lim=null; try{lim=await sample.limits();}catch(e){lim=null;}
   if(!lim||!lim.images)return {err:ERR.images_unavailable||'Pictures cannot be read in this view.'};
   var blob=await toJpeg(file), o={cache:false,images:[blob],effort:'high'}; if((lim.modelTiers||[]).indexOf('complex')>-1)o.modelTier='complex';
@@ -3577,7 +3599,7 @@ function invMerge(passes,partial){
 }
 async function imgSetup(file){
   var sample=null; try{sample=await getSample();}catch(e){sample=null;}
-  if(!sample)return {err:'Reading pictures needs Claude online, which is not available in this view. Type the details instead.'};
+  if(!sample)return {err:'Reading pictures needs Online mode. Open the menu (three dots), tap Online mode and add your Anthropic key. Until then, type or paste the text.'};
   var lim=null; try{lim=await sample.limits();}catch(e){lim=null;}
   if(!lim||!lim.images)return {err:ERR.images_unavailable||'Pictures cannot be read in this view.'};
   var blob=await toJpeg(file), o={cache:false,images:[blob],effort:'high'}; if((lim.modelTiers||[]).indexOf('complex')>-1)o.modelTier='complex';
@@ -4171,8 +4193,8 @@ function makeReader(cfg){
     rd.textContent='';
     if(!pend.length)return;
     var th=el('div','thumbs'); pend.forEach(function(b){var im=el('img'); im.src=URL.createObjectURL(b.blob); im.alt='Page to read'; th.appendChild(im);}); rd.appendChild(th);
-    rd.appendChild(el('p',null,pend.length+(pend.length===1?' page':' pages')+' ready. Tip: one page per photo, flat, in good light, filling the frame. Only pictures and scanned PDFs are sent to Claude online. CSV, Excel and PDFs with text are read on your device.'));
-    var b2=el('div','btns'), rb=mkBtn(busy?'Reading...':'Read with Claude (online)','',read); rb.disabled=busy; b2.appendChild(rb);
+    rd.appendChild(el('p',null,pend.length+(pend.length===1?' page':' pages')+' ready. Tip: one page per photo, flat, in good light, filling the frame. Pictures and scanned PDFs are read on your phone, or by Claude if you turned on Online mode. CSV, Excel and PDFs with text are read on your device.'));
+    var b2=el('div','btns'), rb=mkBtn(busy?'Reading...':'Read the picture','',read); rb.disabled=busy; b2.appendChild(rb);
     if(busy)b2.appendChild(mkBtn('Stop','ghost',function(){if(ctl)ctl.abort();}));
     else b2.appendChild(mkBtn('Clear pages','ghost',function(){pend=[]; render();}));
     rd.appendChild(b2);
@@ -4181,7 +4203,14 @@ function makeReader(cfg){
     if(busy||!pend.length)return;
     var sample=null;
     try{sample=await getSample();}catch(e){sample=null;}
-    if(!sample){toast('Reading pictures needs Claude online, which is not available in this view. Paste lines or choose a CSV or Excel file instead.'); return;}
+    if(!sample){
+      busy=true; render(); var otx=[];
+      try{for(var oi=0;oi<pend.length;oi++){toast('Reading page '+(oi+1)+' of '+pend.length+' on your phone...'); otx.push(await ocrText(pend[oi].blob));}}
+      catch(oe){busy=false; render(); toast('I could not start the picture reader. The first time it needs the internet.'); return;}
+      busy=false; var oall=otx.join('\n').trim(); pend=[];
+      if(oall.replace(/\s/g,'').length>=8)cfg.onText(oall,{layout:false,title:lastName,note:OCRWARN}); else toast('I could not find text in the pictures. Try clearer photos.');
+      render(); return;
+    }
     var lim=null; try{lim=await sample.limits();}catch(e){lim=null;}
     if(!lim||!lim.images){toast(ERR.images_unavailable); return;}
     var mx=Math.max(1,Math.min(2,lim.images.maxCount||2)), all=[], got=[], notes='', failed=false;
@@ -4240,10 +4269,10 @@ function makeReader(cfg){
         toast('Reading the PDF...');
         var pr=await pdfRead(f);
         if(pr.text)emit(pr.text,{layout:true,title:nmx,note:pr.pages>12?'Read the first 12 pages. ':''});
-        else{lastName=nmx; pend=pend.concat(pr.scanned.map(function(b){return {blob:b};})); render(); toast('This PDF is a scan, so there is no text to copy. Tap Read with Claude to read the pages.');}
+        else{lastName=nmx; pend=pend.concat(pr.scanned.map(function(b){return {blob:b};})); render(); toast('This PDF is a scan, so there is no text to copy. Tap Read the picture to read the pages.');}
       }else if(ty.indexOf('image/')===0||/^(heic|heif|tif|tiff|jpg|jpeg|png|webp|gif)$/.test(ext)){
         var jb=await toJpeg(f); lastName=nmx; pend.push({blob:jb}); render();
-        toast('Picture ready. Add more pages if you have them, then tap Read with Claude.');
+        toast('Picture ready. Add more pages if you have them, then tap Read the picture.');
       }else{toast('I cannot read this kind of file. Use CSV, Excel, PDF or a picture.');}
     }catch(e){
       if(/heic|heif/.test(ext))toast('This browser cannot open HEIC. Open the page in Safari on iPhone, or share the photo as JPEG.');
@@ -5168,7 +5197,7 @@ function renderSeating(id){
         var f=fi.files&&fi.files[0]; fi.value=''; if(!f)return; pv.textContent='Reading the picture …'; seatBusy=true;
         var sample=null; try{sample=await getSample();}catch(e){}
         try{
-          if(!sample)throw {message:'Reading pictures needs Claude online. Paste the list instead.'};
+          if(!sample){var ot2=await ocrText(f); ta.value=ot2; pv.textContent='Read '+parseRsv(ta.value).length+' bookings with the phone reader. Check the lines, then tap Use this list.'; seatBusy=false; return;}
           var lim=await sample.limits(); if(!lim||!lim.images)throw {message:ERR.images_unavailable};
           var blob=await toJpeg(f), o={cache:false,images:[blob],effort:'high'}; if((lim.modelTiers||[]).indexOf('complex')>-1)o.modelTier='complex';
           var r=await sample(RSVPROMPT,o); ta.value=String(r.text||'').replace(/```[a-z]*/gi,'').trim(); pv.textContent='Read '+parseRsv(ta.value).length+' bookings. Check the lines, then tap Use this list.';
@@ -5604,7 +5633,7 @@ function hrBlock(c,text){
 /* ---------- shared: image reading, print ---------- */
 async function readImg(file,prompt){
   var sample=null; try{sample=await getSample();}catch(e){sample=null;}
-  if(!sample)return {err:'Reading pictures needs Claude online, which is not available in this view.'};
+  if(!sample){try{var ot=await ocrText(file); if(ot.replace(/\s/g,'').length>=8)return {text:ot};}catch(e){} return {err:'I could not read that picture. The first time the phone reader needs the internet. You can also type or paste the text.'};}
   try{var lim=await sample.limits(); if(!lim||!lim.images)return {err:ERR.images_unavailable};
     var blob=await toJpeg(file), o={cache:false,images:[blob],effort:'high'}; if((lim.modelTiers||[]).indexOf('complex')>-1)o.modelTier='complex';
     var r=await sample(prompt,o); return {text:String(r.text||'').replace(/```[a-z]*/gi,'').replace(/\*\*/g,'').trim()};
