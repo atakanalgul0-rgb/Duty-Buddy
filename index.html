@@ -3717,7 +3717,7 @@ try{smartOn=localStorage.getItem('dutybuddy.smart')!=='0';}catch(e){}
   }
   window.addEventListener('resize',apply); window.addEventListener('orientationchange',function(){setTimeout(apply,60);}); apply();
 })();
-var APPVER='84a0136c';
+var APPVER='f6003655';
 var KEYNAME='dutybuddy.apikey', inClaude=false;
 function storedKey(){try{return localStorage.getItem(KEYNAME)||'';}catch(e){return '';}}
 function keyOn(){try{return localStorage.getItem('dutybuddy.keyoff')!=='1';}catch(e){return true;}}
@@ -3777,12 +3777,22 @@ function makeSampleFor(k){
   var fn=async function(i,o){try{return await inner(i,o);}catch(e){LASTAIERR=(e&&e.code!=='cancelled'&&e.message)||''; throw e;}};
   fn.limits=inner.limits; return fn;
 }
+/* ---- optional on-device AI (experimental, removable: toggle off or delete localai.js) ---- */
+function localOn(){try{return localStorage.getItem('dutybuddy.localai')==='1';}catch(e){return false;}}
+function setLocalOn(v){try{localStorage.setItem('dutybuddy.localai',v?'1':'0');}catch(e){} samplePromise=null;}
+function loadLocalLib(){return new Promise(function(res,rej){if(window.DBLocalAI)return res(window.DBLocalAI); var sc=document.createElement('script'); sc.src='localai.js'; sc.onload=function(){window.DBLocalAI?res(window.DBLocalAI):rej(new Error('missing'));}; sc.onerror=function(){rej(new Error('missing'));}; document.head.appendChild(sc);});}
+function makeLocalSample(){
+  var fn=async function(i,o){var L=await loadLocalLib(); try{return {text:await L.ask(i,o),truncated:false};}catch(e){LASTAIERR='on-device: '+(e&&e.message||'error'); throw e;}};
+  fn.limits=async function(){return {images:false,modelTiers:[]};}; return fn;
+}
 function getSample(){
   if(!samplePromise)samplePromise=(async function(){try{return window.claude&&window.claude.use?await window.claude.use('sample'):null;}catch(e){return null;}})();
   return samplePromise.then(function(s0){
     if(s0){inClaude=true; return s0;}
-    if(typeof navigator!=='undefined'&&navigator.onLine===false)return null;
-    var k=apiKey(); return k?makeSampleFor(k):null;
+    var off=typeof navigator!=='undefined'&&navigator.onLine===false, k=apiKey();
+    if(!off&&k)return makeSampleFor(k);
+    if(localOn())return makeLocalSample();
+    return null;
   });
 }
 async function callAI(sample,id,text,teamNote){
@@ -6418,6 +6428,27 @@ function keySheet(){
   }));
   b.appendChild(mkBtn('Remove key','ghost sm',function(){try{localStorage.removeItem(KEYNAME);}catch(e){} ki.value=''; samplePromise=null; msg.textContent='Removed. The app works offline only.';}));
   b.appendChild(mkBtn('Close','ghost sm',done)); sh.appendChild(b);
+  (function(){
+    var hr=el('div'); hr.style.cssText='border-top:1px solid var(--line);margin:14px 0 8px'; sh.appendChild(hr);
+    sh.appendChild(el('h3',null,'On-device AI (experimental)')).style.cssText='margin:2px 0 6px;font-size:16px';
+    var t=el('p',null,'A small AI that runs on this phone, so it can answer simple questions from your books with no internet and nothing leaves the phone. It downloads about 1 GB once (use Wi-Fi). It is much weaker than Claude or Gemini and cannot read photos. If you do not like it, tap Remove and it is gone; the rest of the app is not affected.'); t.style.cssText='margin:0 0 8px;font-size:14px;color:var(--muted)'; sh.appendChild(t);
+    var lm=el('p',null,''); lm.style.cssText='margin:6px 0;font-size:13.5px'; sh.appendChild(lm);
+    var lb=el('div','btns'); sh.appendChild(lb);
+    function draw(){
+      lb.textContent=''; lm.textContent='Status: '+(localOn()?'ON':'OFF');
+      lb.appendChild(mkBtn(localOn()?'Turn off':'Download and turn on','',async function(){
+        if(localOn()){setLocalOn(false); draw(); return;}
+        try{var L=await loadLocalLib();}catch(e){lm.textContent='The on-device AI file (localai.js) is not installed. Upload it to GitHub next to index.html.'; return;}
+        if(!L.supported()){lm.textContent='This iPhone cannot run it (needs WebGPU, iOS 26 or newer in Safari).'; return;}
+        lm.textContent='Starting download…';
+        try{await L.load(function(tx,pr){lm.textContent=(pr!==null?Math.round(pr*100)+'% · ':'')+tx;}); setLocalOn(true); lm.textContent='Ready. On when there is no internet or the key is off.'; draw();}
+        catch(e){lm.textContent='Could not start: '+(e&&e.message||'error')+'. Try again on Wi-Fi with the app open.';}
+      }));
+      if(localOn())lb.appendChild(mkBtn('Test','ghost sm',async function(){lm.textContent='Thinking…'; try{var L=await loadLocalLib(); lm.textContent='Reply: '+(await L.ask('Answer in one short sentence: which grape makes Chablis?'));}catch(e){lm.textContent='Test failed: '+(e&&e.message||'error');}}));
+      lb.appendChild(mkBtn('Remove completely','ghost sm',async function(){setLocalOn(false); try{var L=await loadLocalLib(); await L.remove();}catch(e){} draw(); lm.textContent='Removed. The model and its files are deleted from this phone.';}));
+    }
+    draw();
+  })();
   ov.appendChild(sh); ov.addEventListener('click',function(e){if(e.target===ov)done();}); document.body.appendChild(ov);
 }
 $('keyBtn').addEventListener('click',function(){closeMenu(); if(!storedKey()){keySheet(); return;} setKeyOn(!keyOn()); smartLabel(); toast(keyOn()?'Online mode is ON. Photos and smart answers use Claude.':'Online mode is OFF. The app works on the phone only.');});
