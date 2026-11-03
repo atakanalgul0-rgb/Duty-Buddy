@@ -3437,7 +3437,7 @@ function makeGeminiSample(key){
   fn.limits=async function(){return {images:{maxCount:5},modelTiers:['quick','default','complex']};};
   return fn;
 }
-function makeSampleFor(k){return /^AIza/.test(k)?makeGeminiSample(k):makeApiSample(k);}
+function makeSampleFor(k){return /^sk-ant-/i.test(k)?makeApiSample(k):makeGeminiSample(k);}
 function getSample(){
   if(!samplePromise)samplePromise=(async function(){try{return window.claude&&window.claude.use?await window.claude.use('sample'):null;}catch(e){return null;}})();
   return samplePromise.then(function(s0){
@@ -6061,14 +6061,14 @@ function keySheet(){
   var sh=el('div'); sh.style.cssText='width:100%;max-width:480px;max-height:88%;overflow:auto;background:var(--surface);color:var(--ink);border-radius:18px 18px 0 0;padding:14px 14px calc(16px + env(safe-area-inset-bottom,0px))';
   function done(){ov.remove(); smartLabel();}
   sh.appendChild(el('h3',null,'Online mode')).style.cssText='margin:2px 0 6px;font-size:17px';
-  [ 'The app always works without internet, with simple answers. With an API key and internet, answers become natural and photos of lists, invoices and labels can be read. Paste a Google Gemini key (starts with AIza, free from Google AI Studio) or an Anthropic key (starts with sk-ant-). You paste it once.',
+  [ 'The app always works without internet, with simple answers. With an API key and internet, answers become natural and photos of lists, invoices and labels can be read. Paste a Google Gemini key (starts with AIza or AQ., free from Google AI Studio) or an Anthropic key (starts with sk-ant-). You paste it once.',
     'With a free Google key, Google may use what you send to improve its products, so do not send anything confidential. A paid Anthropic key does not have that.',
     'The key is stored only on this phone. Usage is billed by Anthropic to the key owner, a few fils per question. Do not share the key and do not use a key with a high spending limit. Remove it any time.'].forEach(function(t){var p=el('p',null,t); p.style.cssText='margin:0 0 8px;font-size:14px;color:var(--muted)'; sh.appendChild(p);});
-  var ki=el('input'); ki.type='password'; ki.placeholder='AIza… (Google) or sk-ant-… (Claude)'; ki.autocomplete='off'; ki.value=storedKey(); ki.setAttribute('aria-label','Anthropic API key'); ki.style.cssText='width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:10px;padding:10px;font:inherit;background:var(--soft);color:inherit;min-height:44px'; sh.appendChild(ki);
+  var ki=el('input'); ki.type='password'; ki.placeholder='Google key (AIza… or AQ.…) or Claude key (sk-ant-…)'; ki.autocomplete='off'; ki.value=storedKey(); ki.setAttribute('aria-label','Anthropic API key'); ki.style.cssText='width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:10px;padding:10px;font:inherit;background:var(--soft);color:inherit;min-height:44px'; sh.appendChild(ki);
   var msg=el('p',null,''); msg.style.cssText='margin:8px 0;font-size:13.5px'; sh.appendChild(msg);
   var b=el('div','btns');
   b.appendChild(mkBtn('Save and test','',async function(){
-    var k=ki.value.trim(); if(!k){msg.textContent='Paste the key first.'; return;}
+    var k=ki.value.trim().replace(/\s+/g,''); if(!k){msg.textContent='Paste the key first.'; return;}
     msg.textContent='Testing…'; try{var r=await makeSampleFor(k)('Reply with the single word: ready'); localStorage.setItem(KEYNAME,k); setKeyOn(true); msg.textContent='It works. Online mode is on and the key stays on this phone. You will not paste it again.'; }catch(e){msg.textContent=e&&e.code==='not_granted'?'The key was refused. Check it and try again.':(navigator.onLine===false?'No internet right now.':'Could not reach the service ('+(e&&e.message||'error')+'). Check the internet and the key.');}
   }));
   b.appendChild(mkBtn('Remove key','ghost sm',function(){try{localStorage.removeItem(KEYNAME);}catch(e){} ki.value=''; samplePromise=null; msg.textContent='Removed. The app works offline only.';}));
