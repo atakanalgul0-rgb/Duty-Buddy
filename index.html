@@ -50,13 +50,14 @@
 html{height:100%;box-sizing:border-box}
 *,*::before,*::after{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%;overflow:hidden;overscroll-behavior:none;touch-action:manipulation}
-body{margin:0;height:100%;position:fixed;top:0;left:0;width:100%;overflow:hidden;overscroll-behavior:none;touch-action:manipulation;-webkit-user-select:none;user-select:none;background:var(--outer);color:var(--ink);font-family:var(--font);font-size:15px;line-height:1.4}
+html{height:var(--appH,100%)}
+body{margin:0;height:var(--appH,100%);position:fixed;top:0;left:0;width:100%;overflow:hidden;overscroll-behavior:none;touch-action:manipulation;-webkit-user-select:none;user-select:none;background:var(--outer);color:var(--ink);font-family:var(--font);font-size:15px;line-height:1.4}
 button,textarea,input{font-family:inherit;color:inherit}
 button{cursor:pointer}
 :focus-visible{outline:2px solid var(--focus);outline-offset:2px}
 .bar :focus-visible{outline-color:#FFFFFF}
 
-#app{position:fixed;top:0;bottom:0;left:0;right:0;max-width:460px;height:auto;margin:0 auto;background:var(--surface);overflow:hidden}
+#app{position:fixed;top:0;bottom:0;left:0;right:0;max-width:460px;height:var(--appH,auto);margin:0 auto;background:var(--surface);overflow:hidden}
 @media (min-width:600px){#app{border-left:1px solid var(--line);border-right:1px solid var(--line)}}
 [hidden]{display:none!important}
 .view{display:flex;flex-direction:column;height:100%}
@@ -3695,6 +3696,25 @@ function push(id,m){var c=S.chats[id]; m.ts=Date.now(); c.msgs.push(m); if(m.fro
 function refreshChat(id){if(cur===id&&!$('chatView').hidden){renderMsgs(); renderHead(); renderChips();}}
 var smartOn=true, aiOff=false, samplePromise=null, KBHINT={};
 try{smartOn=localStorage.getItem('dutybuddy.smart')!=='0';}catch(e){}
+/* fill the whole screen (under the camera, down to the bottom edge) even when iOS reports a shorter page */
+(function(){
+  var root=document.documentElement;
+  function fit(){
+    try{
+      if(root.classList.contains('rot'))return;
+      var sa=(navigator.standalone===true)||(window.matchMedia&&matchMedia('(display-mode: standalone)').matches);
+      if(!sa){root.style.removeProperty('--appH'); return;}
+      var portrait=window.innerHeight>=window.innerWidth, sh=Math.max(screen.height,screen.width);
+      if(portrait){var H=Math.max(window.innerHeight,sh); if(H-window.innerHeight<=140)root.style.setProperty('--appH',H+'px');}
+      var pr=document.createElement('div'); pr.style.cssText='position:fixed;visibility:hidden;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)'; document.body.appendChild(pr);
+      var t=parseFloat(getComputedStyle(pr).paddingTop)||0, b=parseFloat(getComputedStyle(pr).paddingBottom)||0; pr.remove();
+      if(!t&&sh>=800){root.style.setProperty('--sat','54px'); root.style.setProperty('--sab','24px');}
+    }catch(e){}
+  }
+  fit(); ['resize','orientationchange','pageshow'].forEach(function(t){window.addEventListener(t,function(){setTimeout(fit,60);});});
+  document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')setTimeout(fit,60);});
+  window.__fitScreen=fit;
+})();
 /* no pinch zoom, no double-tap zoom, no sideways drag of the whole page */
 (function(){
   ['gesturestart','gesturechange','gestureend'].forEach(function(t){document.addEventListener(t,function(e){e.preventDefault();},{passive:false});});
@@ -3717,7 +3737,7 @@ try{smartOn=localStorage.getItem('dutybuddy.smart')!=='0';}catch(e){}
   }
   window.addEventListener('resize',apply); window.addEventListener('orientationchange',function(){setTimeout(apply,60);}); apply();
 })();
-var APPVER='f6003655';
+var APPVER='7923f96a';
 var KEYNAME='dutybuddy.apikey', inClaude=false;
 function storedKey(){try{return localStorage.getItem(KEYNAME)||'';}catch(e){return '';}}
 function keyOn(){try{return localStorage.getItem('dutybuddy.keyoff')!=='1';}catch(e){return true;}}
