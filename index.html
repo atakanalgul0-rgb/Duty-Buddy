@@ -1568,7 +1568,8 @@ function applyChg(id,m){
     cg.done='ok'; c.orders=c.orders||[]; var iso0=tdy(), ds=dmy(iso0); c.orders.push({date:iso0,lines:ls.map(function(l){return {code:l.code,name:l.name,qty:l.qty};})});
     jCommit(c,jb,jul); push(id,{from:'bot',text:'Order list for '+ds+' ('+ls.length+(ls.length===1?' line':' lines')+'):\n'+ls.map(function(l){return '• '+num(l.qty)+' × '+l.name+(l.code?' ('+l.code+')':'');}).join('\n')+'\n\nSaved. You can copy it and send it to Omar.'}); save(); refreshChat(id); return;
   }
-  cg.done='ok'; var txt=(cg.mode==='sub'?'Sold\n':'Add in stock\n')+ls.map(function(l){return l.qty+' '+(l.code||l.name)+(l.gl?' glasses':'');}).join('\n');
+  ls.forEach(function(l){if(l.nw&&l.nwOk&&!l.id){var nw=l.nw, it0={id:uid(),code:nw.code||'',name:nw.name,sheet:nw.sheet||'',qty:0,open:0,pour:0,src:null,type:nw.type||guessType(nw.name),glass:false,menu:nw.where==='menu',size:nw.size||750,price:'',gprice:''}; c.inv.push(it0); l.id=it0.id; l.code=it0.code; l.name=it0.name;}});
+  cg.done='ok'; var txt=(cg.mode==='sub'?'Sold\n':'Add in stock\n')+ls.map(function(l){return l.qty+' '+(l.code||String(l.name).replace(/,/g,' '))+(l.gl?' glasses':'');}).join('\n');
   JDEPTH++; var r; try{r=doChange(a,c,txt,cg.mode);}finally{JDEPTH--;} jCommit(c,jb,jul); push(id,{from:'bot',text:r.text,rows:r.rows}); save(); refreshChat(id); renderList();
 }
 function handlePar(a,c,text){
@@ -2996,6 +2997,11 @@ function handleOrderQty(a,c,text){
   r.chg.mode='order'; var notes=r.text.split('\n').slice(1).join('\n').trim();
   r.text='Please check these before I save them to the order list. Change an amount or remove a line if needed.'+(notes?'\n'+notes:''); return [r];
 }
+function notUnderstood(a,c){
+  function sn(i,d){return i?short(i.name).replace(/[,()]/g,'').trim():d;} var n0=sn(c.inv[0],'Cloudy Bay'), n1=sn(c.inv[1],'Dom Perignon'), n2=sn(c.inv[2],'Opus One');
+  var ex=['5 bottles of '+n0+' and 4 of '+n1+', add','3 '+n2+', sold','6 '+n0+', order list'];
+  return {text:'I could not find an amount and a wine name in that. Please say it like this. Tap an example to copy it into the message box, then change the names and numbers.',sug:ex.map(function(x){return {label:x,text:x,fill:true};})};
+}
 function respondInner(id,text){
   text=listFix(text);
   var a=byId[id], c=S.chats[id];
@@ -3039,8 +3045,8 @@ function respondInner(id,text){
   }
   if((id==='chloe'||id==='lina'||id==='leo')&&!isQuestion(first)&&!/^\s*(sold|sales?|add|added|received?|delivery|restock)\b/i.test(first)&&text.length>20)return [saveFeedback(a,c,text)];
   if(!isQuestion(first)){
-    if(/\b(sold|sales?|used|served|consumed|wasted|removed?)\b/i.test(first))return [previewChange(a,c,text,'sub')];
-    if(/\b(add|added|received?|delivery|delivered|restock(?:ed)?|arrived)\b/i.test(first))return [previewChange(a,c,text,'add')];
+    var pvm=/\b(sold|sales?|used|served|consumed|wasted|removed?)\b/i.test(first)?'sub':(/\b(add|added|received?|delivery|delivered|restock(?:ed)?|arrived)\b/i.test(first)?'add':'');
+    if(pvm){var pvr=previewChange(a,c,text,pvm); if(pvr.chg&&!/\d/.test(text)&&!c.noMenu&&pvr.chg.lines.length&&pvr.chg.lines.every(function(l){return l.k==='new';}))return [notUnderstood(a,c)]; return [pvr];}
   }
   if(!isQuestion(first)&&c.inv.length&&(a.pour>0||a.stock)){var fw=first.toLowerCase().split(/[^a-z\u00e7\u011f\u0131\u00f6\u015f\u00fc]+/).filter(Boolean).slice(0,1); if(fw.length&&(dymHas(fw,'sold')||dymHas(fw,'add')||dymHas(fw,'waste')))return [dymMsg(a,c,text,'I did not recognise that as a stock command.')];}
   return [doQuery(a,c,text)];
@@ -3982,7 +3988,7 @@ function bubble0(m){
     d.appendChild(kb);
   }
   if(m.cmp&&m.from==='bot'){d.appendChild(cmpCard(m)); var cdb=el('div','btns'); cdb.appendChild(mkBtn('Open report','',function(){openCmpReport(cur,m.cmp);})); d.appendChild(cdb);}
-  if(m.sug&&m.sug.length&&m.from==='bot'){var sb=el('div','btns'); m.sug.forEach(function(x){var lb=typeof x==='string'?x:x.label, tx=typeof x==='string'?x:x.text; sb.appendChild(mkBtn(lb,'ghost sm',function(){if(cur&&cur!=='team'&&!m.sugUsed){if(x.pend&&S.chats[cur])S.chats[cur].cmpPend=x.pend; send(tx);}}));}); d.appendChild(sb);}
+  if(m.sug&&m.sug.length&&m.from==='bot'){var sb=el('div','btns'); m.sug.forEach(function(x){var lb=typeof x==='string'?x:x.label, tx=typeof x==='string'?x:x.text; sb.appendChild(mkBtn(lb,'ghost sm',function(){if(cur&&cur!=='team'&&!m.sugUsed){if(x.fill){var ta0=$('text'); ta0.value=tx; grow(); ta0.focus(); return;} if(x.pend&&S.chats[cur])S.chats[cur].cmpPend=x.pend; send(tx);}}));}); d.appendChild(sb);}
   if(m.dl&&m.dl.length){var db=el('div','btns'); m.dl.forEach(function(x){db.appendChild(mkBtn(x.label,'ghost sm',function(){exportStock(x.id,x.fmt);}));}); d.appendChild(db);}
   if(m.chg&&m.from==='bot'){
     var cg=m.chg, cbox=el('div','rows chg'), cid=cur, cc=S.chats[cid], MODES={add:['Add to stock','Added to stock'],sub:['Confirm sold','Taken out of stock'],par:['Save par levels','Par levels saved'],order:['Save order list','Order list saved']};
@@ -3991,19 +3997,45 @@ function bubble0(m){
     if(cg.lines.length>4){var smr=el('div','sumr'); smr.appendChild(el('span',null,cg.lines.length+' lines')); if(cnt.ok)smr.appendChild(el('span','tg ok',cnt.ok+' matched')); if(cnt.check)smr.appendChild(el('span','tg chk',cnt.check+' check')); if(cnt['new'])smr.appendChild(el('span','tg new',cnt['new']+' new')); d.appendChild(smr);}
     cg.lines.forEach(function(l,i){
       var row=el('div','ri cgr'+(l.k==='check'?' hl':'')), left=el('div','pl'), t=el('div','nm',l.name);
-      if(l.k==='ok'&&cg.mode!=='par'&&cg.mode!=='order'&&l.raw)t.appendChild(el('span','tg ok','matched')); else if(l.k==='check')t.appendChild(el('span','tg chk','check')); else if(l.k==='new')t.appendChild(el('span','tg new','new'));
+      var pendForm=null, wineD=!cc.noMenu&&cg.mode!=='par', nfl=wineD&&l.k==='new'&&!l.nwOk;
+      if(l.nwOk)t.appendChild(el('span','tg new','new wine')); else if(l.k==='ok'&&cg.mode!=='par'&&cg.mode!=='order'&&l.raw)t.appendChild(el('span','tg ok','matched')); else if(l.k==='check')t.appendChild(el('span','tg chk','check')); else if(l.k==='new')t.appendChild(el('span','tg new',nfl?'not found':'new'));
       left.appendChild(t);
-      var sz=(l.size&&!/\b\d{3,4}\s*ml\b/i.test(l.name))?l.size+' ml':'', sb2=[l.code,sz,l.info||(l.isNew?'Not in your stock list yet':'In stock: '+l.have+(l.gl?' (glasses)':''))].filter(Boolean);
+      var sz=(l.size&&!/\b\d{3,4}\s*ml\b/i.test(l.name))?l.size+' ml':'', sb2=[l.code,sz,nfl?'I could not find this wine in your list':(l.nwOk?(l.nw.where==='menu'?'Goes to the Wine list':'Goes to Off menu'):(l.info||(l.isNew?'Not in your stock list yet':'In stock: '+l.have+(l.gl?' (glasses)':''))))].filter(Boolean);
       left.appendChild(el('div','s1',sb2.join(' · ')));
-      if(l.sheet)left.appendChild(el('div','s2','Stock list: '+l.sheet));
+      if(l.nwOk&&l.nw.sheet)left.appendChild(el('div','s2','Stock list: '+l.nw.sheet)); else if(l.sheet)left.appendChild(el('div','s2','Stock list: '+l.sheet));
       if((l.k==='check'||l.k==='new')&&l.raw)left.appendChild(el('div','s3','You wrote: '+l.raw));
-      if(!cg.done&&(l.k==='check'||l.k==='new')&&((l.cands&&l.cands.length)||cg.mode==='add')){
+      if(!cg.done&&(l.k==='check'||l.k==='new')&&((l.cands&&l.cands.length)||(cg.mode==='add'&&!nfl))){
         var sel=el('select','cgs'); sel.setAttribute('aria-label','Change match for '+l.name);
         function opt(v,tx,sl){var o=el('option',null,tx); o.value=v; if(sl)o.selected=true; sel.appendChild(o);}
         if(l.id)opt(l.id,'Change match: '+l.name,true); else opt('','Change match',true);
         (l.cands||[]).forEach(function(id2){var w=cc.inv.filter(function(x){return x.id===id2;})[0]; if(w)opt(w.id,(w.code?w.code+' · ':'')+w.name,false);});
         sel.addEventListener('change',function(){var w=cc.inv.filter(function(x){return x.id===sel.value;})[0]; if(!w)return; l.id=w.id; l.name=w.name; l.code=w.code||''; l.sheet=w.sheet||''; l.size=w.size||''; l.have=w.qty==null?'no count yet':num(w.qty); l.isNew=false; l.k='ok'; cgSave(); refreshChat(cid);});
         left.appendChild(sel);
+      }
+      if(!cg.done&&nfl){
+        var sw0=el('div','btns'); sw0.style.marginTop='6px'; var si0=el('input','cgi'); si0.type='text'; si0.placeholder='Search wine'; si0.style.width='150px'; si0.setAttribute('aria-label','Search the wine list');
+        function doS0(){var q=si0.value.trim(); if(!q)return; var its=searchPool(cc.inv,q,6); if(!its.length){l.msg='Nothing found for \u201c'+q+'\u201d'; cgSave(); refreshChat(cid); return;} l.cands=its.map(function(x){return x.id;}); l.msg=''; cgSave(); refreshChat(cid);}
+        si0.addEventListener('keydown',function(ev){if(ev.key==='Enter'){ev.preventDefault();}});
+        sw0.appendChild(si0); sw0.appendChild(mkBtn('Search','ghost sm',doS0)); left.appendChild(sw0);
+        if(l.msg)left.appendChild(el('div','s3',l.msg));
+        if(cg.mode==='add'&&!l.nw){var nb=el('div','btns'); nb.style.marginTop='6px'; nb.appendChild(mkBtn('Add as a new wine','ghost sm',function(){
+          var hz=String(l.raw||l.name||'').match(/\b(\d{3,4})\b/), sz0=hz&&[375,750,1500,3000,6000].indexOf(+hz[1])>-1?+hz[1]:750;
+          l.nw={name:cap(String(l.raw||l.name||'')),sheet:'',code:'',size:sz0,type:guessType(l.raw||l.name||''),where:'off'}; cgSave(); refreshChat(cid);})); left.appendChild(nb);}
+        if(l.nw){
+          var fm=el('div'); fm.style.cssText='margin-top:8px;display:flex;flex-direction:column;gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px';
+          fm.appendChild(el('div','s1','New wine: fill in what you know'));
+          function fld(lbl,key,ph,mode){var w=el('div'); w.appendChild(el('div','s1',lbl)); var i=mkInput('',l.nw[key],lbl,mode); i.placeholder=ph; i.style.width='100%'; i.addEventListener('input',function(){l.nw[key]=i.value;}); i.addEventListener('change',function(){l.nw[key]=i.value; cgSave();}); w.appendChild(i); fm.appendChild(w);}
+          fld('Name on the wine list','name','e.g. Cloudy Bay, Sauvignon Blanc'); fld('Name in the stock sheet','sheet','as written in your stock sheet'); fld('Code','code','e.g. 20418');
+          var rs=el('div','btns'); var ssz=el('select','cgs'); ssz.setAttribute('aria-label','Bottle size'); [375,750,1500,3000,6000].forEach(function(v){var o=el('option',null,v+' ml'); o.value=String(v); if(v===l.nw.size)o.selected=true; ssz.appendChild(o);}); ssz.addEventListener('change',function(){l.nw.size=+ssz.value; cgSave();}); rs.appendChild(ssz);
+          var tsel=typeSel('Category',l.nw.type,function(){}); tsel.addEventListener('change',function(){l.nw.type=tsel.value; cgSave();}); rs.appendChild(tsel); fm.appendChild(rs);
+          var wb=el('div','btns'); wb.appendChild(mkBtn('Wine list',l.nw.where==='menu'?'on sm':'ghost sm',function(){l.nw.where='menu'; cgSave(); refreshChat(cid);})); wb.appendChild(mkBtn('Off menu',l.nw.where!=='menu'?'on sm':'ghost sm',function(){l.nw.where='off'; cgSave(); refreshChat(cid);})); fm.appendChild(wb);
+          fm.appendChild(el('div','s1',l.nw.where==='menu'?'It will appear in the Wine list tab.':'It will appear in the Off menu tab.'));
+          var fb=el('div','btns'); fb.appendChild(mkBtn('Save wine','sm',function(){
+            var nm=String(l.nw.name||'').trim(); if(!nm){toast('Type the wine name first.'); return;}
+            var cd=String(l.nw.code||'').trim(), dup=cd?cc.inv.filter(function(x){return x.code&&normCode(x.code)===normCode(cd);})[0]:null; if(dup){toast('Code '+cd+' is already used by '+dup.name+'. Search for it instead.'); return;}
+            l.nw.name=cap(nm); l.nw.code=cd; l.nw.sheet=String(l.nw.sheet||'').trim(); l.nwOk=true; l.k='ok'; l.name=l.nw.name; l.code=cd; l.size=l.nw.size; cgSave(); refreshChat(cid);}));
+          fb.appendChild(mkBtn('Cancel','ghost sm',function(){l.nw=null; cgSave(); refreshChat(cid);})); fm.appendChild(fb); pendForm=fm;
+        }
       }
       row.appendChild(left);
       var right=el('span','r cgq'), sgn=cg.mode==='sub'?'−':(cg.mode==='add'?'+':'');
@@ -4016,13 +4048,15 @@ function bubble0(m){
         mn.setAttribute('aria-label','One less'); pl.setAttribute('aria-label','One more'); rm.setAttribute('aria-label','Remove this line');
         right.appendChild(mn); right.appendChild(qi); right.appendChild(pl); right.appendChild(rm);
       }
-      row.appendChild(right); cbox.appendChild(row);
+      row.appendChild(right); cbox.appendChild(row); if(pendForm){pendForm.style.margin='0 10px 10px'; cbox.appendChild(pendForm);}
     });
     d.appendChild(cbox);
     var cb=el('div','btns'), MD=MODES[cg.mode]||MODES.add;
     if(cg.done)cb.appendChild(el('span','cdn',cg.done==='ok'?'✓ Confirmed. '+MD[1]+'.':'Cancelled. Nothing was changed.'));
     else{
-      cb.appendChild(mkBtn('✓ '+(cg.mode==='add'&&cg.lines.length>6?'Add all '+cg.lines.length+' to stock':MD[0]),'',function(){applyChg(cid,m);}));
+      var blk=!cc.noMenu&&cg.mode!=='par'&&cg.lines.some(function(l){return l.k==='new'&&!l.nwOk&&l.qty>0;});
+      var pb1=mkBtn('✓ '+(cg.mode==='add'&&cg.lines.length>6?'Add all '+cg.lines.length+' to stock':MD[0]),'',function(){applyChg(cid,m);}); if(blk){pb1.disabled=true; pb1.style.opacity='.5';} cb.appendChild(pb1);
+      if(blk)cb.appendChild(el('span','cdn','Fix or remove the red line first.'));
       cb.appendChild(mkBtn('Cancel','ghost sm',function(){cg.done='cancel'; cgSave(); refreshChat(cid);}));
     }
     d.appendChild(cb);
@@ -4366,7 +4400,7 @@ try{smartOn=localStorage.getItem('dutybuddy.smart')!=='0';}catch(e){}
   }
   window.addEventListener('resize',apply); window.addEventListener('orientationchange',function(){setTimeout(apply,60);}); apply();
 })();
-var APPVER='b8903735';
+var APPVER='6bfb7ed4';
 var KEYNAME='dutybuddy.apikey', inClaude=false;
 function storedKey(){try{return localStorage.getItem(KEYNAME)||'';}catch(e){return '';}}
 function keyOn(){try{return localStorage.getItem('dutybuddy.keyoff')!=='1';}catch(e){return true;}}
