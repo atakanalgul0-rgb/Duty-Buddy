@@ -3217,7 +3217,7 @@ function libBlock(id,text){
   var LM=lenMode(text), cleanQ=String(text).replace(LENRX,' ');
   if(total<=(LM==='long'?30000:9000))body=kbAll(id,LM==='long'?30000:9000);
   else if(learnQ){body=docs.slice(0,12).map(function(d){var f=String((d.chunks&&d.chunks[0])||'').replace(/\s+/g,' ').slice(0,450); return '['+d.name+'] '+f;}).join('\n\n');}
-  else{var q=contentWords(cleanQ+' '+(KBHINT[id]||'')).join(' ')+' '+(cleanQ.match(CJKRX)||[]).join(' '), q0=q.trim()||cleanQ; q=q0; gr=kbDiverse(id,q,LM==='long'?3:2,LM==='long'?14:LM==='mid'?10:8); body=gr.length?'Passages from '+gr.length+' different document(s) that mention the topic (every document is shown at most a few times, so a document that is missing here says nothing about it):\n\n'+gr.map(function(g){return g.map(function(c){return '['+c.n+' / part '+(c.i+1)+']\n'+c.t.slice(0,1000);}).join('\n');}).join('\n\n'):'(No passage in the documents matches this question. Say so briefly.)';}
+  else{var qf=kbFollow(id,cleanQ), q=contentWords(cleanQ+' '+(KBHINT[id]||'')+' '+qf).join(' ')+' '+kbExpand(contentWords(cleanQ).join(' '))+' '+(cleanQ.match(CJKRX)||[]).join(' '), q0=q.trim()||cleanQ; q=q0; gr=kbDiverse(id,q,LM==='long'?3:2,LM==='long'?14:LM==='mid'?10:8); body=gr.length?'Passages from '+gr.length+' different document(s) that mention the topic (every document is shown at most a few times, so a document that is missing here says nothing about it):\n\n'+gr.map(function(g){return g.map(function(c){return '['+c.n+' / part '+(c.i+1)+']\n'+c.t.slice(0,1000);}).join('\n');}).join('\n\n'):'(No passage in the documents matches this question. Say so briefly.)';}
   var pics=[]; docs.forEach(function(d){(d.pgs||[]).forEach(function(pg){pics.push(d.name+' p.'+pg.p+(pg.cap?': '+pg.cap.slice(0,90):''));});});
   var picLine=pics.length?'\nPICTURES you hold (maps, charts, photos; the app can show them): '+pics.slice(0,25).join(' | ')+'. If the manager wants to see one, tell them to write for example \u201cshow the Burgundy map\u201d (add \u201conly the map\u201d for just the map).':'';
   return head+picLine+'\nKNOWLEDGE (the full or most relevant text of those documents. It is the manager\u2019s own house rules and facts: follow it and apply it to the question. Passages marked \u201ctranscription\u201d are careful readings of the page image (table cells are separated by |); trust them over plain extracted text of the same page, and if one is marked \u201cnot confirmed\u201d tell the manager the reading was not confirmed. WHEN SEVERAL DOCUMENTS COVER THE TOPIC give ONE merged answer, never one answer per document: (1) state what the documents agree on once, as the answer, and name the documents that confirm it in one short bracket, for example (Sources: A, B, C); (2) if only some documents add a detail the others do not, say which one adds it, for example \u201cOnly Wine Atlas adds that\u2026\u201d; (3) if documents disagree, state both versions and who says which, never choose silently and never call a detail wrong just because one document does not mention it; (4) do not repeat the same fact for each document. With a single document just end with (Source: document name). Follow the ANSWER LENGTH line at the end. Direct answer first, no preamble. If someone asks what you have learned, summarise each document in one or two sentences. Never invent facts that are not here; general knowledge only if labelled \u201cGeneral knowledge:\u201d.)\n'+body;
@@ -3380,15 +3380,25 @@ var CJKRX=/[\u3040-\u30ff\u3400-\u9fff\uac00-\ud7af]+/g;
 function kbTok(t){var cj=String(t).match(CJKRX)||[], ex=[]; cj.forEach(function(r){if(r.length===1)ex.push(r); else for(var i=0;i<r.length-1;i++)ex.push(r.substr(i,2));}); return kbTok0(t).concat(ex);}
 function kbTok0(t){return foldS(t).replace(/ı/g,'i').replace(/[^a-z0-9]+/g,' ').split(' ').filter(function(w){return w.length>1&&!KSTOP[w];}).map(function(w){w=norm(w); return w.length>4?w.replace(/(ings?|ed|s)$/,'').replace(/e$/,''):w;});}
 function kbSlot(o){return KBMEM[o]||(KBMEM[o]={docs:[],idx:null});}
+var KTF={}, KGATE=Promise.resolve();
+function kbTf(d,i,t){
+  var k=d.id+':'+i, h=t.length+':'+t.slice(0,16), c=KTF[k]; if(c&&c.h===h)return c;
+  var tk=kbTok(t), tf={}; tk.forEach(function(w){tf[w]=(tf[w]||0)+1;}); c=KTF[k]={h:h,tf:tf,len:tk.length||1,tot:tk.length}; return c;
+}
 function kbBuild(o){
   var m=kbSlot(o), ch=[], df={}, tot=0;
-  m.docs.forEach(function(d){d.chunks.forEach(function(t,i){var tk=kbTok(t), tf={}; tk.forEach(function(w){tf[w]=(tf[w]||0)+1;}); Object.keys(tf).forEach(function(w){df[w]=(df[w]||0)+1;}); ch.push({d:d.id,n:d.name,i:i,t:t,tf:tf,len:tk.length||1}); tot+=tk.length;});});
+  m.docs.forEach(function(d){d.chunks.forEach(function(t,i){var c=kbTf(d,i,t); Object.keys(c.tf).forEach(function(w){df[w]=(df[w]||0)+1;}); ch.push({d:d.id,n:d.name,i:i,t:t,tf:c.tf,len:c.len}); tot+=c.tot;});});
   m.idx={ch:ch,df:df,N:ch.length,avg:ch.length?tot/ch.length:1};
+}
+async function kbWarm(o){
+  var m=kbSlot(o), n=0, t0=Date.now();
+  for(var a=0;a<m.docs.length;a++){var d=m.docs[a]; for(var i=0;i<d.chunks.length;i++){kbTf(d,i,d.chunks[i]); if(Date.now()-t0>25){await new Promise(function(r){setTimeout(r,0);}); t0=Date.now();}}}
+  kbBuild(o);
 }
 async function kbLoad(o){
   var m=kbSlot(o);
   try{ if(!KBDB)KBDB=await idbOpen(); var all=await idbDo('docs','readonly',function(st){return st.getAll();}); if(all)m.docs=all.filter(function(d){return d.owner===o;}); }catch(e){}
-  kbBuild(o); return m;
+  await kbWarm(o); return m;
 }
 function kbChunks(text){
   var t=String(text).replace(/\r/g,'').replace(/[ \t]+\n/g,'\n').replace(/\n{3,}/g,'\n\n').trim(), paras=t.split(/\n\n+/), out=[], buf='';
@@ -3742,6 +3752,7 @@ async function kbAdd(o,f,prog){var d=await kbEnqueue(o,f); await KBRUN[d.id]; if
 function kbRun(o,d){
   if(KBRUN[d.id])return KBRUN[d.id];
   var pr=(async function(){
+    var rel, prevG=KGATE; KGATE=new Promise(function(r){rel=r;}); await prevG;
     try{
       var f=await kbBlob(d.id); if(!f)throw new Error('The stored copy of this file is missing. Please add it again.');
       d.status='reading'; d.live=d.done||0; kbWake();
@@ -3749,9 +3760,9 @@ function kbRun(o,d){
       if(d.removed)return;
       if(!d.chunks.length&&d.pgs.length)d.chunks.push('Picture document: '+d.name.replace(/\.[^.]+$/,'').replace(/[_\-]+/g,' ')+'. It holds '+(d.pages||1)+' page(s) with maps, charts or pictures.');
       if(!d.chunks.length)throw new Error('I found no readable text in '+d.name+'.');
-      d.status='done'; d.live=0; await kbPut(d); kbBuild(o); toast(byId[o].name+' finished reading '+d.name+'.');
+      d.status='done'; d.live=0; await kbPut(d); await kbWarm(o); toast(byId[o].name+' finished reading '+d.name+'.');
     }catch(e){ if(!d.removed){d.status='error'; d.err=kbWhy(e,d); await kbPut(d);} }
-    finally{ delete KBRUN[d.id]; kbWake(); kbBarUpdate(); if(!d.removed&&d.status==='done'&&d.pgs.length)setTimeout(function(){if(d.detail)kbDetail(o,d); else kbCaption(o,d);},50); try{kbRefreshLib(o);}catch(e){} }
+    finally{ rel(); delete KBRUN[d.id]; kbWake(); kbBarUpdate(); if(!d.removed&&d.status==='done'&&d.pgs.length)setTimeout(function(){if(d.detail)kbDetail(o,d); else kbCaption(o,d);},50); try{kbRefreshLib(o);}catch(e){} }
   })();
   KBRUN[d.id]=pr; return pr;
 }
@@ -3759,7 +3770,6 @@ async function kbReadOther(o,d,f){
   var r=await readAny(f,null,null), vis=r.vis||[]; d.chunks=kbChunks(r.text||''); d.pages=r.pages||0; d.total=d.pages; d.words=(r.text||'').split(/\s+/).length;
   d.pgs=vis.map(function(v){return {p:v.p,txt:v.txt||'',cap:''};});
   for(var i=0;i<vis.length;i++){if(vis[i].blob){try{await idbDo('pages','readwrite',function(st){return st.put({k:d.id+':'+vis[i].p,doc:d.id,p:vis[i].p,blob:vis[i].blob});});}catch(e){}}}
-  kbBuild(o);
 }
 async function kbReadPdf(o,d,f){
   await loadLib(PDFJS); var lib=window.pdfjsLib; lib.GlobalWorkerOptions.workerSrc=PDFW;
@@ -4312,7 +4322,10 @@ function openChat(id){
 /* ---------- sending ---------- */
 function push(id,m){var c=S.chats[id]; m.ts=Date.now(); c.msgs.push(m); if(m.from==='bot'){if(cur===id)c.unread=0; else c.unread++;}}
 function refreshChat(id){if(cur===id&&!$('chatView').hidden){renderMsgs(); renderHead(); renderChips();}}
-var smartOn=true, aiOff=false, samplePromise=null, KBHINT={};
+var smartOn=true, aiOff=false, samplePromise=null, KBHINT={}, KBLAST={};
+var KSYN={ageing:'aging maturation oak bottle',aging:'ageing maturation oak bottle',mouthfeel:'palate texture body weight',texture:'palate body mouthfeel',tannin:'tannins grip astringency structure',tannins:'tannin grip structure',acidity:'acid freshness crisp',sweet:'sweetness residual sugar',sweetness:'residual sugar sweet',dry:'dryness sugar',vintage:'year harvest',vintages:'year harvest',price:'cost value',describe:'description style aroma flavour palate',description:'describe style aroma flavour',aroma:'nose flavour bouquet',flavour:'flavor aroma palate taste',flavor:'flavour aroma palate',taste:'flavour palate',pair:'pairing food match',pairing:'food match pair',yield:'yields hectare production',yields:'yield hectare',soil:'soils terroir',climate:'temperature rainfall warm cool',bubbles:'sparkling fizz mousse',sparkling:'traditional method tank lees',fortified:'port sherry madeira spirit',winemaking:'fermentation vinification maceration',fermentation:'yeast ferment vinification',oak:'barrel barrique cask new oak'};
+function kbExpand(q){var out=[], seen={}; String(q).toLowerCase().split(/\s+/).forEach(function(w){if(w&&KSYN[w]&&!seen[w]){seen[w]=1; out.push(KSYN[w]);}}); return out.join(' ');}
+function kbFollow(id,text){var cw=contentWords(String(text).replace(LENRX,' ')), low=String(text).toLowerCase().trim(); var short=cw.length<=2||/^(and|what about|how about|peki|ya |and its|its |their |that |this |it |those |these |bunun|onun|şunun)/.test(low); return (short&&KBLAST[id])?KBLAST[id]:'';}
 try{smartOn=localStorage.getItem('dutybuddy.smart')!=='0';}catch(e){}
 (function(){try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();}catch(e){}
   try{var k='dutybuddy.bktip', last=+localStorage.getItem(k)||0; if(!last){localStorage.setItem(k,String(Date.now()));} else if(Date.now()-last>7*864e5){localStorage.setItem(k,String(Date.now())); setTimeout(function(){try{toast('Tip: your data lives only in this app. Before you delete the app icon, back it up: menu, Move data between devices, Copy.');}catch(e){}},4000);}}catch(e){}})();
@@ -4400,7 +4413,7 @@ try{smartOn=localStorage.getItem('dutybuddy.smart')!=='0';}catch(e){}
   }
   window.addEventListener('resize',apply); window.addEventListener('orientationchange',function(){setTimeout(apply,60);}); apply();
 })();
-var APPVER='6bfb7ed4';
+var APPVER='c32865f3';
 var KEYNAME='dutybuddy.apikey', inClaude=false;
 function storedKey(){try{return localStorage.getItem(KEYNAME)||'';}catch(e){return '';}}
 function keyOn(){try{return localStorage.getItem('dutybuddy.keyoff')!=='1';}catch(e){return true;}}
@@ -4483,6 +4496,7 @@ async function callAI(sample,id,text,teamNote){
   try{ if(kbHas(id)){var tot=0; KBMEM[id].idx.ch.forEach(function(c){tot+=c.t.length;}); var rr=tot>9000?kbSearch(id,contentWords(String(text).replace(LENRX,' ')).join(' ')||text,3):null;
     if(rr&&(!rr.res.length||rr.cov<0.5)){var kw=await sample('A manager asks a question that must be answered from English documents (books and files about food, wine and restaurant service). Write 8 search keywords, most important first, that would appear in the passage with the answer. Give English terms and also the original-language terms (for example Japanese, French, Italian) when relevant. Reply with only the keywords separated by spaces.\nQuestion: '+String(text).replace(LENRX,' '),{cache:false}); KBHINT[id]=String(kw.text||'').replace(/[^\w\s\u00c0-\u00ff-]/g,' ').slice(0,200);} else KBHINT[id]='';} }catch(e){KBHINT[id]='';}
   var r=await sample(buildPrompt(id,text,teamNote),{cache:false});
+  try{var cwL=contentWords(String(text).replace(LENRX,' ')); if(cwL.length>2)KBLAST[id]=cwL.slice(0,8).join(' ');}catch(e){}
   var t=String(r.text||'').replace(/```[a-z]*/gi,'').replace(/\*\*/g,'').trim();
   return t||null;
 }
