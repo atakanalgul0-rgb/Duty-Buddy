@@ -3201,7 +3201,7 @@ function lenMode(text){
 }
 function lenLine(text){
   var m=lenMode(text);
-  return '\n\nANSWER LENGTH: '+(m==='long'?'LONG AND DETAILED. Give everything DATA and KNOWLEDGE contain about the topic, organised in short paragraphs or dash lists, naming the source for each point. This overrides every brevity rule above. Still never invent anything.':m==='mid'?'MEDIUM. The direct answer first, then the key context, about 4 to 8 sentences or a short list. This overrides the brevity rules above.':'SHORT. One to three sentences, the direct answer only. If the manager wants more they will say mid or long.');
+  return '\n\nANSWER LENGTH: '+(m==='long'?'LONG AND DETAILED. Give everything DATA and KNOWLEDGE contain about the topic, organised in short paragraphs or dash lists, naming the source for each point. This overrides every brevity rule above. Still never invent anything.':m==='mid'?'MEDIUM. The direct answer first, then the key context, about 4 to 8 sentences or a short list. This overrides the brevity rules above.':'SHORT. At most 50 words: the direct answer only, no introduction, no list of sources unless he asks, no closing remarks. If the manager wants more he will say mid or long.');
 }
 function kbDiverse(o,q,perDoc,maxDocs){
   var r=kbSearch(o,q,120), by={}, order=[];
@@ -3428,10 +3428,20 @@ function kbExcerpt(c,q){
   var best=sc.slice().sort(function(a,b){return b.h-a.h||a.i-b.i;}).slice(0,2).sort(function(a,b){return a.i-b.i;});
   var t=best.map(function(b){return b.x;}).join(' '); return t.length>460?t.slice(0,457)+'...':t;
 }
+var KMORE={};
+function kbPassage(c){var t=c.t.replace(/\s+/g,' ').trim(); if(t.length<=950)return t; var cut=t.lastIndexOf('. ',950); return t.slice(0,cut>500?cut+1:950);}
 function kbAnswer(o,text){
-  var r=kbSearch(o,contentWords(text).join(' ')||text,3);
-  if(!r.res.length||r.cov<0.5)return null;
-  var seen={}, out=[]; r.res.forEach(function(x){if(seen[x.c.n]||out.length>=2||x.s<r.res[0].s*0.6)return; seen[x.c.n]=1; out.push('From “'+x.c.n+'”: '+kbExcerpt(x.c,text));});
+  var more=/^\s*(continue|more|go on|next|keep going|devam|devam et)\s*[.!?]*\s*$/i.test(text), prev=KMORE[o];
+  if(more&&!prev)return null;
+  var q=more?prev.q:(contentWords(text).join(' ')||text), off=more?prev.off:0;
+  var r=kbSearch(o,q,off+14);
+  function junk(c){var t=c.t, w=t.split(/\s+/), d=(t.match(/\d/g)||[]).length, sh=w.filter(function(x){return x.length<=2;}).length; return /\(retrieved|\bpp?\.\s?\d|\bISBN\b|Source:/i.test(t)&&(t.match(/retrieved/gi)||[]).length>1 || d/t.length>0.12 || sh/w.length>0.3;}
+  r.res=r.res.filter(function(x){return !junk(x.c);}); var res=r.res.slice(off);
+  if(!res.length||(!more&&r.cov<0.5))return more?[{text:'That is all I found on this. Ask me with other words and I will look again.'}]:null;
+  var top=r.res[0].s, out=[];
+  res.forEach(function(x){if(out.length<3&&x.s>=top*0.45)out.push(kbPassage(x.c));});
+  if(!out.length)out.push(kbPassage(res[0].c));
+  KMORE[o]={q:q,off:off+out.length};
   return [{text:out.join('\n\n')}];
 }
 function kbContext(o,text,quiz){
@@ -4415,7 +4425,7 @@ try{smartOn=localStorage.getItem('dutybuddy.smart')!=='0';}catch(e){}
   }
   window.addEventListener('resize',apply); window.addEventListener('orientationchange',function(){setTimeout(apply,60);}); apply();
 })();
-var APPVER='87d10442';
+var APPVER='067bedd4';
 var KEYNAME='dutybuddy.apikey', inClaude=false;
 function storedKey(){try{return localStorage.getItem(KEYNAME)||'';}catch(e){return '';}}
 function keyOn(){try{return localStorage.getItem('dutybuddy.keyoff')!=='1';}catch(e){return true;}}
@@ -4440,8 +4450,21 @@ function makeApiSample(key){
   fn.limits=async function(){return {images:{maxCount:5},modelTiers:['quick','default','complex']};};
   return fn;
 }
+var GEMLIST=null, GEMKEY='';
+function geminiFound(key){
+  if(GEMLIST&&GEMKEY===key)return GEMLIST; GEMKEY=key;
+  GEMLIST=(async function(){try{
+    var r=await fetch('https://generativelanguage.googleapis.com/v1beta/models?pageSize=200',{headers:{'x-goog-api-key':key}}); if(!r.ok)return null;
+    var j=await r.json(), fl=[], lt=[];
+    (j.models||[]).forEach(function(m){var n=String(m.name||'').replace(/^models\//,''), mm=/^gemini-(\d+(?:\.\d+)?)-flash(-lite)?$/.exec(n); if(!mm)return; if(m.supportedGenerationMethods&&m.supportedGenerationMethods.indexOf('generateContent')<0)return; (mm[2]?lt:fl).push([parseFloat(mm[1]),n]);});
+    function srt(a){return a.sort(function(x,y){return y[0]-x[0];}).map(function(x){return x[1];});}
+    fl=srt(fl); lt=srt(lt); if(!fl.length&&!lt.length)return null;
+    return {quick:lt.slice(0,2).concat(fl.slice(0,1)),'default':fl.slice(0,2).concat(lt.slice(0,1)),complex:fl.slice(0,2).concat(lt.slice(0,1))};
+  }catch(e){return null;}})();
+  return GEMLIST;
+}
 function makeGeminiSample(key){
-  var MODELS={quick:['gemini-3.5-flash-lite','gemini-3.8-flash'],'default':['gemini-3.8-flash','gemini-3.6-flash','gemini-3.5-flash-lite'],complex:['gemini-3.8-flash','gemini-3.6-flash']};
+  var MODELS={quick:['gemini-2.5-flash-lite','gemini-2.5-flash'],'default':['gemini-2.5-flash','gemini-2.0-flash','gemini-2.5-flash-lite'],complex:['gemini-2.5-flash','gemini-2.0-flash']};
   function b64(blob){return new Promise(function(res,rej){var r=new FileReader(); r.onload=function(){res(String(r.result).split(',')[1]);}; r.onerror=rej; r.readAsDataURL(blob);});}
   var fn=async function(input,opts){
     opts=opts||{}; var msgs=typeof input==='string'?[{role:'user',content:input}]:input;
@@ -4450,7 +4473,8 @@ function makeGeminiSample(key){
       var ps=[]; for(var i=0;i<opts.images.length;i++){ps.push({inline_data:{mime_type:opts.images[i].type||'image/jpeg',data:await b64(opts.images[i])}});}
       contents[contents.length-1].parts=ps.concat(contents[contents.length-1].parts);
     }
-    var list=(MODELS[opts.modelTier||'default']||MODELS['default']).slice(), lastErr=null;
+    var found=null; try{found=await geminiFound(key);}catch(e){}
+    var tier=opts.modelTier||'default', list=((found&&found[tier]&&found[tier].length?found[tier]:null)||MODELS[tier]||MODELS['default']).slice(), lastErr=null;
     if(opts.patient===false)list=list.slice(0,1); else list=list.concat(list,list.slice(0,2)); /* several rounds: free servers are often busy or rate limited */
     var waits=[0,1200,2500,4000,6000,9000,12000,15000];
     for(var mi=0;mi<list.length;mi++){
@@ -4460,7 +4484,7 @@ function makeGeminiSample(key){
         res=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+list[mi]+':generateContent',{method:'POST',signal:opts.signal,headers:{'content-type':'application/json','x-goog-api-key':key},body:JSON.stringify({contents:contents,generationConfig:{maxOutputTokens:8192}})});
       }catch(e){if(e&&e.name==='AbortError'){var er0=new Error('cancelled'); er0.code='cancelled'; throw er0;} lastErr=new Error('no connection to Google ('+((e&&e.message)||'network')+')'); lastErr.code='upstream_error'; lastErr.status=599; continue;}
       if(res.status===404||res.status===429||res.status>=500){lastErr=new Error('gemini '+res.status+(res.status>=500?', Google is busy':res.status===429?', limit reached':', model not found')); lastErr.code=res.status===429?'rate_limited':'upstream_error'; lastErr.status=res.status; continue;}
-      if(!res.ok){var e2=new Error('gemini '+res.status); e2.message='gemini '+res.status; e2.code=(res.status===401||res.status===403)?'not_granted':res.status===429?'rate_limited':'upstream_error'; if(res.status===400){try{var jb=await res.json(); e2.message='gemini 400: '+String((jb.error&&jb.error.message)||'').slice(0,120);}catch(x){}} throw e2;}
+      if(!res.ok){var e2=new Error('gemini '+res.status); e2.message='gemini '+res.status; e2.code=(res.status===401||res.status===403)?'not_granted':res.status===429?'rate_limited':'upstream_error'; if(res.status===400){try{var jb=await res.json(), em=String((jb.error&&jb.error.message)||''); e2.message='gemini 400: '+em.slice(0,120); if(/api key (not valid|expired)|API_KEY_INVALID|expired/i.test(em))e2.code='not_granted';}catch(x){}} throw e2;}
       var j=await res.json(), cd=(j.candidates||[])[0]||{};
       return {text:((cd.content&&cd.content.parts)||[]).map(function(x){return x.text||'';}).join(''),truncated:cd.finishReason==='MAX_TOKENS'};
     }
@@ -4471,7 +4495,8 @@ function makeGeminiSample(key){
 }
 var LASTAIERR='';
 function makeSampleFor(k){
-  var inner=/^sk-ant-/i.test(k)?makeApiSample(k):makeGeminiSample(k);
+  if(/^sk-ant-/i.test(k)){var fe=async function(){var e=new Error('Only a Google key works here'); e.code='not_granted'; throw e;}; fe.limits=async function(){return {images:false,modelTiers:[]};}; return fe;}
+  var inner=makeGeminiSample(k);
   var fn=async function(i,o){try{return await inner(i,o);}catch(e){LASTAIERR=(e&&e.code!=='cancelled'&&e.message)||''; throw e;}};
   fn.limits=inner.limits; return fn;
 }
@@ -7218,7 +7243,16 @@ $('stockBtn').addEventListener('click',function(){send('Show stock');});
 $('teamBtn').addEventListener('click',function(){location.hash='team';});
 /* ---------- Settings page (replaces the small three-dot menu) ---------- */
 var SETVIEW=null, SETSIG='';
-function setSig(){return [storedKey()?1:0,keyOn(),smartOn,aiOff,localOn(),isMain(),(navigator.onLine!==false),syncMsg,inClaude].join('|');}
+function setSig(){return [activeAI()[0],storedKey()?1:0,keyOn(),smartOn,aiOff,localOn(),isMain(),(navigator.onLine!==false),syncMsg,inClaude].join('|');}
+function activeAI(){
+  var off=(navigator.onLine===false);
+  if(inClaude)return ['Online','on'];
+  if(!smartOn||aiOff)return ['Simple answers (AI is paused)','off'];
+  if(!off&&apiKey())return ['Online (Google)','on'];
+  if(localOn())return [off?'Offline (on this phone)':'Offline (on this phone). Online has no key or is off','on'];
+  return ['Simple answers, no AI','off'];
+}
+function aiRevive(){smartOn=true; aiOff=false; try{localStorage.setItem('dutybuddy.smart','1');}catch(e){} samplePromise=null;}
 function onlineSt(){if(inClaude)return ['Built in','on']; if(!storedKey())return ['Key missing','off']; return keyOn()?['On','on']:['Off','mid'];}
 function smartSt(){if(navigator.onLine===false)return ['Offline','mid']; return (smartOn&&!aiOff)?['On','on']:['Off','mid'];}
 function openSettings(){
@@ -7240,19 +7274,19 @@ function sCard(title,paras,body){var c=el('div','scard'); c.appendChild(el('h3',
 function sBtns(list,body){var d=el('div','sbtns'); list.forEach(function(x){d.appendChild(mkBtn(x[0],x[2]||'',x[1]));}); body.appendChild(d);}
 function renderSettings(){
   var pg=$('setPg'); if(!pg)return; SETSIG=setSig(); pg.textContent='';
-  var v=SETVIEW||{name:'list'}, title={list:'Settings',online:'Online mode',smart:'Smart replies',local:'On-device AI',device:'This device',about:'About and privacy'}[v.name]||'Settings';
+  var v=SETVIEW||{name:'list'}, title={list:'Settings',online:'Online (Google key)',smart:'Smart replies',local:'Offline (on this phone)',device:'This device',about:'About and privacy'}[v.name]||'Settings';
   var bar=el('div','sbar'), bk=el('button',null,'\u2039'); bk.type='button'; bk.setAttribute('aria-label','Back');
   bk.addEventListener('click',function(){if(v.name==='list')closeSettings(); else{SETVIEW={name:'list'}; renderSettings();}});
   bar.appendChild(bk); bar.appendChild(el('div',null,title)); pg.appendChild(bar);
   var body=el('div','sbody'); pg.appendChild(body);
   var os=onlineSt(), ss=smartSt();
   if(v.name==='list'){
-    if(!inClaude&&!storedKey()){var h=el('div','shero'); h.appendChild(el('div','sd','NEEDS ATTENTION')).style.cssText='font-weight:700;letter-spacing:.06em;font-size:12px'; h.appendChild(el('div',null,'Online mode has no key')).style.cssText='font-size:17px;font-weight:700;margin-top:4px'; h.appendChild(el('div','sd','Photos of invoices and smart answers need the key. Paste it once, it stays on this phone.')); var hb=el('div','sbtns'); hb.style.margin='10px 0 0'; hb.appendChild(mkBtn('Paste key','',function(){keySheet();})); h.appendChild(hb); body.appendChild(h);}
-    else if(!inClaude&&storedKey()&&!keyOn()){var h2=el('div','shero'); h2.appendChild(el('div',null,'Online mode is off')).style.cssText='font-size:17px;font-weight:700'; h2.appendChild(el('div','sd','Your key is saved. Turn it on to read photos and get smart answers.')); var hb2=el('div','sbtns'); hb2.style.margin='10px 0 0'; hb2.appendChild(mkBtn('Turn on','',function(){setKeyOn(true); smartLabel(); renderSettings();})); h2.appendChild(hb2); body.appendChild(h2);}
-    sGrp('AI and Online',[
-      sRow('\u2726','g','Online mode','Lets photos and smart answers use Google or Claude',os,function(){SETVIEW={name:'online'}; renderSettings();}),
-      sRow('\u26A1','b','Smart replies','Natural answers instead of simple ones',ss,function(){SETVIEW={name:'smart'}; renderSettings();}),
-      sRow('\u25A3','p','On-device AI','Small model on this phone, works offline',localOn()?['On','on']:['Off','mid'],function(){SETVIEW={name:'local'}; renderSettings();})],body);
+    (function(){var ac=activeAI(), hh=el('div','shero'); hh.appendChild(el('div','sd','ANSWERING WITH')).style.cssText='font-weight:700;letter-spacing:.06em;font-size:12px'; hh.appendChild(el('div',null,ac[0])).style.cssText='font-size:17px;font-weight:700;margin-top:4px'; body.appendChild(hh);})();
+    if(false&&!inClaude&&!storedKey()){var h=el('div','shero'); h.appendChild(el('div','sd','NEEDS ATTENTION')).style.cssText='font-weight:700;letter-spacing:.06em;font-size:12px'; h.appendChild(el('div',null,'Online mode has no key')).style.cssText='font-size:17px;font-weight:700;margin-top:4px'; h.appendChild(el('div','sd','Photos of invoices and smart answers need the key. Paste it once, it stays on this phone.')); var hb=el('div','sbtns'); hb.style.margin='10px 0 0'; hb.appendChild(mkBtn('Paste key','',function(){keySheet();})); h.appendChild(hb); body.appendChild(h);}
+    else if(false&&!inClaude&&storedKey()&&!keyOn()){var h2=el('div','shero'); h2.appendChild(el('div',null,'Online mode is off')).style.cssText='font-size:17px;font-weight:700'; h2.appendChild(el('div','sd','Your key is saved. Turn it on to read photos and get smart answers.')); var hb2=el('div','sbtns'); hb2.style.margin='10px 0 0'; hb2.appendChild(mkBtn('Turn on','',function(){setKeyOn(true); smartLabel(); renderSettings();})); h2.appendChild(hb2); body.appendChild(h2);}
+    sGrp('AI',[
+      sRow('\u2726','g','Online','Google key. Best answers, reads photos. Needs internet',os,function(){SETVIEW={name:'online'}; renderSettings();}),
+      sRow('\u25A3','p','Offline','Small AI on this phone. No internet, simpler answers',localOn()?['On','on']:['Off','mid'],function(){SETVIEW={name:'local'}; renderSettings();})],body);
     sGrp('Data',[
       sRow('\u27F3','o','Refresh data','Reload stock lists and chats from the other device',null,function(){closeSettings(); refreshData();}),
       sRow('\u21C4','g','Backup and move data','Copy everything as text, for a new phone or before deleting the app',null,function(){openXfer();})],body);
@@ -7261,16 +7295,17 @@ function renderSettings(){
       sRow('\u24D8','gy','About and privacy','Version '+((typeof APPVER!=='undefined'&&APPVER!=='__'+'VER__')?APPVER:'web'),null,function(){SETVIEW={name:'about'}; renderSettings();})],body);
   } else if(v.name==='online'){
     sCard('Status: '+os[0],[
-      'With Online mode, the app can read photos of lists and invoices and give natural answers. It sends the photo or question to Google (free Gemini key) or Anthropic (paid key).',
-      'The key is saved only on this phone. You paste it once. With a free Google key, Google may use what you send, so keep confidential files for private reading.'],body);
+      'Online uses your Google Gemini key (free from Google AI Studio). It gives the best answers and can read photos of lists and invoices. Your question and the matching passages from the books go to Google.',
+      'The key is saved only on this phone. You paste it once. With a free Google key, Google may use what you send.',
+      'When there is no internet, the app uses Offline if it is turned on, otherwise simple answers.'],body);
     if(inClaude)sCard('Built in',['You are inside Claude, so no key is needed.'],body);
-    else sBtns([[storedKey()?'Change or remove key':'Paste key',function(){keySheet();}]].concat(storedKey()?[[keyOn()?'Turn off':'Turn on',function(){setKeyOn(!keyOn()); smartLabel(); renderSettings();},'ghost']]:[]),body);
+    else sBtns([[storedKey()?'Change or remove key':'Paste key',function(){keySheet();}]].concat(storedKey()?[[keyOn()?'Turn off':'Turn on',function(){setKeyOn(!keyOn()); if(keyOn())aiRevive(); smartLabel(); renderSettings();},'ghost']]:[]),body);
   } else if(v.name==='smart'){
     sCard('Status: '+ss[0],['Smart replies send your question and the matching passages from your books to the online AI, so the answer reads naturally. Without them the app gives simple answers and keeps working offline.','Needs Online mode.'],body);
     sBtns([[smartOn&&!aiOff?'Turn off':'Turn on',function(){$('smartBtn').click(); renderSettings();}]],body);
   } else if(v.name==='local'){
-    sCard('Status: '+(localOn()?'On':'Off'),['A small AI that runs on this phone. It downloads about 1 GB once and then answers simple text questions with no internet. It is much weaker than Gemini or Claude, cannot read photos, and may crash the page on some iPhones.','It is used only when there is no internet or Online mode is off.'],body);
-    sBtns([['Open on-device AI setup',function(){keySheet();}]],body);
+    sCard('Status: '+(localOn()?'On':'Off'),['A small AI that runs on this phone. It downloads about 1 GB once (use Wi-Fi) and then answers simple text questions with no internet. It is much weaker than Gemini, cannot read photos, and may crash the page on some iPhones.','It is used when there is no internet, or when Online is off or has no key.'],body);
+    sBtns([['Set up Offline AI',function(){keySheet(true);}]],body);
   } else if(v.name==='device'){
     sCard('This device is: '+(isMain()?'the main computer':'a phone'),['The main computer is the one whose data is never overwritten by a refresh from another device. Keep this on one device only.'],body);
     sBtns([[isMain()?'Change to phone':'Change to main computer',function(){$('mainBtn').click(); renderSettings();}]],body);
@@ -7282,29 +7317,28 @@ function renderSettings(){
 function closeMenu(){$('menu').hidden=true; $('menuBtn').setAttribute('aria-expanded','false');}
 function smartLabel(){
   var off=(typeof navigator!=='undefined'&&navigator.onLine===false), has=!!apiKey(), hasStored=!!storedKey();
-  $('smartBtn').textContent='Smart replies (online Claude): '+(off?'Offline, using simple answers':(smartOn&&!aiOff?'On':'Off'));
+  $('smartBtn').textContent='AI answers: '+(off?'Offline, using simple answers':(smartOn&&!aiOff?'On':'Off'));
   getSample().then(function(sm){var show=!inClaude; $('keyBtn').hidden=!show; $('keyBtn').textContent=hasStored?'Online mode: '+(has?'ON (tap to turn off)':'OFF (tap to turn on)'):'Online mode: set up (paste key once)'; $('keyEditBtn').hidden=!show||!hasStored;});
 }
-function keySheet(){
+function keySheet(toLocal){
   var ov=el('div'); ov.style.cssText='position:fixed;inset:0;z-index:70;background:rgba(0,0,0,.5);display:flex;align-items:flex-end;justify-content:center';
   var sh=el('div'); sh.style.cssText='width:100%;max-width:480px;max-height:88%;overflow:auto;background:var(--surface);color:var(--ink);border-radius:18px 18px 0 0;padding:14px 14px calc(16px + var(--sab))';
   function done(){ov.remove(); smartLabel();}
-  sh.appendChild(el('h3',null,'Online mode')).style.cssText='margin:2px 0 6px;font-size:17px'; var vv=el('p',null,'App version: '+(typeof APPVER!=='undefined'&&APPVER!=='__'+'VER__'?APPVER:'web')); vv.style.cssText='margin:0 0 8px;font-size:12px;color:var(--muted)'; sh.appendChild(vv);
-  [ 'The app always works without internet, with simple answers. With an API key and internet, answers become natural and photos of lists, invoices and labels can be read. Paste a Google Gemini key (starts with AIza or AQ., free from Google AI Studio) or an Anthropic key (starts with sk-ant-). You paste it once.',
-    'With a free Google key, Google may use what you send to improve its products, so do not send anything confidential. A paid Anthropic key does not have that.',
-    'The key is stored only on this phone. Usage is billed by Anthropic to the key owner, a few fils per question. Do not share the key and do not use a key with a high spending limit. Remove it any time.'].forEach(function(t){var p=el('p',null,t); p.style.cssText='margin:0 0 8px;font-size:14px;color:var(--muted)'; sh.appendChild(p);});
-  var ki=el('input'); ki.type='password'; ki.placeholder='Google key (AIza… or AQ.…) or Claude key (sk-ant-…)'; ki.autocomplete='off'; ki.value=storedKey(); ki.setAttribute('aria-label','Anthropic API key'); ki.style.cssText='width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:10px;padding:10px;font:inherit;background:var(--soft);color:inherit;min-height:44px'; sh.appendChild(ki);
+  sh.appendChild(el('h3',null,'Online (Google key)')).style.cssText='margin:2px 0 6px;font-size:17px'; var vv=el('p',null,'App version: '+(typeof APPVER!=='undefined'&&APPVER!=='__'+'VER__'?APPVER:'web')); vv.style.cssText='margin:0 0 8px;font-size:12px;color:var(--muted)'; sh.appendChild(vv);
+  [ 'Paste a Google Gemini key (starts with AIza or AQ., free from Google AI Studio, aistudio.google.com). You paste it once. With it, answers are natural and photos of lists and invoices can be read.',
+    'Google may use what you send with a free key, so do not send anything confidential. The key stays only on this phone. Remove it any time.'].forEach(function(t){var p=el('p',null,t); p.style.cssText='margin:0 0 8px;font-size:14px;color:var(--muted)'; sh.appendChild(p);});
+  var ki=el('input'); ki.type='password'; ki.placeholder='Google key (AIza… or AQ.…)'; ki.autocomplete='off'; ki.value=storedKey(); ki.setAttribute('aria-label','Google API key'); ki.style.cssText='width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:10px;padding:10px;font:inherit;background:var(--soft);color:inherit;min-height:44px'; sh.appendChild(ki);
   var msg=el('p',null,''); msg.style.cssText='margin:8px 0;font-size:13.5px'; sh.appendChild(msg);
   var b=el('div','btns');
   b.appendChild(mkBtn('Save and test','',async function(){
     var k=ki.value.trim().replace(/\s+/g,''); if(!k){msg.textContent='Paste the key first.'; return;}
-    msg.textContent='Testing…'; try{var r=await makeSampleFor(k)('Reply with the single word: ready'); localStorage.setItem(KEYNAME,k); setKeyOn(true); msg.textContent='It works. Online mode is on and the key stays on this phone. You will not paste it again.'; }catch(e){msg.textContent=e&&e.code==='not_granted'?'The key was refused. Check it and try again.':(navigator.onLine===false?'No internet right now.':'Could not reach the service ('+(e&&e.message||'error')+'). Check the internet and the key.');}
+    msg.textContent='Testing…'; try{var r=await makeSampleFor(k)('Reply with the single word: ready'); localStorage.setItem(KEYNAME,k); setKeyOn(true); aiRevive(); GEMLIST=null; msg.textContent='It works. Online is on and the key stays on this phone. You will not paste it again.'; try{renderSettings();}catch(x){} }catch(e){msg.textContent=e&&e.code==='not_granted'?'The key was refused ('+(e.message||'')+'). Make a new key in Google AI Studio and paste it again.':(navigator.onLine===false?'No internet right now.':'Could not reach the service ('+(e&&e.message||'error')+'). Check the internet and the key.');}
   }));
-  b.appendChild(mkBtn('Remove key','ghost sm',function(){try{localStorage.removeItem(KEYNAME);}catch(e){} ki.value=''; samplePromise=null; msg.textContent='Removed. The app works offline only.';}));
+  b.appendChild(mkBtn('Remove key','ghost sm',function(){try{localStorage.removeItem(KEYNAME);}catch(e){} ki.value=''; samplePromise=null; msg.textContent='Removed. Without a key the app uses Offline or simple answers.';}));
   b.appendChild(mkBtn('Close','ghost sm',done)); sh.appendChild(b);
   (function(){
     var hr=el('div'); hr.style.cssText='border-top:1px solid var(--line);margin:14px 0 8px'; sh.appendChild(hr);
-    sh.appendChild(el('h3',null,'On-device AI (experimental)')).style.cssText='margin:2px 0 6px;font-size:16px';
+    sh.appendChild(el('h3',null,'Offline (on this phone)')).style.cssText='margin:2px 0 6px;font-size:16px';
     var t=el('p',null,'A small AI that runs on this phone, so it can answer simple questions from your books with no internet and nothing leaves the phone. It downloads about 1 GB once (use Wi-Fi). It is much weaker than Claude or Gemini and cannot read photos. If you do not like it, tap Remove and it is gone; the rest of the app is not affected.'); t.style.cssText='margin:0 0 8px;font-size:14px;color:var(--muted)'; sh.appendChild(t);
     var lm=el('p',null,''); lm.style.cssText='margin:6px 0;font-size:13.5px'; sh.appendChild(lm);
     var lb=el('div','btns'); sh.appendChild(lb);
@@ -7315,7 +7349,7 @@ function keySheet(){
         try{var L=await loadLocalLib();}catch(e){lm.textContent='The on-device AI file (localai.js) is not installed. Upload it to GitHub next to index.html.'; return;}
         if(!L.supported()){lm.textContent='This iPhone cannot run it (needs WebGPU, iOS 26 or newer in Safari).'; return;}
         lm.textContent='Starting download…';
-        try{await L.load(function(tx,pr){lm.textContent=(pr!==null?Math.round(pr*100)+'% · ':'')+tx;}); setLocalOn(true); smartOn=true; aiOff=false; try{localStorage.setItem('dutybuddy.smart','1');}catch(e){} smartLabel(); lm.textContent='Ready. Smart replies are now on too. It answers when there is no internet or the key is off. The first answer after opening the app can take a minute.'; draw();}
+        try{await L.load(function(tx,pr){lm.textContent=(pr!==null?Math.round(pr*100)+'% · ':'')+tx;}); setLocalOn(true); aiRevive(); smartLabel(); lm.textContent='Ready. It answers when there is no internet or Online is off. The first answer after opening the app can take a minute.'; draw();}
         catch(e){lm.textContent='Could not start: '+(e&&e.message||'error')+'. Try again on Wi-Fi with the app open.';}
       }));
       if(localOn())lb.appendChild(mkBtn('Test','ghost sm',async function(){lm.textContent='Thinking…'; try{var L=await loadLocalLib(); lm.textContent='Reply: '+(await L.ask('Answer in one short sentence: which grape makes Chablis?'));}catch(e){lm.textContent='Test failed: '+(e&&e.message||'error');}}));
@@ -7326,13 +7360,14 @@ function keySheet(){
     draw();
   })();
   ov.appendChild(sh); ov.addEventListener('click',function(e){if(e.target===ov)done();}); document.body.appendChild(ov);
+  if(toLocal){try{setTimeout(function(){sh.scrollTop=sh.scrollHeight;},50);}catch(e){}}
 }
-$('keyBtn').addEventListener('click',function(){closeMenu(); if(!storedKey()){keySheet(); return;} setKeyOn(!keyOn()); smartLabel(); toast(keyOn()?'Online mode is ON. Photos and smart answers use Claude.':'Online mode is OFF. The app works on the phone only.');});
+$('keyBtn').addEventListener('click',function(){closeMenu(); if(!storedKey()){keySheet(); return;} setKeyOn(!keyOn()); smartLabel(); if(keyOn())aiRevive(); toast(keyOn()?'Online is ON. Answers and photos use your Google key.':'Online is OFF.');});
 $('keyEditBtn').addEventListener('click',function(){closeMenu(); keySheet();});
 window.addEventListener('online',function(){samplePromise=null; smartLabel(); toast('Back online.');});
 window.addEventListener('offline',function(){smartLabel(); toast('No internet. I keep working with simple answers.');});
 try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();}catch(e){}
-$('smartBtn').addEventListener('click',function(){smartOn=!smartOn; aiOff=false; try{localStorage.setItem('dutybuddy.smart',smartOn?'1':'0');}catch(e){} smartLabel(); toast(smartOn?'Smart replies on. Your question and the matching stock lines go to Claude online.':'Smart replies off. Simple on-device answers only.');});
+$('smartBtn').addEventListener('click',function(){smartOn=!smartOn; aiOff=false; try{localStorage.setItem('dutybuddy.smart',smartOn?'1':'0');}catch(e){} smartLabel(); toast(smartOn?'AI answers on.':'AI answers off. Simple answers only.');});
 smartLabel();
 $('menuBtn').addEventListener('click',function(){openSettings();});
 $('menuBtn').__old=function(){var open=$('menu').hidden; if(open){syncLabel(); smartLabel(); $('menu').hidden=false; this.setAttribute('aria-expanded','true');} else closeMenu();};
