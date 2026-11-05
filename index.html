@@ -194,7 +194,7 @@ html{background:var(--outer)}
 #printOv .pbar{padding:calc(8px + var(--sat,0px) - 8px) 12px 10px 66px;align-items:center}
 .pfr{flex:1;width:100%;border:0;background:#fff}
 @media print{body.printing>*:not(#printOv){display:none!important}body.printing #printOv{position:static}body.printing .pbar{display:none}}
-.ta{width:100%;min-height:104px;border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:10px 12px;font-size:16px;line-height:1.35;resize:vertical}
+.ta{width:100%;min-height:44px;border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:10px 12px;font-size:16px;line-height:1.35;resize:vertical}
 .ta::placeholder{color:var(--muted);opacity:1}
 .btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
 .btn{min-height:44px;border:0;border-radius:22px;padding:0 18px;background:var(--teal);color:#FFFFFF;font-size:14.5px;font-weight:700}
@@ -355,6 +355,7 @@ input,textarea,[contenteditable]{-webkit-user-select:text;user-select:text}
 .msg,.msg *{max-width:100%;overflow-wrap:anywhere}
 .msgs,.msg{touch-action:pan-y}
 .chips,.kpis{touch-action:pan-x pan-y}
+.kpis5{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;overflow:visible}.kpis5 .kpi{flex:none;padding:6px 4px;border-radius:12px;text-align:center}.kpis5 .kpi b{font-size:17px}.kpis5 .kpi span{font-size:10.5px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .mr .pr{display:grid;grid-template-columns:1fr 62px 74px;gap:8px;align-items:center;padding:9px 0;border-bottom:1px solid rgba(15,27,51,.06);font-size:13px}.mr .pr:last-child{border-bottom:0}.mr .pr.hd{font-size:11px;color:#55657F;border-bottom:1px solid rgba(15,27,51,.1)}.mr .pr small{display:block;font-size:11px;color:#55657F;overflow-wrap:anywhere}.mr .pr b{overflow-wrap:anywhere}.mr .pr .q{text-align:right}
 .pendbar{flex:none;display:flex;align-items:center;gap:10px;background:var(--chat-bg);padding:8px var(--gr) 0 var(--gl)}
 .pendbar img{width:56px;height:56px;object-fit:cover;border-radius:10px;border:1px solid var(--line);flex:none}
@@ -367,6 +368,12 @@ input,textarea,[contenteditable]{-webkit-user-select:text;user-select:text}
 .tiphid{display:none!important}
 .tiphid.tipshow{display:block!important;background:var(--soft);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin:8px 0;color:var(--ink)}
 .qwrap{margin:4px 0 2px}
+textarea:not(#text){min-height:44px!important;height:auto;resize:none!important;overflow-y:auto;padding-top:10px;padding-bottom:10px;line-height:1.35}
+.c3{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:20px}
+.c3 .bx{width:100%;max-width:380px;background:var(--surface);color:var(--ink);border-radius:18px;padding:18px}
+.c3 h3{margin:0 0 8px;font-size:17px}.c3 p{margin:0 0 14px;font-size:15px;line-height:1.4}
+.c3 .dots{display:flex;gap:6px;margin:0 0 12px}.c3 .dots i{width:28px;height:5px;border-radius:3px;background:var(--line)}.c3 .dots i.on{background:var(--danger)}
+.rp{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}.rp .t{flex:1;min-width:0}.rp .t b{display:block;font-size:15px}.rp .t span{font-size:12.5px;color:var(--muted)}
 </style>
 
 <div id="app">
@@ -547,6 +554,26 @@ input,textarea,[contenteditable]{-webkit-user-select:text;user-select:text}
 <script>
 (function(){
 'use strict';
+/* ---- problem log: every error is kept on this phone (survives a crash or closing) ---- */
+var ELKEY='dutybuddy.errlog', ELIVE='dutybuddy.alive', ERRS=[];
+try{ERRS=JSON.parse(localStorage.getItem(ELKEY)||'[]'); if(!Array.isArray(ERRS))ERRS=[];}catch(e){ERRS=[];}
+function logErr(src,msg,where){
+  try{
+    msg=String(msg||'unknown').replace(/\s+/g,' ').slice(0,300); var last=ERRS[ERRS.length-1];
+    if(last&&last.src===src&&last.msg===msg){last.n=(last.n||1)+1; last.t=Date.now();}
+    else ERRS.push({t:Date.now(),src:src,msg:msg,at:where?String(where).slice(0,120):'',n:1});
+    if(ERRS.length>30)ERRS=ERRS.slice(-30);
+    localStorage.setItem(ELKEY,JSON.stringify(ERRS));
+  }catch(e){}
+}
+window.addEventListener('error',function(ev){var m=ev&&ev.message; if(/ResizeObserver loop/i.test(m||''))return; logErr('Error',m||(ev&&ev.error&&ev.error.message),(ev&&ev.filename?String(ev.filename).split('/').pop():'')+(ev&&ev.lineno?':'+ev.lineno:''));});
+window.addEventListener('unhandledrejection',function(ev){var r=ev&&ev.reason; logErr('Promise',(r&&r.message)||String(r||'rejected'),'');});
+try{
+  if(localStorage.getItem(ELIVE)==='1')logErr('App','The app closed unexpectedly last time (a crash, or it ran out of memory)','');
+  localStorage.setItem(ELIVE,'1');
+  document.addEventListener('visibilitychange',function(){try{localStorage.setItem(ELIVE,document.visibilityState==='hidden'?'0':'1');}catch(e){}});
+  window.addEventListener('pagehide',function(){try{localStorage.setItem(ELIVE,'0');}catch(e){}});
+}catch(e){}
 var KEY='dutybuddy.v2';
 
 /* DATA START */
@@ -782,9 +809,13 @@ function freshState(){
   s.chats.team={inv:[],undo:[],unread:1,pour:0,instr:'',kb:[],feedback:[],notes:[],msgs:[{from:'bot',who:'elena',text:'The team meeting is open and everyone is here. Write to all of us, or start with a name, for example \u201cJames, how are the cocktails selling?\u201d.',ts:Date.now()-60000}]};
   return s;
 }
+function sheetFromInv(c,ts){
+  var d=new Date(ts||Date.now()), dt=d.toISOString().slice(0,10);
+  return {id:'s'+(ts||Date.now()).toString(36),ts:ts||Date.now(),date:dt,kind:'count',rows:c.inv.filter(function(i){return i.qty!=null;}).map(function(i){return [i.code||'',sheetDesc(i),parseFloat(countStr(c,i))||0];})};
+}
 function normChat(id,c,fb){
   if(!c||!Array.isArray(c.inv)||!Array.isArray(c.msgs)||!c.msgs.length)return fb;
-  c.low=c.low||0; c.noMenu=!(byId[id]&&byId[id].pour>0); c.recipes=Array.isArray(c.recipes)?c.recipes:[]; c.log=Array.isArray(c.log)?c.log:[]; c.rsv=c.rsv||null; c.staff=Array.isArray(c.staff)?c.staff:[]; c.events=Array.isArray(c.events)?c.events:[]; c.guests=Array.isArray(c.guests)?c.guests:[]; c.sales=Array.isArray(c.sales)?c.sales:[]; c.costs=Array.isArray(c.costs)?c.costs:[]; c.chkCfg=c.chkCfg||null; c.chkDay=c.chkDay||{}; c.asked=c.asked||{}; c.starterV=c.starterV||0; c.glassFix=c.glassFix||0; c.costRep=c.costRep||null; c.costHist=Array.isArray(c.costHist)?c.costHist:[]; c.costBook=c.costBook||null; c.inv.forEach(function(it){if(!it.id)it.id=uid(); if(it.type==null)it.type=guessType(it.name); else {var g0=guessType(it.name); if(g0==='Sake'||g0==='Non-alcoholic'||(it.type==='Other'&&g0!=='Other'))it.type=g0;} if(it.glass==null)it.glass=false; if(it.menu==null)it.menu=true; if(it.size==null)it.size=750; if(it.size!==750&&!/\(\s*\d+\s*ml\s*\)\s*$/i.test(it.name))it.name=it.name+' ('+it.size+' ml)';}); c.ml=c.ml||{}; c.pool=c.pool||[]; c.alias=c.alias||{}; c.pendingText=c.pendingText||null; c.quiz=c.quiz||null; c.quizOff=c.quizOff||null; c.undo=Array.isArray(c.undo)?c.undo:[]; c.unread=c.unread||0; c.kb=c.kb||[]; c.costList=c.costList||null; c.extra=Array.isArray(c.extra)?c.extra:[]; c.feedback=c.feedback||[]; c.notes=c.notes||[]; c.pour=c.pour||0; c.instr=c.instr||'';
+  c.low=c.low||0; c.noMenu=!(byId[id]&&byId[id].pour>0); c.recipes=Array.isArray(c.recipes)?c.recipes:[]; c.log=Array.isArray(c.log)?c.log:[]; c.rsv=c.rsv||null; c.staff=Array.isArray(c.staff)?c.staff:[]; c.events=Array.isArray(c.events)?c.events:[]; c.guests=Array.isArray(c.guests)?c.guests:[]; c.sales=Array.isArray(c.sales)?c.sales:[]; c.costs=Array.isArray(c.costs)?c.costs:[]; c.chkCfg=c.chkCfg||null; c.chkDay=c.chkDay||{}; c.asked=c.asked||{}; c.starterV=c.starterV||0; c.glassFix=c.glassFix||0; c.costRep=c.costRep||null; c.costHist=Array.isArray(c.costHist)?c.costHist:[]; c.costBook=c.costBook||null; c.inv.forEach(function(it){if(!it.id)it.id=uid(); if(it.type==null)it.type=guessType(it.name); else {var g0=guessType(it.name); if(g0==='Sake'||g0==='Non-alcoholic'||(it.type==='Other'&&g0!=='Other'))it.type=g0;} if(it.glass==null)it.glass=false; if(it.menu==null)it.menu=true; if(it.size==null)it.size=750; if(it.size!==750&&!/\(\s*\d+\s*ml\s*\)\s*$/i.test(it.name))it.name=it.name+' ('+it.size+' ml)';}); c.ml=c.ml||{}; c.pool=c.pool||[]; c.alias=c.alias||{}; c.pendingText=c.pendingText||null; c.quiz=c.quiz||null; c.quizOff=c.quizOff||null; c.undo=Array.isArray(c.undo)?c.undo:[]; c.unread=c.unread||0; c.kb=c.kb||[]; c.costList=c.costList||null; c.extra=Array.isArray(c.extra)?c.extra:[]; c.feedback=c.feedback||[]; c.notes=c.notes||[]; c.pour=c.pour||0; c.instr=c.instr||''; c.sheets=Array.isArray(c.sheets)?c.sheets:[]; c.sheetUse=c.sheetUse||null; c.countPend=c.countPend||null; if(!c.sheets.length&&c.kb.length&&c.inv.length){var k0=c.kb.filter(function(d){return d.kind==='list';}).sort(function(x,y){return y.ts-x.ts;})[0]; if(k0&&byId[id]&&(byId[id].pour>0||byId[id].stock)){var sh0=sheetFromInv(c,k0.ts); if(sh0.rows.length){c.sheets.push(sh0); c.sheetUse=sh0.id;}}}
   return c;
 }
 function load(){
@@ -808,8 +839,8 @@ function serial(){
     var o={v:2,chats:{}};
     Object.keys(S.chats).forEach(function(id){
       var c=S.chats[id];
-      o.chats[id]={rev:c.rev||0,noMenu:c.noMenu,recipes:c.recipes||[],log:c.log||[],rsv:c.rsv||null,staff:c.staff||[],events:c.events||[],guests:c.guests||[],sales:c.sales||[],costs:c.costs||[],chkCfg:c.chkCfg||null,chkDay:c.chkDay||{},asked:c.asked||{},starterV:c.starterV||0,glassFix:c.glassFix||0,inv:c.inv,undo:c.undo,unread:c.unread,pour:c.pour,low:c.low,ml:c.ml,pool:c.pool,alias:c.alias,pendingText:c.pendingText,base:c.base||null,quiz:c.quiz,quizOff:c.quizOff,instr:c.instr,kb:c.kb,costList:c.costList||null,costRep:c.costRep||null,costHist:c.costHist||[],costBook:c.costBook||null,extCost:c.extCost||null,pick:c.pick||null,chosen:c.chosen||null,costPend:c.costPend||null,filePend:c.filePend||null,extra:c.extra||[],feedback:c.feedback,notes:c.notes,msgs:c.msgs.slice(-80).map(function(m){
-        var x={from:m.from,text:m.text||'',ts:m.ts}; if(m.who)x.who=m.who; if(m.ai)x.ai=1; if(m.dl)x.dl=m.dl; if(m.sug)x.sug=m.sug; if(m.wrep)x.wrep=m.wrep; if(m.prep)x.prep=m.prep; if(m.crep)x.crep=m.crep; if(m.rows)x.rows=m.rows; if(m.pg)x.pg=m.pg; if(m.react)x.react=m.react; if(m.fwd)x.fwd=m.fwd; if(m.edit)x.edit=m.edit; if(m.chg)x.chg=m.chg; if(m.opts)x.opts=m.opts; if(m.more)x.more=1; if(m.chosen)x.chosen=m.chosen; if(m.rc)x.rc=m.rc; if(m.plan)x.plan=m.plan; if(m.seat)x.seat=m.seat; if(m.sales)x.sales=m.sales; if(m.img||m.photo)x.photo=true; return x;})};
+      o.chats[id]={rev:c.rev||0,noMenu:c.noMenu,recipes:c.recipes||[],log:c.log||[],rsv:c.rsv||null,staff:c.staff||[],events:c.events||[],guests:c.guests||[],sales:c.sales||[],costs:c.costs||[],chkCfg:c.chkCfg||null,chkDay:c.chkDay||{},asked:c.asked||{},starterV:c.starterV||0,glassFix:c.glassFix||0,inv:c.inv,undo:c.undo,unread:c.unread,pour:c.pour,low:c.low,ml:c.ml,pool:c.pool,alias:c.alias,pendingText:c.pendingText,base:c.base||null,sheets:c.sheets||[],sheetUse:c.sheetUse||null,countPend:c.countPend||null,quiz:c.quiz,quizOff:c.quizOff,instr:c.instr,kb:c.kb,costList:c.costList||null,costRep:c.costRep||null,costHist:c.costHist||[],costBook:c.costBook||null,extCost:c.extCost||null,pick:c.pick||null,chosen:c.chosen||null,costPend:c.costPend||null,filePend:c.filePend||null,extra:c.extra||[],feedback:c.feedback,notes:c.notes,msgs:c.msgs.slice(-300).map(function(m){
+        var x={from:m.from,text:m.text||'',ts:m.ts}; if(m.who)x.who=m.who; if(m.ai)x.ai=1; if(m.dl)x.dl=m.dl; if(m.sug)x.sug=m.sug; if(m.wrep)x.wrep=m.wrep; if(m.prep)x.prep=m.prep; if(m.crep)x.crep=m.crep; if(m.rows)x.rows=m.rows; if(m.pg)x.pg=m.pg; if(m.react)x.react=m.react; if(m.fwd)x.fwd=m.fwd; if(m.edit)x.edit=m.edit; if(m.chg)x.chg=m.chg; if(m.opts)x.opts=m.opts; if(m.more)x.more=1; if(m.chosen)x.chosen=m.chosen; if(m.rc)x.rc=m.rc; if(m.plan)x.plan=m.plan; if(m.cf)x.cf=m.cf; if(m.seat)x.seat=m.seat; if(m.sales)x.sales=m.sales; if(m.img||m.photo)x.photo=true; return x;})};
     });
     return o;
 }
@@ -827,8 +858,8 @@ function save(){
       SIG[id]=sg;
     });
     localStorage.setItem(KEY,JSON.stringify(o));
-    schedulePush();
-  }catch(e){}
+    schedulePush(); try{snapSoon();}catch(e){}
+  }catch(e){try{logErr('Storage','Could not save on this phone: '+((e&&e.name)||'error')+' (the phone storage may be full)','');}catch(x){}}
 }
 function persistLocal(){try{localStorage.setItem(KEY,JSON.stringify(serial()));}catch(e){}}
 function remoteStr(id){
@@ -929,20 +960,114 @@ async function refreshData(){
     syncMsg='Sync: updated, '+new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}); syncLabel();
   }catch(e){toast('Could not refresh: '+((e&&e.code)||'error'));}
 }
-async function backupSave(){
-  var o=serial(); Object.keys(o.chats).forEach(function(id){o.chats[id].undo=[];}); o.app='dutybuddy'; o.saved=Date.now();
-  await saveFile('Duty Buddy backup '+today()+'.json',new Blob([JSON.stringify(o)],{type:'application/json'}));
+function fmtTime(t){var d=new Date(t), n=new Date(), y=new Date(Date.now()-864e5), day=sameDay(d,n)?'Today':(sameDay(d,y)?'Yesterday':d.toLocaleDateString(undefined,{day:'numeric',month:'short'})); return day+' '+hm(t);}
+async function backupSave(ids){
+  var o=serial(); Object.keys(o.chats).forEach(function(id){if(ids&&ids.indexOf(id)<0)delete o.chats[id]; else o.chats[id].undo=[];}); o.app='dutybuddy'; o.saved=Date.now();
+  var d=new Date(), stamp=today()+' '+two(d.getHours())+'-'+two(d.getMinutes()), nm=ids&&ids.length===1&&byId[ids[0]]?byId[ids[0]].name+' ':'';
+  var fname='Duty Buddy backup '+nm+stamp+'.json', blob=new Blob([JSON.stringify(o)],{type:'application/json'}), ok=null;
+  try{var f=new File([blob],fname,{type:'application/json'}); if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:fname}); ok=true; toast('Choose Save to Files, then pick where to keep it.');}}catch(e){if(e&&e.name==='AbortError')return false;}
+  if(ok===null)ok=await saveFile(fname,blob);
+  if(ok&&!ids){try{localStorage.setItem('dutybuddy.lastfile',String(Date.now()));}catch(e){}}
+  return ok;
 }
-function backupRestore(file){
+function applyBackup(o,ids,label){
+  snapNow(label||'Before restore',true);
+  var n=0; Object.keys(S.chats).forEach(function(id){if(ids&&ids.indexOf(id)<0)return; var c=o.chats[id]; if(!c)return; var nc=normChat(id,c,null); if(!nc)return; nc.undo=[]; nc.rev=Date.now(); S.chats[id]=nc; DIRTY[id]=1; n++;});
+  persistLocal(); sigInit(); syncLow(); renderList(); schedulePush(); return n;
+}
+function restoreFromFile(file,ids,after){
   var r=new FileReader();
   r.onload=function(){
-    try{
-      var o=JSON.parse(String(r.result)); if(!o||o.v!==2||!o.chats)throw new Error('x'); var n=0;
-      Object.keys(S.chats).forEach(function(id){var c=o.chats[id]; if(!c)return; var nc=normChat(id,c,null); if(!nc)return; nc.undo=[]; nc.rev=Date.now(); S.chats[id]=nc; DIRTY[id]=1; n++;});
-      persistLocal(); sigInit(); syncLow(); renderList(); schedulePush(); toast('Restored '+n+' assistants from the backup.');
-    }catch(e){toast('That file is not a Duty Buddy backup.');}
+    var o; try{o=JSON.parse(String(r.result)); if(!o||o.v!==2||!o.chats)throw new Error('x');}catch(e){toast('That file is not a Duty Buddy backup.'); return;}
+    var have=Object.keys(o.chats).filter(function(id){return byId[id]&&(!ids||ids.indexOf(id)>=0);});
+    if(!have.length){toast(ids?'This file has nothing for '+(byId[ids[0]]?byId[ids[0]].name:'this assistant')+'.':'This file has no assistants.'); return;}
+    var when=o.saved?fmtTime(o.saved):'an unknown time', who=ids?byId[ids[0]].name:'everything ('+have.length+' assistants)';
+    confirm3({title:'Restore '+who,steps:['Replace '+who+' in the app with the backup from '+when+'?','Are you sure? What is in the app now for '+who+' will be replaced.','Last question. Restore now?'],yes:'Restore'},function(){
+      var n=applyBackup(o,ids,'Before restoring a file'); toast('Restored '+n+(n===1?' assistant':' assistants')+'.'); if(after)after(); try{if(ids)renderInfo(ids[0]);}catch(e){}
+    });
   };
   r.readAsText(file);
+}
+function backupRestore(file){restoreFromFile(file,null);}
+/* three questions in a row before anything is deleted or replaced */
+function confirm3(o,ok){
+  var ov=el('div','c3'), i=0; document.body.appendChild(ov);
+  function show(){
+    ov.textContent=''; var bx=el('div','bx'); ov.appendChild(bx);
+    var dots=el('div','dots'); for(var k=0;k<3;k++)dots.appendChild(el('i',k<=i?'on':'')); bx.appendChild(dots);
+    bx.appendChild(el('h3',null,o.title+' ('+(i+1)+' of 3)')); bx.appendChild(el('p',null,o.steps[i]));
+    var b=el('div','btns'); var yes=mkBtn(i<2?'Yes, continue':o.yes,'warn',function(){if(i<2){i++; show();} else{ov.remove(); ok();}}); yes.disabled=true; setTimeout(function(){yes.disabled=false;},800);
+    b.appendChild(mkBtn('Cancel','ghost',function(){ov.remove();})); b.appendChild(yes); bx.appendChild(b);
+  }
+  show();
+}
+/* ---------- restore points kept on this phone ---------- */
+var SNAPLAST=0, SNAPSIG='', SNAPT=null;
+function snapDB(){return new Promise(function(res){try{var rq=indexedDB.open('dutybuddy.snaps',1); rq.onupgradeneeded=function(){rq.result.createObjectStore('s',{keyPath:'t'});}; rq.onsuccess=function(){res(rq.result);}; rq.onerror=function(){res(null);}; rq.onblocked=function(){res(null);};}catch(e){res(null);}});}
+function snapRun(mode,fn){return snapDB().then(function(db){return new Promise(function(res){if(!db){res(null); return;} var tx,r; try{tx=db.transaction('s',mode); r=fn(tx.objectStore('s'));}catch(e){db.close(); res(null); return;} tx.oncomplete=function(){db.close(); res(r&&r.result!==undefined?r.result:true);}; tx.onerror=tx.onabort=function(){db.close(); res(null);};});});}
+function snapNow(label,force){
+  try{
+    var o=serial(); Object.keys(o.chats).forEach(function(id){o.chats[id].undo=[];});
+    var sg=Object.keys(o.chats).map(function(id){return chatSig(o.chats[id]);}).join('|');
+    if(!force&&sg===SNAPSIG)return Promise.resolve(false);
+    SNAPSIG=sg; SNAPLAST=Date.now(); var rec={t:Date.now(),label:label||'',d:JSON.stringify(o)};
+    return snapRun('readwrite',function(st){return st.put(rec);}).then(function(){return snapPrune();});
+  }catch(e){return Promise.resolve(false);}
+}
+function snapSoon(){
+  if(SNAPT)return; SNAPT=setTimeout(function(){SNAPT=null; snapNow('');},2500);
+}
+function snapPrune(){
+  return snapRun('readonly',function(st){return st.getAllKeys();}).then(function(keys){
+    if(!keys||!keys.length)return; keys.sort(function(a,b){return b-a;}); var seen={}, del=[], now=Date.now();
+    keys.forEach(function(t,ix){var age=now-t, b=ix<60?'x'+t:'d'+Math.floor(t/864e5); if(age>14*864e5||seen[b])del.push(t); else seen[b]=1;});
+    if(!del.length)return; return snapRun('readwrite',function(st){del.forEach(function(k){st.delete(k);}); return null;});
+  });
+}
+function snapList(){return snapRun('readonly',function(st){return st.getAll();}).then(function(a){return (a&&a.length!==undefined?a:[]).sort(function(x,y){return y.t-x.t;});});}
+function ago(t){var m=Math.round((Date.now()-t)/60000); if(m<1)return 'just now'; if(m<60)return m+' min ago'; var h=Math.round(m/60); if(h<48)return h+' h ago'; return Math.round(h/24)+' days ago';}
+function openRestorePoints(id){
+  var ov=$('printOv'); ov.textContent=''; document.body.classList.add('printing'); ov.hidden=false;
+  var bar=el('div','pbar'); bar.appendChild(el('div',null,id?'Go back in time · '+byId[id].name:'Go back in time')).style.cssText='flex:1;font-weight:700;align-self:center'; bar.appendChild(mkBtn('Close','ghost',function(){ov.hidden=true; document.body.classList.remove('printing');})); ov.appendChild(bar);
+  var bx=el('div','info'); bx.style.cssText='padding:12px 16px 30px;overflow:auto;flex:1;background:var(--page)'; ov.appendChild(bx);
+  var c0=el('div','card'); c0.style.marginTop='0'; c0.appendChild(el('p',null,'The app saves a restore point after every action. It keeps the last 60, plus one for each of the last 2 weeks. Pick a time to go back to. What you have now is saved first, so you can undo going back.')); bx.appendChild(c0);
+  var lc=el('div','card'); lc.appendChild(el('div','empty','Loading …')); bx.appendChild(lc);
+  snapList().then(function(list){
+    lc.textContent='';
+    if(!list.length){lc.appendChild(el('div','empty','No restore points yet. They appear while you work.')); return;}
+    var shown=list.slice(0,40);
+    shown.forEach(function(sn){
+      var row=el('div','rp'), tt=el('div','t'); tt.appendChild(el('b',null,fmtTime(sn.t)+' · '+ago(sn.t))); tt.appendChild(el('span',null,sn.label||'Saved while working')); row.appendChild(tt);
+      row.appendChild(mkBtn('Go back','ghost sm',function(){
+        var who=id?byId[id].name:'everything';
+        confirm3({title:'Go back to '+fmtTime(sn.t),steps:['Put '+who+' back as it was at '+fmtTime(sn.t)+'?','Are you sure? Changes made after that time will be replaced.','Last question. Go back now?'],yes:'Go back'},function(){
+          var o; try{o=JSON.parse(sn.d);}catch(e){toast('This restore point is damaged.'); return;}
+          var n=applyBackup(o,id?[id]:null,'Before going back to '+fmtTime(sn.t)); toast('Went back to '+fmtTime(sn.t)+'.'); ov.hidden=true; document.body.classList.remove('printing'); try{if(id)renderInfo(id);}catch(e){}
+        });
+      })); lc.appendChild(row);
+    });
+  });
+}
+function openBackup(){
+  var ov=$('printOv'); ov.textContent=''; document.body.classList.add('printing'); ov.hidden=false;
+  var bar=el('div','pbar'); bar.appendChild(el('div',null,'Backup')).style.cssText='flex:1;font-weight:700;align-self:center'; bar.appendChild(mkBtn('Close','ghost',function(){ov.hidden=true; document.body.classList.remove('printing');})); ov.appendChild(bar);
+  var bx=el('div','info'); bx.style.cssText='padding:12px 16px 30px;overflow:auto;flex:1;background:var(--page)'; ov.appendChild(bx);
+  var last=0; try{last=+localStorage.getItem('dutybuddy.lastfile')||0;}catch(e){}
+  var c0=el('div','card'); c0.style.marginTop='0'; c0.appendChild(el('h3',null,'Saved on this phone'));
+  c0.appendChild(el('p',null,'Every message and every action is saved on this phone by itself, also Undo. If you delete the app, this is gone, so save a backup file too.'));
+  var st=el('p',null,'Saved just now'); st.style.cssText='font-weight:700;color:var(--ok,#1a7f4b);margin:0'; c0.appendChild(st); bx.appendChild(c0);
+  var c1=el('div','card'); c1.appendChild(el('h3',null,'Backup file'));
+  c1.appendChild(el('p',null,'Saves everything in one file: all assistants, stock, stock sheets, reports, notes and chats. Pictures are not included. Your phone asks where to keep it; for example Files, Duty Buddy, backup. Do this before you delete the app.'));
+  var lt=el('p',null,last?'Last file: '+fmtTime(last):'No file saved yet'); lt.style.cssText='font-weight:600;font-size:14px'; c1.appendChild(lt);
+  var b1=el('div','btns'); b1.appendChild(mkBtn('Save backup file','',async function(){var ok=await backupSave(null); if(ok)lt.textContent='Last file: '+fmtTime(Date.now());})); c1.appendChild(b1); bx.appendChild(c1);
+  var c2=el('div','card'); c2.appendChild(el('h3',null,'Upload a backup'));
+  c2.appendChild(el('p',null,'After you installed the app again, or on a new phone: choose your backup file and everything comes back, as if you never deleted the app. Your Google key is not in the file; paste it once again.'));
+  var fi=el('input'); fi.type='file'; fi.accept='.json,application/json'; fi.hidden=true; fi.addEventListener('change',function(){var f=fi.files&&fi.files[0]; fi.value=''; if(f)restoreFromFile(f,null,function(){ov.hidden=true; document.body.classList.remove('printing');});});
+  var b2=el('div','btns'); b2.appendChild(mkBtn('Upload backup file','',function(){fi.click();})); c2.appendChild(b2); c2.appendChild(fi); bx.appendChild(c2);
+  var c3=el('div','card'); c3.appendChild(el('h3',null,'Go back in time'));
+  c3.appendChild(el('p',null,'If you made a mistake, go back to an earlier moment. The phone keeps your last 60 actions, plus one moment for each of the last 2 weeks. They disappear if you delete the app.'));
+  var b3=el('div','btns'); b3.appendChild(mkBtn('Restore points','ghost',function(){openRestorePoints(null);})); c3.appendChild(b3); bx.appendChild(c3);
+  snapList().then(function(l){if(l&&l[0])st.textContent='Saved '+ago(l[0].t);});
 }
 
 /* ---------- move data between devices by copy and paste (works in any browser) ---------- */
@@ -966,21 +1091,22 @@ function sumChats(chats){
     if(p.length)L.push(a.name+': '+p.join(', '));}); return L.length?L.join('\n'):'No records yet.';
 }
 function applyPacked(o){
+  try{snapNow('Before loading text from another device',true);}catch(e){}
   var n=0; Object.keys(S.chats).forEach(function(id){var c=o.chats[id]; if(!c)return; var nc=normChat(id,c,null); if(!nc)return; var mine=S.chats[id].rev||0, theirs=c.rev||0; nc.undo=[]; nc.rev=Date.now(); S.chats[id]=nc; DIRTY[id]=1; n++;});
   persistLocal(); sigInit(); syncLow(); renderList(); schedulePush(); return n;
 }
 function openXfer(){
   var ov=$('printOv'); ov.textContent=''; document.body.classList.add('printing'); ov.hidden=false;
-  var bar=el('div','pbar'); bar.appendChild(el('div',null,'Move data between devices')).style.cssText='flex:1;font-weight:700;align-self:center'; bar.appendChild(mkBtn('Close','ghost',function(){ov.hidden=true; document.body.classList.remove('printing');})); ov.appendChild(bar);
+  var bar=el('div','pbar'); bar.appendChild(el('div',null,'Copy or paste as text')).style.cssText='flex:1;font-weight:700;align-self:center'; bar.appendChild(mkBtn('Close','ghost',function(){ov.hidden=true; document.body.classList.remove('printing');})); ov.appendChild(bar);
   var bx=el('div','info'); bx.style.cssText='padding:12px 16px 30px;overflow:auto;flex:1;background:var(--page)'; ov.appendChild(bx);
-  var c1=el('div','card'); c1.style.cssText+=';margin-top:0'; c1.appendChild(el('h3',null,'1. On the device that has your data')); c1.appendChild(el('p',null,'Tap Copy. Then send the text to yourself, for example in WhatsApp (“message yourself”) or Notes.'));
+  var c1=el('div','card'); c1.style.cssText+=';margin-top:0'; c1.appendChild(el('h3',null,'Copy my data')); c1.appendChild(el('p',null,'Tap Copy. Then send the text to yourself, for example in WhatsApp (“message yourself”) or Notes.'));
   var ta=el('textarea','ta'); ta.readOnly=true; ta.setAttribute('aria-label','Your data'); ta.style.cssText='min-height:90px;font-size:12px;font-family:monospace'; ta.value='Preparing …'; c1.appendChild(ta);
   var info=el('p',null,''); info.style.fontSize='13px'; var b1=el('div','btns'); var code='';
   b1.appendChild(mkBtn('Copy','',function(){if(!code)return; ta.focus(); ta.select(); ta.setSelectionRange(0,code.length); var ok=false; try{ok=document.execCommand('copy');}catch(e){} if(!ok&&navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(code).then(function(){toast('Copied.');},function(){toast('Press and hold the text, then tap Copy.');}); return;} toast(ok?'Copied.':'Press and hold the text, then tap Copy.');}));
   if(navigator.share)b1.appendChild(mkBtn('Share …','ghost',function(){if(code)navigator.share({text:code}).catch(function(){});}));
   c1.appendChild(b1); c1.appendChild(info); bx.appendChild(c1);
   packData().then(function(t){code=t; ta.value=t; info.textContent=Math.round(t.length/1024)+' KB of text. It contains:\n'+sumChats(serial().chats);info.style.whiteSpace='pre-wrap';},function(){ta.value='Could not prepare the data.';});
-  var c2=el('div','card'); c2.appendChild(el('h3',null,'2. On the other device')); c2.appendChild(el('p',null,'Paste the text here and tap Load. It replaces what this device holds for the assistants listed in the text.'));
+  var c2=el('div','card'); c2.appendChild(el('h3',null,'Paste data here')); c2.appendChild(el('p',null,'Paste the text here and tap Load. It replaces what this device holds for the assistants listed in the text.'));
   var pa=el('textarea','ta'); pa.setAttribute('aria-label','Paste data'); pa.placeholder='Paste here'; pa.style.cssText='min-height:90px;font-size:12px;font-family:monospace'; c2.appendChild(pa); var pinfo=el('p',null,''); pinfo.style.cssText='font-size:13px;white-space:pre-wrap'; c2.appendChild(pinfo); var chk=async function(){if(!pa.value.trim()){pinfo.textContent=''; return;} try{var o=await unpackData(pa.value); pinfo.textContent='This text contains:\n'+sumChats(o.chats);}catch(e){pinfo.textContent='This text is not complete. Copy it again from the start to the end.';}}; pa.addEventListener('input',chk); pa.addEventListener('change',chk);
   var b2=el('div','btns'); b2.appendChild(mkBtn('Paste from clipboard','ghost sm',function(){if(navigator.clipboard&&navigator.clipboard.readText)navigator.clipboard.readText().then(function(t){pa.value=t; chk();},function(){toast('Press and hold the box, then tap Paste.');}); else toast('Press and hold the box, then tap Paste.');}));
   b2.appendChild(mkBtn('Load','',async function(){try{var o=await unpackData(pa.value); var n=applyPacked(o); toast(n?'Loaded '+n+' assistants.':'Nothing was loaded.'); if(n){ov.hidden=true; document.body.classList.remove('printing'); location.hash='';}}catch(e){toast('That text is not Duty Buddy data. Copy it again completely.');}})); c2.appendChild(b2); bx.appendChild(c2);
@@ -2155,9 +2281,11 @@ function profileKpis(a,c,id){
   if(id==='omar'){var n=(c.costList&&c.costList.items.length)||0; k('costs held',n); k('last change',c.costList&&c.costList.date?dmyShort(c.costList.date):'–'); return n||c.costList?wrap:null;}
   if(!stkUI(a))return null;
   var low=c.inv.filter(function(i){return isLow(a,i);}).length;
-  k('items',c.inv.length); k(a.units+' in stock',num(total(c.inv))); k('low',low,low?'warn':'');
+  k('items',c.inv.length); k(a.units,num(total(c.inv))); k('low',low,low?'warn':'');
+  if(a.pour>0)k('opened',c.inv.filter(function(i){return i.open>0;}).length);
+  var nc=c.inv.filter(function(i){return i.qty==null;}).length; if(nc)k('no count',nc,'warn');
   if(RCAT[id])k('recipes',(c.recipes||[]).length);
-  var cn=c.inv.filter(function(i){return i.cost>0;}).length; if(c.costRep||cn)k('with a cost',cn+'/'+c.inv.length);
+  wrap.className='kpis kpis5';
   return wrap;
 }
 function privateCard(a,c,id){
@@ -2302,6 +2430,7 @@ async function sendPendList(id,note){
 window.addEventListener('hashchange',function(){setPendPhoto(null);});
 function noteKind(n){
   var t=String(n||'').toLowerCase();
+  if(/stock\s*-?\s*count|stock\s*-?\s*take|inventory|month\s*-?\s*end|stok\s*say[ıi]m|envanter|invent[aá]rio|\bcount sheet|\bcounting\b/.test(t))return 'count';
   if(/deliver|receiv|arriv|incoming|came in|restock|invoice|geldi|teslim|giri[sş]|stoğa|\badd\b/.test(t))return 'delivery';
   if(/\bsold\b|\bsales?\b|\bsell|\bused\b|served|consum|sat[ıi]ld|sat[ıi][sş]/.test(t))return 'sales';
   if(/cost|price|maliyet|kost|fiyat/.test(t))return 'cost';
@@ -2334,7 +2463,7 @@ async function ocrPhotoFlow(id,file,note){
   hideTyping();
   if(t.replace(/\s/g,'').length<8){push(id,{from:'bot',text:'I could not find any text in that picture. Try a flatter, brighter photo, one page at a time.'}); save(); refreshChat(id); return;}
   var out=fileRoute(a,c,t,'your photo',OCRWARN), nk=noteKind(note);
-  if(nk&&out[0]&&out[0].sug){var lab={delivery:'Delivery',sales:'Sales',stock:'Stock list',cost:'Cost list'}[nk]; out[0].sug.sort(function(x,y){return x.label===lab?-1:y.label===lab?1:0;}); out[0].text=out[0].text.replace('What is this file?','You said this is '+(nk==='sales'?'a sales report':nk==='cost'?'a cost list':nk==='stock'?'the stock list':'a delivery')+'. Tap it to apply, or choose another.');}
+  if(nk&&out[0]&&out[0].sug){var lab={delivery:'Delivery',sales:'Sales',stock:'Stock list',count:'Stock list',cost:'Cost list'}[nk]; out[0].sug.sort(function(x,y){return x.label===lab?-1:y.label===lab?1:0;}); out[0].text=out[0].text.replace('What is this file?','You said this is '+(nk==='sales'?'a sales report':nk==='cost'?'a cost list':nk==='stock'?'the stock list':'a delivery')+'. Tap it to apply, or choose another.');}
   out.forEach(function(m){m.from='bot'; push(id,m);}); save(); refreshChat(id); renderList();
 }
 function photoOrOcr(id,file,note){
@@ -2605,13 +2734,13 @@ function rpAgg(spec){
     ids.forEach(function(id){var c=S.chats[id]; if(!c)return; (c.log||[]).forEach(function(e){
       var day=rpDay(e); if(day<spec.from||day>spec.to)return;
       if(spec.kind==='purchases'?e.kind!=='in':e.kind==='in')return;
-      var dq=0, dn=0;
+      var dq=0, dn=0, di=[];
       (e.lines||[]).forEach(function(l){
         if(l.extra)return; var why=l.why||(e.kind==='out'?'sold':'in');
         if(spec.kind==='sales'&&why!=='sold')return; if(spec.kind==='waste'&&why!=='waste')return;
-        var q=parseFloat(l.qty)||0; if(!q)return; var it=rptItem(c.inv,l), ty=it?(it.type||guessType(it.name)):'Other'; if(spec.filt&&ty!==spec.filt)return;
+        var q=parseFloat(l.qty)||0; if(!q)return; if(spec.kind==='sales'&&spec.vm==='b'&&l.gl)return; if(spec.kind==='sales'&&spec.vm==='g'&&!l.gl)return; var it=rptItem(c.inv,l), ty=it?(it.type||guessType(it.name)):'Other'; if(spec.filt&&ty!==spec.filt)return;
         var per=it?glassesPer(c,it):5, eq=l.gl?q/per:q, cost=it?pnum(it.cost):0, price=it?(l.gl?pnum(it.gprice):pnum(it.price)):0, val=cost*eq;
-        R.lines++; dq+=eq; dn++;
+        R.lines++; dq+=eq; dn++; di.push({name:it?it.name:String(l.name||l.code||'?'),code:(it&&it.code)||l.code||'',qty:eq});
         var nm=it?it.name:String(l.name||l.code||'?'), k=nm.toLowerCase(), r=R.byKey[k]||(R.byKey[k]={name:nm,code:(it&&it.code)||l.code||'',type:ty,eq:0,b:0,g:0,val:0,rev:0,sold:0,used:0,waste:0,cost:cost,depts:{}});
         r.eq+=eq; r.val+=val; r.rev+=price*q; r.depts[id]=1; if(l.gl)r.g+=q; else r.b+=q;
         if(why==='waste')r.waste+=eq; else if(why==='used'||why==='served')r.used+=eq; else r.sold+=eq;
@@ -2619,7 +2748,7 @@ function rpAgg(spec){
         if(why==='waste')R.tot.waste+=eq; else if(why==='used'||why==='served')R.tot.used+=eq; else R.tot.sold+=eq;
         if(!cost)R.uncosted++; R.days[day]=(R.days[day]||0)+eq;
       });
-      if(dn&&spec.kind==='purchases')R.dels.push({day:day,po:e.po||'',qty:dq,lines:dn,dept:id,time:(e.typed&&e.ts)?hhmm(e.ts):''});
+      if(dn&&spec.kind==='purchases')R.dels.push({day:day,po:e.po||'',qty:dq,lines:dn,dept:id,items:di,time:(e.typed&&e.ts)?hhmm(e.ts):''});
     });});
   }
   R.rows=Object.keys(R.byKey).map(function(k){return R.byKey[k];}).sort(function(a,b){return spec.kind==='value'?(b.val-a.val||b.eq-a.eq):(b.eq-a.eq);});
@@ -2688,6 +2817,175 @@ function handlePrep(a,c,text){
   var R=rpAgg(spec);
   return [{text:rpSummary(spec,R)+note+(R.lines?'':'\nMy records start when deliveries and sales are sent through me, so earlier periods stay empty.'),prep:spec}];
 }
+/* ================= SALES / PURCHASING MATRIX: day-by-day Excel, print, chat commands ================= */
+function rxIso(y,m,d){return y+'-'+pad2(m+1)+'-'+pad2(d);}
+function rxMonIdx(w){return MON3.indexOf(String(w).slice(0,3));}
+function rxFix(f,t,y,explicit){var T=tdy(); if(!explicit&&f>T){f=rxIso(y-1,+f.slice(5,7)-1,+f.slice(8)); t=rxIso(y-1,+t.slice(5,7)-1,+t.slice(8));} return {from:f,to:t};}
+function rxSpan(f,t){return Math.round((new Date(t+'T12:00:00')-new Date(f+'T12:00:00'))/86400000)+1;}
+function rxMode(spec){
+  if(spec.mode)return spec.mode; var f=spec.from,t=spec.to,n=rxSpan(f,t);
+  if(n===1)return 'day';
+  if(n===7&&new Date(f+'T12:00:00').getDay()===1)return 'week';
+  var mr=rptRange('month',f); if(mr.from===f&&(mr.to===t||(t===tdy()&&f.slice(0,7)===t.slice(0,7))))return 'month';
+  return 'custom';
+}
+function rxRange(low){
+  var t=tdy(), y=+t.slice(0,4), ym=low.match(/\b(20\d\d)\b/), expl=!!ym; if(ym)y=+ym[1];
+  var SEP='(?:to|until|till|through|\\-|\\u2013|\\u2014)', D='(\\d{1,2})(?:st|nd|rd|th)?', M='('+MONRX+')', m, f, to, r;
+  function mk(f,to){if(f>to){var x=f; f=to; to=x;} return {from:f,to:to,label:f===to?dmyShort(f):dmyShort(f)+' – '+dmyShort(to),name:f===to?dmyShort(f):''};}
+  if((m=low.match(new RegExp('\\b'+D+'\\s*'+SEP+'\\s*'+D+'\\s*(?:of\\s+)?'+M+'\\b')))){var mo=rxMonIdx(m[3]); r=rxFix(rxIso(y,mo,+m[1]),rxIso(y,mo,+m[2]),y,expl); return mk(r.from,r.to);}
+  if((m=low.match(new RegExp('\\b'+D+'\\s*(?:of\\s+)?'+M+'\\s*'+SEP+'\\s*'+D+'\\s*(?:of\\s+)?'+M+'\\b')))){var m1=rxMonIdx(m[2]), m2=rxMonIdx(m[4]); r=rxFix(rxIso(y,m1,+m[1]),rxIso(y,m2,+m[3]),y,expl); if(r.from>r.to){r.from=rxIso(y-1,m1,+m[1]);} return mk(r.from,r.to);}
+  if((m=low.match(new RegExp('\\b'+M+'\\s+'+D+'\\s*'+SEP+'\\s*'+D+'\\b')))){var mo3=rxMonIdx(m[1]); r=rxFix(rxIso(y,mo3,+m[2]),rxIso(y,mo3,+m[3]),y,expl); return mk(r.from,r.to);}
+  if((m=low.match(new RegExp('\\b'+D+'\\s*(?:of\\s+)?'+M+'\\b')))){var mo2=rxMonIdx(m[2]); r=rxFix(rxIso(y,mo2,+m[1]),rxIso(y,mo2,+m[1]),y,expl); return mk(r.from,r.to);}
+  if(/\b(?:last|previous|geçen|ge[cç]en)\s+year\b|\bge[cç]en\s+y[ıi]l\b/.test(low)){var py=String(+t.slice(0,4)-1); return {from:py+'-01-01',to:py+'-12-31',label:py,name:py,mode:'year'};}
+  if(/\bthis\s+year\b|\bbu\s+y[ıi]l\b/.test(low))return {from:t.slice(0,4)+'-01-01',to:t.slice(0,4)+'-12-31',label:t.slice(0,4),name:t.slice(0,4),mode:'year'};
+  if(ym&&!new RegExp('\\b'+MONRX+'\\b').test(low)&&/\b(?:in|for|during|of)?\s*20\d\d\b/.test(low))return {from:y+'-01-01',to:y+'-12-31',label:String(y),name:String(y),mode:'year'};
+  return rpPeriod(low);
+}
+function rxIntent(a,c,text){
+  if(!(a.pour>0||a.stock||a.id==='omar'))return null;
+  var lines=text.split(/\n+/).filter(function(x){return x.trim();}); if(lines.length>2||text.length>140)return null;
+  var low=text.toLowerCase(), first=lines[0]||'', per=rxRange(low);
+  if(/^\s*(sold|add|added|received?|wasted|remove|set|cost|use|save|discard)\b/i.test(first)&&/\d/.test(first)&&!per)return null;
+  var pur=/\bpurchas\w*|\bdeliver\w*|\bgoods in\b|\breceiv\w*|\bbought\b|\bal[ıi]m\b|\bsat[ıi]n alma/.test(low), sal=/\bsales?\b|\bsold\b|\bselling\b|\bsat[ıi][sş]/.test(low);
+  if(pur===sal)return null;
+  var starts=/^\s*(?:(?:the|show|give|get|make|prepare|download|print|send)\s+(?:me\s+)?(?:the\s+|a\s+)?)?(?:[a-z]+\s+)?(?:sales?|sold|purchas\w*|deliver\w*)\b/.test(low);
+  if(!(per||starts||/\breport\b/.test(low)))return null;
+  if(a.pour>0&&c.inv.length&&wrFind(a,c,text))return null;
+  var kind=pur?'purchases':'sales', vm='all';
+  if(kind==='sales'){var hb=/\bbottles?\b/.test(low), hg=/\bglass(?:es)?\b/.test(low); vm=hb&&!hg?'b':(hg&&!hb?'g':'all');}
+  var cost=/\bwith\s+(?:the\s+)?(?:cost|costs|price|prices|margin)\b|\bcosts?\b|\bmargins?\b|\bprices?\b/.test(low), note='';
+  if(!per){per=rpLast(7,'Last 7 days'); note=' I used the last 7 days. Say for example “4 to 8 October” or “last month” for another period.';}
+  var spec={kind:kind,from:per.from,to:per.to,label:per.label,name:per.name||per.label,filt:a.id==='omar'?null:rpType(c,low),dept:a.id==='omar'?'all':a.id,vm:vm,cost:cost};
+  if(per.mode)spec.mode=per.mode; spec.mode=rxMode(spec);
+  return {spec:spec,note:note};
+}
+function rxVm(spec){return spec.kind==='sales'?(spec.vm||'all'):'all';}
+function rxCols(spec){
+  var cols=[], n=rxSpan(spec.from,spec.to), WD=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'], d, g=0;
+  if(n<=31){
+    var cross=spec.from.slice(0,7)!==spec.to.slice(0,7); d=spec.from;
+    while(d<=spec.to&&g<40){var dt=new Date(d+'T12:00:00'), num=+d.slice(8), mn=MON3[+d.slice(5,7)-1].replace(/^./,function(x){return x.toUpperCase();});
+      cols.push({key:d,label:(n<=8?WD[dt.getDay()]+' ':'')+num+(cross?' '+mn:''),day:d}); d=addDays(d,1); g++;}
+  }else{
+    var k=spec.from.slice(0,7), e=spec.to.slice(0,7), yrs=spec.from.slice(0,4)!==spec.to.slice(0,4);
+    while(k<=e&&g<40){cols.push({key:k,label:MON3[+k.slice(5)-1].replace(/^./,function(x){return x.toUpperCase();})+(yrs?" '"+k.slice(2,4):''),month:k}); k=shiftKey(k,1); g++;}
+  }
+  return cols;
+}
+function rxModel(spec){
+  var cols=rxCols(spec), byDay=cols[0]&&cols[0].day, by={}, vm=rxVm(spec), M={cols:cols,rows:[],tot:{b:0,g:0,rev:0,cost:0,nc:0,np:0},colT:{}};
+  cols.forEach(function(x){M.colT[x.key]={b:0,g:0};});
+  rpIds(spec).forEach(function(id){var c=S.chats[id]; if(!c)return; (c.log||[]).forEach(function(e){
+    var day=rpDay(e); if(day<spec.from||day>spec.to)return;
+    if(spec.kind==='purchases'?e.kind!=='in':e.kind==='in')return;
+    var bk=byDay?day:day.slice(0,7);
+    (e.lines||[]).forEach(function(l){
+      if(l.extra)return; var why=l.why||(e.kind==='out'?'sold':'in'); if(spec.kind==='sales'&&why!=='sold')return;
+      var q=parseFloat(l.qty)||0; if(!q)return; if(spec.kind==='sales'){if(vm==='b'&&l.gl)return; if(vm==='g'&&!l.gl)return;}
+      var it=rptItem(c.inv,l), ty=it?(it.type||guessType(it.name)):'Other'; if(spec.filt&&ty!==spec.filt)return;
+      var per=it?glassesPer(c,it):5, isG=spec.kind==='sales'&&!!l.gl, b=isG?0:(l.gl?q/per:q), g=isG?q:0;
+      var cost=it?pnum(it.cost):0, price=it?(isG?pnum(it.gprice):pnum(it.price)):0, eq=b+g/per;
+      var nm=it?it.name:String(l.name||l.code||'?'), k=nm.toLowerCase();
+      var r=by[k]||(by[k]={code:(it&&it.code)||l.code||'',name:nm,cells:{},b:0,g:0,rev:0,cost:0,nc:0,np:0});
+      var ce=r.cells[bk]||(r.cells[bk]={b:0,g:0}); ce.b+=b; ce.g+=g; r.b+=b; r.g+=g;
+      r.rev+=price*q; r.cost+=cost*eq; if(!cost)r.nc=1; if(!price&&spec.kind==='sales')r.np=1;
+      if(M.colT[bk]){M.colT[bk].b+=b; M.colT[bk].g+=g;}
+    });
+  });});
+  M.rows=Object.keys(by).map(function(k){return by[k];}).filter(function(r){return r.b>0||r.g>0;}).sort(function(x,y){return x.name.toLowerCase()<y.name.toLowerCase()?-1:1;});
+  M.rows.forEach(function(r){M.tot.b+=r.b; M.tot.g+=r.g; M.tot.rev+=r.rev; if(!r.nc)M.tot.cost+=r.cost; M.tot.nc+=r.nc; M.tot.np+=r.np;});
+  return M;
+}
+function rxN(x){x=Math.round(x*100)/100; return x;}
+function rxCell(b,g,vm,kind){
+  if(kind==='purchases'||vm==='b')return b?rxN(b):''; if(vm==='g')return g?rxN(g):'';
+  if(b&&g)return rxN(b)+'+'+rxN(g)+'g'; if(b)return rxN(b); if(g)return rxN(g)+'g'; return '';
+}
+function rxTable(spec,M){
+  var K=spec.kind, vm=rxVm(spec), cost=!!spec.cost, head=['Code','Stock name'], foot=['','Total'], body=[], right=[];
+  M.cols.forEach(function(x){head.push(x.label);});
+  var tc=[]; // total columns: [label, fn(row)->value]
+  if(K==='purchases')tc.push(['Total',function(r){return rxN(r.b);}]);
+  else if(vm==='b')tc.push(['Bottles',function(r){return rxN(r.b);}]);
+  else if(vm==='g')tc.push(['Glasses',function(r){return rxN(r.g);}]);
+  else{tc.push(['Bottles',function(r){return rxN(r.b);}]); tc.push(['Glasses',function(r){return rxN(r.g);}]);}
+  if(K==='sales'&&(vm==='all'||cost))tc.push(['AED sold',function(r){return r.np&&!r.rev?'no price':Math.round(r.rev);}]);
+  if(cost){tc.push(['AED cost',function(r){return r.nc?'no cost':Math.round(r.cost);}]);
+    if(K==='sales')tc.push(['Margin %',function(r){return (r.nc||!r.rev)?'':Math.round((r.rev-r.cost)/r.rev*1000)/10;}]);}
+  tc.forEach(function(x){head.push(x[0]);});
+  M.rows.forEach(function(r){
+    var row=[r.code,r.name]; M.cols.forEach(function(x){var ce=r.cells[x.key]; row.push(ce?rxCell(ce.b,ce.g,vm,K):'');});
+    tc.forEach(function(x){row.push(x[1](r));}); body.push(row);
+  });
+  M.cols.forEach(function(x){var ct=M.colT[x.key]; foot.push(rxCell(ct.b,ct.g,vm,K));});
+  var T=M.tot, tr={b:T.b,g:T.g,rev:T.rev,cost:T.cost,np:0,nc:0};
+  tc.forEach(function(x){var v; if(x[0]==='AED sold')v=Math.round(T.rev); else if(x[0]==='AED cost')v=Math.round(T.cost); else if(x[0]==='Margin %')v=(T.rev&&!T.nc)?Math.round((T.rev-T.cost)/T.rev*1000)/10:''; else v=x[1](tr); foot.push(v);});
+  var firstTot=2+M.cols.length; for(var i=2;i<head.length;i++)right.push(i);
+  var notes=[]; if(cost&&T.nc)notes.push(T.nc+(T.nc===1?' wine has':' wines have')+' no cost yet, so it is left out of the cost total and the margin.'); if(K==='sales'&&T.np)notes.push(T.np+(T.np===1?' wine has':' wines have')+' no price in the wine list, so it is left out of AED sold.');
+  return {head:head,body:body,foot:foot,right:right,notes:notes};
+}
+function rxDeptName(spec){return spec.dept==='all'?'All departments':byId[spec.dept].name;}
+function rxTitle(spec){
+  var vm=rxVm(spec), w=spec.kind==='purchases'?'Purchasing':'Sales';
+  if(spec.kind==='sales'&&vm==='b')w='Sales · bottles'; else if(spec.kind==='sales'&&vm==='g')w='Sales · glasses';
+  return w+(spec.cost?' with cost':'')+(spec.filt?' · '+spec.filt:'');
+}
+function rxFile(spec,ext){
+  var vm=rxVm(spec), w=spec.kind==='purchases'?'Purchasing':'Sales'+(vm==='b'?' bottles':vm==='g'?' glasses':'');
+  return w+(spec.cost?' with cost':'')+' '+rxDeptName(spec).replace(/[^\w ]/g,'')+' '+spec.from+(spec.to!==spec.from?' to '+spec.to:'')+'.'+ext;
+}
+function rxPeriodText(spec){return spec.from===spec.to?dmyShort(spec.from)+' '+spec.from.slice(0,4):dmyShort(spec.from)+' – '+dmyShort(spec.to)+' '+spec.to.slice(0,4);}
+function rxExcel(spec){
+  var M=rxModel(spec), T=rxTable(spec,M);
+  if(!M.rows.length){toast('Nothing recorded in this period, so there is nothing to download.'); return;}
+  var bytes=xlsxGrid(rxTitle(spec),[rxDeptName(spec)+' · '+rxPeriodText(spec)+' · Ling Ling · Atlantis The Royal','Made '+dmyShort(tdy())+' · the day runs until '+pad2(SVC_CUT)+':00'],T,rxTitle(spec).slice(0,28).replace(/[\\\/\?\*\[\]:]/g,''));
+  saveFile(rxFile(spec,'xlsx'),new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
+}
+function rxPrint(spec){
+  var M=rxModel(spec), T=rxTable(spec,M);
+  if(!M.rows.length){toast('Nothing recorded in this period, so there is nothing to print.'); return;}
+  var many=T.head.length>22, css='<style>@page{size:A4 landscape;margin:12mm 10mm 14mm 10mm}body{max-width:none;padding:0}table.rx{width:100%;border-collapse:collapse;font-size:'+(many?'7.5':'9')+'pt;table-layout:auto}table.rx th,table.rx td{padding:3px 4px;border:1px solid #ccc;white-space:nowrap}table.rx th{background:#eee;color:#222;text-align:center;font-size:'+(many?'7':'8')+'pt}table.rx td.n{text-align:center}table.rx td.t{text-align:left;white-space:normal}table.rx thead{display:table-header-group}table.rx tr{page-break-inside:avoid}table.rx tr.ft td{font-weight:700;background:#f3f3f3}</style>';
+  var h='<table class="rx"><thead><tr>'+T.head.map(function(x,i){return '<th'+(i===1?' style="text-align:left"':'')+'>'+esc(x)+'</th>';}).join('')+'</tr></thead><tbody>';
+  T.body.forEach(function(r){h+='<tr>'+r.map(function(x,i){return '<td class="'+(i<2?'t':'n')+'">'+esc(x)+'</td>';}).join('')+'</tr>';});
+  h+='<tr class="ft">'+T.foot.map(function(x,i){return '<td class="'+(i<2?'t':'n')+'">'+esc(x)+'</td>';}).join('')+'</tr></tbody></table>';
+  var meta='<p class="m">'+esc(rxDeptName(spec))+' · '+esc(rxPeriodText(spec))+' · Ling Ling · Atlantis The Royal · Printed '+esc(dmyShort(tdy()))+'</p>';
+  var old=document.getElementById('rxpg'); if(old)old.remove();
+  var st=document.createElement('style'); st.id='rxpg'; st.textContent='@page{size:A4 landscape;margin:12mm 10mm 14mm 10mm;@bottom-right{content:"Page " counter(page) " of " counter(pages);font-size:8pt;color:#555}@bottom-left{content:"Ling Ling \\00b7 Atlantis The Royal";font-size:8pt;color:#555}}'; document.head.appendChild(st);
+  window.addEventListener('afterprint',function(){var o=document.getElementById('rxpg'); if(o)o.remove();},{once:true});
+  printDoc(rxTitle(spec),css+meta+h+(T.notes.length?'<p class="m">'+esc(T.notes.join(' '))+'</p>':''),rxFile(spec,'x').replace(/\.x$/,''));
+}
+function rxButtons(parent,spec){
+  parent.appendChild(mkBtn('Download Excel','',function(){rxExcel(spec);}));
+  parent.appendChild(mkBtn('Print','ghost',function(){rxPrint(spec);}));
+}
+function rxSummary(spec,R){
+  var vm=rxVm(spec), ttl=rxTitle(spec)+', '+spec.label+': ';
+  if(!R.lines)return ttl.replace(/: $/,'')+': nothing recorded in this period.';
+  var t=ttl;
+  if(spec.kind==='purchases')t+=fm2(R.tot.eq)+' bottles received in '+R.dels.length+(R.dels.length===1?' delivery':' deliveries')+(R.tot.val?', worth '+money(R.tot.val)+' AED at cost':'')+'.';
+  else{var p=[]; if(vm!=='g')p.push(fm2(R.tot.b)+' bottles'); if(vm!=='b'&&(R.tot.g||vm==='g'))p.push(fm2(R.tot.g)+' glasses'); t+=p.join(' and ')+' sold'+(R.tot.rev?', '+money(R.tot.rev)+' AED at list price':'')+(spec.cost&&R.tot.val?', cost '+money(R.tot.val)+' AED':'')+'.';}
+  var top=R.rows.slice(0,5).map(function(r,i){var q=spec.kind==='purchases'?fm2(r.b)+' bottles':[(vm!=='g'&&r.b)?fm2(r.b)+' bottles':'',(vm!=='b'&&r.g)?fm2(r.g)+' glasses':''].filter(Boolean).join(' + '); return (i+1)+'. '+r.name+' · '+q;});
+  return t+(top.length?'\n'+top.join('\n'):'');
+}
+function handleRx(a,c,text){
+  var it=rxIntent(a,c,text); if(!it)return null; var R=rpAgg(it.spec);
+  return [{text:rxSummary(it.spec,R)+it.note+(R.lines?'':'\nMy records start when deliveries and sales are sent through me, so earlier periods stay empty.'),prep:it.spec}];
+}
+function xlsxGrid(title,subs,T,sheetName){
+  var X='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>', NS='http://schemas.openxmlformats.org/spreadsheetml/2006/main';
+  function colL(n){var s=''; n++; while(n>0){var m=(n-1)%26; s=String.fromCharCode(65+m)+s; n=Math.floor((n-1)/26);} return s;}
+  function cs(r,ci,v,st){var ref=colL(ci)+r; if(v===''||v==null)return ''; if(typeof v==='number')return '<c r="'+ref+'"'+(st?' s="1"':'')+'><v>'+v+'</v></c>'; return '<c r="'+ref+'" t="inlineStr"'+(st?' s="1"':'')+'><is><t xml:space="preserve">'+xe(v)+'</t></is></c>';}
+  var sd=[], r=1; sd.push('<row r="1">'+cs(1,0,title,true)+'</row>'); subs.forEach(function(s){r++; sd.push('<row r="'+r+'">'+cs(r,0,s)+'</row>');});
+  r+=2; var hr=r; sd.push('<row r="'+r+'">'+T.head.map(function(h,i){return cs(r,i,h,true);}).join('')+'</row>');
+  T.body.forEach(function(row){r++; sd.push('<row r="'+r+'">'+row.map(function(v,i){return cs(r,i,v,false);}).join('')+'</row>');});
+  r++; sd.push('<row r="'+r+'">'+T.foot.map(function(v,i){return cs(r,i,v,true);}).join('')+'</row>');
+  T.notes.forEach(function(n){r+=2; sd.push('<row r="'+r+'">'+cs(r,0,n)+'</row>');});
+  var cw='<col min="1" max="1" width="14" customWidth="1"/><col min="2" max="2" width="52" customWidth="1"/>'; if(T.head.length>2)cw+='<col min="3" max="'+T.head.length+'" width="10" customWidth="1"/>';
+  var sheet=X+'<worksheet xmlns="'+NS+'"><sheetPr><pageSetUpPr fitToPage="1"/></sheetPr><sheetViews><sheetView workbookViewId="0"><pane xSplit="2" ySplit="'+hr+'" topLeftCell="C'+(hr+1)+'" activePane="bottomRight" state="frozen"/></sheetView></sheetViews><cols>'+cw+'</cols><sheetData>'+sd.join('')+'</sheetData><pageMargins left="0.4" right="0.4" top="0.5" bottom="0.6" header="0.3" footer="0.3"/><pageSetup paperSize="9" orientation="landscape" fitToWidth="1" fitToHeight="0"/><headerFooter><oddFooter>&amp;LLing Ling · Atlantis The Royal&amp;RPage &amp;P of &amp;N</oddFooter></headerFooter></worksheet>';
+  return xlsxZip(sheet,sheetName||'Report',hr);
+}
+
 /* ================= SALES COMPARISON: today vs the same day last week / month / year ================= */
 function cmpToday(){return isoL(new Date(Date.now()-SVC_CUT*3600000));}
 function cmpPrevDay(day,per){
@@ -2880,16 +3178,22 @@ function rpShift(spec,dir){
 function renderPeriodReport(id,spec){
   var a=byId[id], box=$('reportsPg'); box.textContent=''; var R=rpAgg(spec), K=spec.kind;
   function go(sp){PR.spec=sp; renderPeriodReport(id,sp);}
-  var tools=el('div','card'); var kb=el('div','btns');
-  Object.keys(RPK).forEach(function(k){kb.appendChild(mkBtn(RPK[k],K===k?'on sm':'ghost sm',function(){var sp={}; for(var x in spec)sp[x]=spec[x]; sp.kind=k; go(sp);}));}); tools.appendChild(kb);
+  var tools=el('div','card'); function cp(o){var x={}; for(var q in o)x[q]=o[q]; return x;}
+  var seg=el('div','btns'); [['sales','Sales'],['purchases','Purchasing']].forEach(function(k){seg.appendChild(mkBtn(k[1],K===k[0]?'on':'ghost',function(){var sp=cp(spec); sp.kind=k[0]; go(sp);}));}); tools.appendChild(seg);
   if(K!=='value'){
-    var pb=el('div','btns'); pb.style.marginTop='8px';
-    pb.appendChild(mkBtn('\u2039','ghost sm',function(){var n=rpShift(spec,-1), sp={}; for(var x in spec)sp[x]=spec[x]; sp.from=n.from; sp.to=n.to; sp.label=n.label; sp.name=n.name; go(sp);}));
-    [['Today',1],['7 days',7],['30 days',30]].forEach(function(q){pb.appendChild(mkBtn(q[0],'ghost sm',function(){var r=rpLast(q[1]), sp={}; for(var x in spec)sp[x]=spec[x]; sp.from=r.from; sp.to=r.to; sp.label=q[1]===1?dmyShort(r.to):r.label; sp.name=q[1]===1?'Today':r.name; go(sp);}));});
-    pb.appendChild(mkBtn('This month','ghost sm',function(){var m=wrMonth(tdy().slice(0,7),true), sp={}; for(var x in spec)sp[x]=spec[x]; sp.from=m.from; sp.to=m.to; sp.label=m.label; sp.name='This month'; go(sp);}));
-    pb.appendChild(mkBtn('\u203a','ghost sm',function(){var n=rpShift(spec,1), sp={}; for(var x in spec)sp[x]=spec[x]; sp.from=n.from; sp.to=n.to; sp.label=n.label; sp.name=n.name; go(sp);}));
+    var md=rxMode(spec), pb=el('div','btns'); pb.style.marginTop='8px';
+    [['day','Daily'],['week','Weekly'],['month','Monthly']].forEach(function(q){pb.appendChild(mkBtn(q[1],md===q[0]?'on sm':'ghost sm',function(){var an=spec.to>cmpToday()&&spec.from<=cmpToday()?cmpToday():spec.to, r=rptRange(q[0],an), sp=cp(spec); sp.from=r.from; sp.to=r.to; sp.label=r.label; sp.name=''; sp.mode=q[0]; go(sp);}));});
     tools.appendChild(pb);
+    var nb=el('div','btns'); nb.style.cssText='margin-top:8px;align-items:center;justify-content:space-between';
+    function stepTo(dir){var sp=cp(spec), n; if(md==='day'||md==='week'||md==='month'){var an=rptShift(md,md==='month'?spec.from:(dir<0?spec.from:spec.to),dir), r=rptRange(md,an); if(md==='day'||md==='week')r=rptRange(md,an); n=r;} else n=rpShift(spec,dir); sp.from=n.from; sp.to=n.to; sp.label=n.label; sp.name=n.name||''; sp.mode=md; go(sp);}
+    var pv=mkBtn('‹','ghost sm',function(){stepTo(-1);}); pv.setAttribute('aria-label','Earlier'); var nx=mkBtn('›','ghost sm',function(){stepTo(1);}); nx.setAttribute('aria-label','Later');
+    var lb=el('b',null,spec.label); lb.style.cssText='flex:1;text-align:center;font-size:14px'; nb.appendChild(pv); nb.appendChild(lb); nb.appendChild(nx); tools.appendChild(nb);
   }
+  if(K==='sales'){
+    var vb=el('div','btns'); vb.style.marginTop='8px'; [['all','Bottles + glasses'],['b','Bottles'],['g','Glasses']].forEach(function(q){vb.appendChild(mkBtn(q[1],(spec.vm||'all')===q[0]?'on sm':'ghost sm',function(){var sp=cp(spec); sp.vm=q[0]; go(sp);}));}); tools.appendChild(vb);
+  }
+  if(K==='sales'||K==='purchases'){var cb=el('div','btns'); cb.style.marginTop='8px'; cb.appendChild(mkBtn(spec.cost?'With cost: on':'With cost: off',spec.cost?'on sm':'ghost sm',function(){var sp=cp(spec); sp.cost=!spec.cost; go(sp);})); tools.appendChild(cb);}
+  var mb=el('div','btns'); mb.style.marginTop='8px'; [['consumption','Consumption'],['waste','Waste'],['value','Stock value']].forEach(function(k){mb.appendChild(mkBtn(k[1],K===k[0]?'on sm':'ghost sm',function(){var sp=cp(spec); sp.kind=k[0]; go(sp);}));}); tools.appendChild(mb);
   box.appendChild(tools);
   var M=el('div','mr'), hd=el('div','mh'); var l1=el('img'); l1.src=LOGO_LL; l1.alt='Ling Ling'; l1.style.height='40px'; var l2=el('img'); l2.src=LOGO_AT; l2.alt='Atlantis The Royal'; l2.style.height='48px'; hd.appendChild(l1); hd.appendChild(l2); M.appendChild(hd);
   M.appendChild(el('div','mk',(K==='value'?'AS OF TODAY':(spec.name||spec.label).toUpperCase()+' \u00b7 '+spec.label.toUpperCase()).replace(/^(.+) \u00b7 \1$/,'$1')));
@@ -2913,7 +3217,10 @@ function renderPeriodReport(id,spec){
     }
     if(K==='purchases'&&R.dels.length){
       var DL=el('div','ml'); var dh=el('div','pr hd'); ['Delivery','Qty','Lines'].forEach(function(x,i){var sp=el('span',null,x); if(i)sp.style.textAlign='right'; dh.appendChild(sp);}); DL.appendChild(dh);
-      R.dels.forEach(function(d){var r=el('div','pr'), w=el('div'); w.appendChild(el('b',null,dmyShort(d.day)+(d.po?' \u00b7 PO '+d.po:''))); w.appendChild(el('small',null,(spec.dept==='all'?byId[d.dept].name+' \u00b7 ':'')+(d.time?d.time:''))); r.appendChild(w); r.appendChild(el('span','q',fm2(d.qty))); r.appendChild(el('span','q',String(d.lines))); DL.appendChild(r);}); M.appendChild(DL);
+      R.dels.forEach(function(d){var r=el('div','pr'), w=el('div'); r.style.cursor='pointer'; r.setAttribute('role','button'); r.tabIndex=0; w.appendChild(el('b',null,dmyShort(d.day)+(d.po?' \u00b7 PO '+d.po:''))); w.appendChild(el('small',null,(spec.dept==='all'?byId[d.dept].name+' \u00b7 ':'')+(d.time?d.time+' \u00b7 ':'')+'tap to see the wines')); r.appendChild(w); r.appendChild(el('span','q',fm2(d.qty))); r.appendChild(el('span','q',String(d.lines))); DL.appendChild(r);
+        var det=el('div'); det.hidden=true; det.style.cssText='background:var(--soft);border-radius:10px;padding:6px 10px;margin:2px 0 8px'; (d.items||[]).forEach(function(x){var li=el('div'); li.style.cssText='display:flex;justify-content:space-between;gap:8px;font-size:13px;padding:3px 0'; li.appendChild(el('span',null,(x.code?x.code+' \u00b7 ':'')+x.name)); li.appendChild(el('b',null,fm2(x.qty))); det.appendChild(li);}); DL.appendChild(det);
+        function tg(){det.hidden=!det.hidden;} r.addEventListener('click',tg); r.addEventListener('keydown',function(ev){if(ev.key==='Enter'||ev.key===' '){ev.preventDefault(); tg();}});
+      }); M.appendChild(DL);
     }
     var L=el('div','ml'), h=el('div','pr hd'); [K==='value'?'Item':'Item','Qty',K==='sales'?'Revenue':'Value'].forEach(function(x,i){var sp=el('span',null,x); if(i)sp.style.textAlign='right'; h.appendChild(sp);}); L.appendChild(h);
     R.rows.forEach(function(r,i){
@@ -2926,7 +3233,7 @@ function renderPeriodReport(id,spec){
   var f=el('div','mf'); f.appendChild(el('span',null,R.rows.length+' items \u00b7 '+fm2(R.tot.eq)+' bottles'+(K==='value'?'':' \u00b7 day runs until '+SVC_CUT+':00'))); f.appendChild(el('span',null,'Made '+dmyShort(tdy()))); M.appendChild(f);
   box.appendChild(M);
   var ab=el('div','btns'); ab.style.margin='8px 0';
-  ab.appendChild(mkBtn('Print / PDF','',function(){
+  if(K==='sales'||K==='purchases')rxButtons(ab,spec); else ab.appendChild(mkBtn('Print / PDF','',function(){
     var rows=R.rows.map(function(r,i){return [String(i+1),r.name+(r.code?' ('+r.code+')':''),fm2(r.eq),(K==='sales'?r.rev:r.val)?money(K==='sales'?r.rev:r.val):''];});
     printDoc(rpTitle(spec)+' \u00b7 '+spec.label,'<p class="m">'+esc(rpSummary(spec,R))+'</p>'+tbl(['#','Item','Qty',K==='sales'?'Revenue AED':'Value AED'],rows,[2,3]),'report-'+K+'-'+spec.from);
   }));
@@ -3033,6 +3340,7 @@ function respondInner(id,text){
   var od1=handleOrder(a,c,text); if(od1)return od1;
   var cm1=handleCmp(a,c,text); if(cm1)return cm1;
   var wr1=handleWrep(a,c,text); if(wr1)return wr1;
+  var rx1=handleRx(a,c,text); if(rx1)return rx1;
   var pr1=handlePrep(a,c,text); if(pr1)return pr1;
   var ex1=handleExtra(a,c,text); if(ex1)return ex1;
   if(RCAT[a.id]&&!COSTUPD.test(text)&&!costRepAsk(text.toLowerCase())){var rc2=handleRecipeCost(a,c,text); if(rc2)return rc2;}
@@ -3224,7 +3532,7 @@ function libBlock(id,text){
   var LM=lenMode(text), cleanQ=String(text).replace(LENRX,' ');
   if(total<=(LM==='long'?30000:9000))body=kbAll(id,LM==='long'?30000:9000);
   else if(learnQ){body=docs.slice(0,12).map(function(d){var f=String((d.chunks&&d.chunks[0])||'').replace(/\s+/g,' ').slice(0,450); return '['+d.name+'] '+f;}).join('\n\n');}
-  else{var qf=kbFollow(id,cleanQ), q=contentWords(cleanQ+' '+(KBHINT[id]||'')+' '+qf).join(' ')+' '+kbExpand(contentWords(cleanQ).join(' '))+' '+(cleanQ.match(CJKRX)||[]).join(' '), q0=q.trim()||cleanQ; q=q0; gr=kbDiverse(id,q,LM==='long'?3:2,LM==='long'?14:LM==='mid'?10:8); body=gr.length?'Passages from '+gr.length+' different document(s) that mention the topic (every document is shown at most a few times, so a document that is missing here says nothing about it):\n\n'+gr.map(function(g){return g.map(function(c){return '['+c.n+' / part '+(c.i+1)+']\n'+c.t.slice(0,1000);}).join('\n');}).join('\n\n'):'(No passage in the documents matches this question. Say so briefly.)';}
+  else{var qf=kbFollow(id,cleanQ), q=contentWords(cleanQ+' '+(KBHINT[id]||'')+' '+qf).join(' ')+' '+kbExpand(contentWords(cleanQ).join(' '))+' '+(cleanQ.match(CJKRX)||[]).join(' '), q0=q.trim()||cleanQ; q=q0; var gr=kbDiverse(id,q,LM==='long'?3:2,LM==='long'?14:LM==='mid'?10:8); body=gr.length?'Passages from '+gr.length+' different document(s) that mention the topic (every document is shown at most a few times, so a document that is missing here says nothing about it):\n\n'+gr.map(function(g){return g.map(function(c){return '['+c.n+' / part '+(c.i+1)+']\n'+c.t.slice(0,1000);}).join('\n');}).join('\n\n'):'(No passage in the documents matches this question. Say so briefly.)';}
   var pics=[]; docs.forEach(function(d){(d.pgs||[]).forEach(function(pg){pics.push(d.name+' p.'+pg.p+(pg.cap?': '+pg.cap.slice(0,90):''));});});
   var picLine=pics.length?'\nPICTURES you hold (maps, charts, photos; the app can show them): '+pics.slice(0,25).join(' | ')+'. If the manager wants to see one, tell them to write for example \u201cshow the Burgundy map\u201d (add \u201conly the map\u201d for just the map).':'';
   return head+picLine+'\nKNOWLEDGE (the full or most relevant text of those documents. It is the manager\u2019s own house rules and facts: follow it and apply it to the question. Passages marked \u201ctranscription\u201d are careful readings of the page image (table cells are separated by |); trust them over plain extracted text of the same page, and if one is marked \u201cnot confirmed\u201d tell the manager the reading was not confirmed. WHEN SEVERAL DOCUMENTS COVER THE TOPIC give ONE merged answer, never one answer per document: (1) state what the documents agree on once, as the answer, and name the documents that confirm it in one short bracket, for example (Sources: A, B, C); (2) if only some documents add a detail the others do not, say which one adds it, for example \u201cOnly Wine Atlas adds that\u2026\u201d; (3) if documents disagree, state both versions and who says which, never choose silently and never call a detail wrong just because one document does not mention it; (4) do not repeat the same fact for each document. With a single document just end with (Source: document name). Follow the ANSWER LENGTH line at the end. Direct answer first, no preamble. If someone asks what you have learned, summarise each document in one or two sentences. Never invent facts that are not here; general knowledge only if labelled \u201cGeneral knowledge:\u201d.)\n'+body;
@@ -3300,21 +3608,32 @@ function xlsxBuild(a,rows){
   var X='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>', NS='http://schemas.openxmlformats.org/spreadsheetml/2006/main', RN='http://schemas.openxmlformats.org/officeDocument/2006/relationships';
   function cs(r,col,t,st){return '<c r="'+col+r+'" t="inlineStr"'+(st?' s="1"':'')+'><is><t xml:space="preserve">'+xe(t)+'</t></is></c>';}
   var sd=[], r=1;
+  if(a&&a.simple){
+    sd.push('<row r="1">'+cs(1,'A','Code',true)+cs(1,'B','Stock name',true)+cs(1,'C','Quantity',true)+'</row>');
+    rows.forEach(function(x,i){var q=i+2; sd.push('<row r="'+q+'">'+(x.code?cs(q,'A',x.code):'')+cs(q,'B',x.desc)+(x.count==null||isNaN(x.count)?'':'<c r="C'+q+'"><v>'+x.count+'</v></c>')+'</row>');});
+    var sheet0=X+'<worksheet xmlns="'+NS+'"><cols><col min="1" max="1" width="16" customWidth="1"/><col min="2" max="2" width="70" customWidth="1"/><col min="3" max="3" width="12" customWidth="1"/></cols><sheetData>'+sd.join('')+'</sheetData></worksheet>';
+    return xlsxZip(sheet0);
+  }
   sd.push('<row r="1">'+cs(1,'A',exportTitle(a),true)+'</row>'); sd.push('<row r="2">'+cs(2,'A','Date '+today())+'</row>');
   r=4; sd.push('<row r="4">'+cs(4,'A','Item',true)+cs(4,'B','Item Description',true)+cs(4,'C','UOM',true)+cs(4,'D','Count',true)+cs(4,'E','Total Count',true)+'</row>');
   rows.forEach(function(x){
     r++; sd.push('<row r="'+r+'">'+(x.code?cs(r,'A',x.code):'')+cs(r,'B',x.desc)+cs(r,'C','EA')+(x.count==null||isNaN(x.count)?'':'<c r="D'+r+'"><v>'+x.count+'</v></c>')+'</row>');
   });
   var sheet=X+'<worksheet xmlns="'+NS+'"><cols><col min="1" max="1" width="14" customWidth="1"/><col min="2" max="2" width="70" customWidth="1"/><col min="3" max="3" width="6" customWidth="1"/><col min="4" max="5" width="12" customWidth="1"/></cols><sheetData>'+sd.join('')+'</sheetData></worksheet>';
+  return xlsxZip(sheet);
+}
+function xlsxZip(sheet,sname,hr){
+  var X='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>', NS='http://schemas.openxmlformats.org/spreadsheetml/2006/main', RN='http://schemas.openxmlformats.org/officeDocument/2006/relationships';
   var files=[
    {name:'[Content_Types].xml',data:u8(X+'<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>')},
    {name:'_rels/.rels',data:u8(X+'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="'+RN+'/officeDocument" Target="xl/workbook.xml"/></Relationships>')},
-   {name:'xl/workbook.xml',data:u8(X+'<workbook xmlns="'+NS+'" xmlns:r="'+RN+'"><sheets><sheet name="Stock count" sheetId="1" r:id="rId1"/></sheets></workbook>')},
+   {name:'xl/workbook.xml',data:u8(X+'<workbook xmlns="'+NS+'" xmlns:r="'+RN+'"><sheets><sheet name="'+xe(sname||'Stock count')+'" sheetId="1" r:id="rId1"/></sheets>'+(hr?'<definedNames><definedName name="_xlnm.Print_Titles" localSheetId="0">\''+xe(sname||'Stock count')+'\'!$'+hr+':$'+hr+'</definedName></definedNames>':'')+'</workbook>')},
    {name:'xl/_rels/workbook.xml.rels',data:u8(X+'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="'+RN+'/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="'+RN+'/styles" Target="styles.xml"/></Relationships>')},
    {name:'xl/styles.xml',data:u8(X+'<styleSheet xmlns="'+NS+'"><fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><name val="Calibri"/></font></fonts><fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills><borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="2"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/></cellXfs></styleSheet>')},
    {name:'xl/worksheets/sheet1.xml',data:u8(sheet)}];
   return zipStore(files);
 }
+function sheetXlsx(rows){return xlsxBuild({simple:true},rows);}
 function pdfEnc(t){
   var map={'’':"'",'‘':"'",'“':'"','”':'"','–':'-','—':'-','…':'...'}, o='';
   String(t).split('').forEach(function(ch){var k=map[ch]||ch, n=k.charCodeAt(0); o+=(n<256?k:'?');});
@@ -3890,6 +4209,7 @@ function baseApply(id){
   c.msgs=c.msgs.filter(function(m){return !(m.photo&&!m.text);}); c.msgs.forEach(function(m){delete m.photo; delete m.img;});
   c.base={date:BASE.date,file:BASE.file,applied:Date.now(),lines:BASE.rows.length,matched:listed,made:off,pend:0,blank:[],resized:0,merged:0,nocount:nocount};
   c.kb=c.kb.filter(function(d){return !/^Stock sheet /.test(d.title);}); c.kb.push({id:'d'+Date.now(),kind:'list',title:'Stock sheet '+BASE.date,count:BASE.rows.length,ts:Date.now()});
+  sheetAdd(c,BASE.rows.map(function(r){var q=parseCount(r[2]); return [r[0]||'',String(r[1]||'').toUpperCase(),q==null?0:q];}),'count');
   return {matched:listed,made:off,pend:0,blank:[],zeroed:0,resized:0,merged:0,nocount:nocount};
 }
 function baseXlsxBlob(){
@@ -3964,7 +4284,7 @@ function bubble0(m){
     pim.addEventListener('click',function(){pgOpen(m.pg);}); var pbb=el('div','btns'); pbb.appendChild(mkBtn('Open','ghost sm',function(){pgOpen(m.pg);})); pbb.appendChild(mkBtn('Save image','ghost sm',async function(){var bl=await pgBlob(m.pg); if(bl)saveFile(pgFile(m.pg),bl);})); d.appendChild(pbb);}
   if(m.ai&&m.from==='bot')d.appendChild(el('div','aitag','Smart reply · online'));
   if(m.wrep&&m.from==='bot'){var wb=el('div','btns'); wb.appendChild(mkBtn('Open report','',function(){openWineReport(cur,m.wrep);})); d.appendChild(wb);}
-  if(m.prep&&m.from==='bot'){var pb0=el('div','btns'); pb0.appendChild(mkBtn('Open report','',function(){openPeriodReport(cur,m.prep);})); d.appendChild(pb0);}
+  if(m.prep&&m.from==='bot'){var pb0=el('div','btns'); if(m.prep.kind==='sales'||m.prep.kind==='purchases'){rxButtons(pb0,m.prep); pb0.appendChild(mkBtn('Open report','ghost',function(){openPeriodReport(cur,m.prep);}));}else pb0.appendChild(mkBtn('Open report','',function(){openPeriodReport(cur,m.prep);})); d.appendChild(pb0);}
   if(m.opts&&m.opts.length&&m.from==='bot'){
     var ob=el('div'); ob.style.cssText='margin-top:8px;display:flex;flex-direction:column;gap:8px'; m.opts.forEach(function(o){
       var row=el('div'); row.style.cssText='display:flex;align-items:center;gap:10px;background:var(--soft);border-radius:12px;padding:10px 12px';
@@ -4116,17 +4436,22 @@ function bubble0(m){
     else ec.appendChild(mkBtn('Send back','',function(){sendGlassEdit(m.who||cur,m,inputs);}));
     d.appendChild(ec);
   }
-  if(m.plan&&m.plan.lines){
+  if(m.plan&&m.plan.lines&&m.plan.kind==='count'&&!m.pageMode){
+    var cb0=el('div','ec');
+    if(m.plan.done)cb0.appendChild(el('p',null,m.plan.cancel?'Cancelled.':'Checked and saved.'));
+    else{var bb0=el('div','btns'); bb0.appendChild(mkBtn('Let me check','',function(){openCountPage(m.who||cur,m);})); cb0.appendChild(bb0);}
+    d.appendChild(cb0);
+  } else if(m.plan&&m.plan.lines){
     var pc=el('div','ec'), pin=[], pid=m.who||cur, cc=S.chats[pid];
     if(m.plan.done){if(m.plan.po||m.plan.date){var ph=el('p',null,(m.plan.po?'PO '+m.plan.po:'')+(m.plan.po&&m.plan.date?' · ':'')+(m.plan.date?dmy(m.plan.date):'')); ph.style.fontWeight='600'; pc.appendChild(ph);}}
-    else{
+    else if(m.plan.kind!=='count'){
       var hr=el('div','er'); hr.style.flexWrap='wrap';
       var pi=el('input','eq'); pi.type='text'; pi.value=m.plan.po||''; pi.placeholder='PO number'; pi.setAttribute('aria-label','PO number'); pi.style.width='38%'; pi.addEventListener('input',function(){m.plan.po=pi.value;});
       var di=el('input','eq'); di.type='date'; di.value=/^\d{4}-\d{2}-\d{2}$/.test(m.plan.date||'')?m.plan.date:''; di.setAttribute('aria-label','Document date'); di.style.width='58%'; di.style.minWidth='0'; di.addEventListener('input',function(){m.plan.date=di.value;});
       hr.appendChild(pi); hr.appendChild(di); pc.appendChild(hr);
     }
     if(!m.plan.done&&m.plan.lines.length>4){var nk={ok:0,chk:0,nw:0}; m.plan.lines.forEach(function(l){if(!l.wid)nk.nw++; else if(l.strong)nk.ok++; else nk.chk++;}); var smp=el('div','sumr'); smp.appendChild(el('span',null,m.plan.lines.length+' lines')); if(nk.ok)smp.appendChild(el('span','tg ok',nk.ok+' matched')); if(nk.chk)smp.appendChild(el('span','tg chk',nk.chk+' check')); if(nk.nw)smp.appendChild(el('span','tg new',nk.nw+' new')); pc.appendChild(smp);}
-    pc.classList.add('chg');
+    pc.classList.add('chg'); if(m.pageMode)COUNTPIN={m:m,pin:pin};
     var plines=m.plan.lines.slice().sort(function(x,y){function r(l){return (l.wid&&l.strong)?1:0;} return r(x)-r(y);});
     plines.forEach(function(l){
       var row=el('div','ri cgr'), sel=el('select','cgs'), qi=el('input','cgi'), left=el('div','pl'), ttl=el('div','nm'), s1=el('div','s1'), s2=el('div','s2'), s3=el('div','s3'), tgEl=el('span','tg'), touched=false;
@@ -4134,17 +4459,17 @@ function bubble0(m){
       var cur0=l.wid?cc.inv.filter(function(x){return x.id===l.wid;})[0]:null;
       if(cur0)opt(cur0.id,'Change match: '+cur0.name,true);
       (l.cands||[]).forEach(function(i){var w=cc.inv.filter(function(x){return x.id===i;})[0]; if(w)opt(w.id,(w.code?w.code+' · ':'')+w.name,false);});
-      if(m.plan.kind!=='sub')opt('new','New wine: '+sheetClean(l.raw).name,!cur0);
+      if(m.plan.kind!=='sub')opt('new',(m.plan.kind==='count'?'Off menu: ':'New wine: ')+sheetClean(l.raw).name,!cur0);
       opt('skip','Skip this line',!cur0&&m.plan.kind==='sub');
       sel.setAttribute('aria-label','Wine for '+l.raw);
       qi.type='text'; qi.inputMode='decimal'; qi.value=l.qty; qi.placeholder='?'; qi.setAttribute('aria-label','Quantity of '+l.raw);
       if(m.plan.done){sel.disabled=true; qi.disabled=true;}
       function paint(){
         var v=sel.value, it=(v&&v!=='new'&&v!=='skip')?cc.inv.filter(function(x){return x.id===v;})[0]:null;
-        ttl.textContent=it?it.name:(v==='new'?'New wine: '+sheetClean(l.raw).name:'Skipped'); 
-        var kind=it?((l.strong&&v===l.wid)||touched?'ok':'chk'):(v==='new'?'new':'skip'); tgEl.className='tg '+kind; tgEl.textContent=kind==='ok'?'matched':kind==='chk'?'check':kind==='new'?'new':'skipped'; ttl.appendChild(tgEl);
+        ttl.textContent=it?it.name:(v==='new'?(m.plan.kind==='count'?'Not matched: ':'New wine: ')+sheetClean(l.raw).name:'Skipped'); 
+        var kind=it?((l.strong&&v===l.wid)||touched?'ok':'chk'):(v==='new'?'new':'skip'); tgEl.className='tg '+kind; tgEl.textContent=kind==='ok'?'matched':kind==='chk'?'check':kind==='new'?(m.plan.kind==='count'?'off menu':'new'):'skipped'; ttl.appendChild(tgEl);
         var sz=(it&&it.size&&!/\b\d{3,4}\s*ml\b/i.test(it.name))?it.size+' ml':'';
-        s1.textContent=it?[it.code,sz,'In stock: '+(it.qty==null?'no count yet':num(it.qty))].filter(Boolean).join(' · '):(v==='new'?'Not in your stock list yet':'');
+        s1.textContent=it?[it.code,sz,'In stock: '+(it.qty==null?'no count yet':num(it.qty))].filter(Boolean).join(' · '):(v==='new'?(m.plan.kind==='count'?'Pick a match above, or leave it as Off menu':'Not in your stock list yet'):'');
         s2.textContent=it&&it.sheet?'Stock list: '+it.sheet:''; row.classList.toggle('hl',kind==='chk');
       }
       sel.addEventListener('change',function(){touched=true; paint();}); paint();
@@ -4164,9 +4489,10 @@ function bubble0(m){
     if(m.plan.done)pc.appendChild(el('p',null,m.plan.cancel?'Cancelled.':'Done.'));
     else{
       var pb=el('div','btns');
-      if(m.plan.kind!=='sub')pb.appendChild(mkBtn(m.plan.kind==='ask'?'It is a delivery: add to stock':'Yes, add to stock','',function(){planApply(m.who||cur,m,pin,'add');}));
-      if(m.plan.kind!=='add')pb.appendChild(mkBtn(m.plan.kind==='ask'?'It is sales: take off stock':'Yes, we sold these today','',function(){planApply(m.who||cur,m,pin,'sub');}));
-      pb.appendChild(mkBtn('Cancel','ghost',function(){planCancel(m.who||cur,m);})); pc.appendChild(pb);
+      if(m.plan.kind==='count'){pb.appendChild(mkBtn('Save count','',function(){countSave(m.who||cur,m,pin);}));}
+      if(m.plan.kind!=='sub'&&m.plan.kind!=='count')pb.appendChild(mkBtn(m.plan.kind==='ask'?'It is a delivery: add to stock':'Yes, add to stock','',function(){planApply(m.who||cur,m,pin,'add');}));
+      if(m.plan.kind!=='add'&&m.plan.kind!=='count')pb.appendChild(mkBtn(m.plan.kind==='ask'?'It is sales: take off stock':'Yes, we sold these today','',function(){planApply(m.who||cur,m,pin,'sub');}));
+      pb.appendChild(mkBtn('Cancel','ghost',function(){planCancel(m.who||cur,m); closeCountPage();})); pc.appendChild(pb);
     }
     d.appendChild(pc);
   }
@@ -4203,6 +4529,15 @@ function bubble0(m){
     if(sl.done)sc4.appendChild(el('p',null,sl.res||'Done.'));
     else{var sb4=el('div','btns'); sb4.appendChild(mkBtn(sl.bad?'Save anyway':'Save','',function(){sl.items.forEach(function(x){delete x.chk; upsertSale(c4,x);}); sl.done=true; sl.res='Saved '+sl.items.length+' day'+(sl.items.length===1?'':'s')+'.'; save(); refreshChat(sid2);})); sb4.appendChild(mkBtn('Cancel','ghost',function(){sl.done=true; sl.res='Cancelled.'; save(); refreshChat(sid2);})); sc4.appendChild(sb4);}
     d.appendChild(sc4);
+  }
+  if(m.cf){
+    var cfb=el('div','btns'), cfid=m.who||cur;
+    if(m.cf.done)cfb.appendChild(el('span','dl',m.cf.ans||'Done'));
+    else{
+      var cfo={confirm:[['Yes, it is','yes'],['No, it is today','today']],report:[['Give me the report','yes'],['Not now','no']],recount:[['Start recount','yes'],['No, it is correct','no']],update:[['Yes, update stock','yes'],['No','no']]}[m.cf.step]||[];
+      cfo.forEach(function(o,ix){if(m.cf.step==='confirm'&&ix===1&&!(S.chats[cfid].countPend&&S.chats[cfid].countPend.date!==tdy()))return; cfb.appendChild(mkBtn(o[0],ix?'ghost':'',function(){cfStep(cfid,m,o[1],o[0]);}));});
+    }
+    d.appendChild(cfb);
   }
   var meta=el('div','meta'); meta.appendChild(el('span',null,hm(m.ts)));
   if(m.from==='me'){var t=el('span'); t.innerHTML=TICKS; meta.appendChild(t);}
@@ -4347,7 +4682,8 @@ function kbExpand(q){var out=[], seen={}; String(q).toLowerCase().split(/\s+/).f
 function kbFollow(id,text){var cw=contentWords(String(text).replace(LENRX,' ')), low=String(text).toLowerCase().trim(); var short=cw.length<=2||/^(and|what about|how about|peki|ya |and its|its |their |that |this |it |those |these |bunun|onun|şunun)/.test(low); return (short&&KBLAST[id])?KBLAST[id]:'';}
 try{smartOn=localStorage.getItem('dutybuddy.smart')!=='0';}catch(e){}
 (function(){try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();}catch(e){}
-  try{var k='dutybuddy.bktip', last=+localStorage.getItem(k)||0; if(!last){localStorage.setItem(k,String(Date.now()));} else if(Date.now()-last>7*864e5){localStorage.setItem(k,String(Date.now())); setTimeout(function(){try{toast('Tip: your data lives only in this app. Before you delete the app icon, back it up: menu, Move data between devices, Copy.');}catch(e){}},4000);}}catch(e){}})();
+  try{var k='dutybuddy.bktip', lf=+localStorage.getItem('dutybuddy.lastfile')||0, lt=+localStorage.getItem(k)||0; if(Date.now()-lf>864e5&&Date.now()-lt>12*36e5){localStorage.setItem(k,String(Date.now())); setTimeout(function(){try{toast('Tip: save a backup file today. Menu, Settings, Backup.');}catch(e){}},5000);}}catch(e){}})();
+try{setTimeout(function(){snapNow('Opened the app');},6000); document.addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden')snapNow('');});}catch(e){}
 /* fill the whole screen (under the camera, down to the bottom edge) even when iOS reports a shorter page */
 (function(){
   var MODE='none', root=document.documentElement, H0=0, KBEST=false, IOS=/iPhone|iPad|iPod/.test(navigator.userAgent)||(/Macintosh/.test(navigator.userAgent)&&navigator.maxTouchPoints>1);
@@ -4432,7 +4768,7 @@ try{smartOn=localStorage.getItem('dutybuddy.smart')!=='0';}catch(e){}
   }
   window.addEventListener('resize',apply); window.addEventListener('orientationchange',function(){setTimeout(apply,60);}); apply();
 })();
-var APPVER='7327bfd4';
+var APPVER='82c04ea1';
 var KEYNAME='dutybuddy.apikey', inClaude=false;
 function storedKey(){try{return localStorage.getItem(KEYNAME)||'';}catch(e){return '';}}
 function keyOn(){try{return localStorage.getItem('dutybuddy.keyoff')!=='1';}catch(e){return true;}}
@@ -4534,7 +4870,16 @@ async function callAI(sample,id,text,teamNote){
   var t=String(r.text||'').replace(/```[a-z]*/gi,'').replace(/\*\*/g,'').trim();
   return t||null;
 }
-var AINOTE='';
+var AINOTE='', AILAST=null;
+async function smartRetry(id,text){
+  for(var i=0;i<3;i++){
+    var ok=await smartSend(id,text); if(ok){AILAST=null; return true;}
+    if(!AINOTE||!apiKey()||navigator.onLine===false)return false;
+    AILAST={t:Date.now(),msg:AINOTE}; logErr('AI',AINOTE,'answer to a question'); if(aiOff)return false;
+    await new Promise(function(r){setTimeout(r,1800*(i+1));});
+  }
+  return false;
+}
 async function smartSend(id,text){
   AINOTE='';
   if(!smartOn||aiOff)return false;
@@ -4682,7 +5027,7 @@ function send(text){
   var id=cur; push(id,{from:'me',text:text}); save(); renderMsgs(); showTyping();
   if(id==='team'){var tfo=null; try{tfo=teamFlow(text);}catch(e){tfo=null;} if(tfo){setTimeout(function(){hideTyping(); tfo.forEach(function(m){m.from='bot'; push('team',m);}); save(); refreshChat('team'); renderList();},350); return;}}
   else{var fg=foreignGuard(id,text); if(fg){setTimeout(function(){hideTyping(); push(id,{from:'bot',text:fg}); save(); refreshChat(id); renderList();},300); return;}}
-  picSend(id,text).catch(function(){return false;}).then(function(done){if(done)return; return smartSend(id,text).then(function(ok){if(!ok){if(AINOTE&&navigator.onLine!==false&&apiKey()){push(id,{from:'bot',text:'The online AI did not answer: '+AINOTE+'. Below is the plain book text. Send again to retry.'});} legacySend(id,text);}},function(){legacySend(id,text);});});
+  picSend(id,text).catch(function(){return false;}).then(function(done){if(done)return; return smartRetry(id,text).then(function(ok){if(!ok)legacySend(id,text);},function(){legacySend(id,text);});});
 }
 function legacySend(id,text){
   if(id==='team'){
@@ -4879,7 +5224,7 @@ function buildPlan(c,r){
     var cands=rankMatches(pool,sq.name,W,4,sq.size).map(function(x){return x.it.id;}).filter(function(i){return !ch||i!==ch.id;});
     out.push({code:l.code,raw:l.raw,qty:l.qty,wid:ch?ch.id:null,strong:strong,cands:cands,note:l.note||''});
   });
-  return {kind:r.type==='delivery'?'add':(r.type==='sales'?'sub':'ask'),lines:out,done:false,po:r.po||'',date:r.date||'',checked:r.checked||null};
+  return {kind:r.type==='delivery'?'add':(r.type==='sales'?'sub':(r.type==='count'?'count':'ask')),countDate:r.type==='count'?countDateGuess():'',lines:out,done:false,po:r.po||'',date:r.date||'',checked:r.checked||null};
 }
 
 /* ================= WINE LABEL PHOTO: read the label, check the stock sheet, wine list and extra wines ================= */
@@ -4925,14 +5270,14 @@ async function labelFlow(id,file){
 }
 async function invoiceFlow(id,file,note){
   var c=S.chats[id], r;
-  try{r=await readInvoice(file,note); var nk0=noteKind(note); if(r&&!r.err&&r.type!=='label'&&r.lines&&r.lines.length&&(nk0==='delivery'||nk0==='sales'))r.type=nk0;}catch(e){r={err:(e&&e.code&&ERR[e.code])||'I could not read that picture. Try a flatter, brighter photo.'};}
+  try{r=await readInvoice(file,note); var nk0=noteKind(note); if(r&&!r.err&&r.type!=='label'&&r.lines&&r.lines.length&&(nk0==='delivery'||nk0==='sales'||nk0==='count'))r.type=nk0;}catch(e){r={err:(e&&e.code&&ERR[e.code])||'I could not read that picture. Try a flatter, brighter photo.'};}
   hideTyping();
   if(r.err)push(id,{from:'bot',text:r.err});
   else if(r.type==='label'){hideTyping(); await labelFlow(id,file); return;}
   else if(r.type==='other'||!r.lines.length)push(id,{from:'bot',text:'I could not find any wine lines in that picture. Send a clearer photo, or type it, for example “Add 12 Sancerre”.'});
   else{
     var plan=buildPlan(c,r), n=plan.lines.length, ck=r.checked, vt=ck?'I read the picture '+ck.passes+' times and compared every line: '+ck.sure+' agreed'+(ck.unsure?', '+ck.unsure+' I am not sure about (marked \u26a0, please check them against the paper). ':'. '):'';
-    var tx=plan.kind==='add'?'This looks like a delivery'+(plan.po?' (PO '+plan.po+(plan.date?', '+dmy(plan.date):'')+')':'')+' with '+n+' lines. Should I add these to stock and save them under this PO? Check each wine and number, change what is wrong, then tap the button.':
+    var tx=plan.kind==='count'?'I read '+n+' items from your stock count. Nothing is saved yet. Please check every line before I save it.':plan.kind==='add'?'This looks like a delivery'+(plan.po?' (PO '+plan.po+(plan.date?', '+dmy(plan.date):'')+')':'')+' with '+n+' lines. Should I add these to stock and save them under this PO? Check each wine and number, change what is wrong, then tap the button.':
       plan.kind==='sub'?'This looks like a sales report with '+n+' lines. Did we sell these today? Check each line, then tap the button and I will take them off stock.':
       'I found '+n+' lines but I am not sure if this is a delivery or a sales report. Check the lines, then tell me which it is.';
     push(id,{from:'bot',text:vt+tx,plan:plan});
@@ -4967,6 +5312,116 @@ function planApply(id,m,sels,kind){
     push(id,{from:'bot',text:(kind==='add'?'Added to stock: ':'Taken off stock: ')+n+(n===1?' item.':' items.')+(notes.length?'\n'+notes.join('\n'):'')+'\nSaved as '+(kind==='add'?'a delivery':'a sales report')+(po?' under PO '+po:'')+' on '+dmy(dt)+'. Ask me “what did we receive this month” to see the list. Say “undo” to reverse it.',rows:rows});
   }
   syncLow(); save(); refreshChat(id); renderList();
+}
+var COUNTPIN=null;
+function countDateGuess(){var d=new Date(); if(d.getDate()<=7)d=new Date(d.getFullYear(),d.getMonth(),0); return isoL(d);}
+function dayTxt(iso){var d=new Date(iso+'T12:00:00'); return isNaN(d)?iso:d.toLocaleDateString('en-GB',{day:'numeric',month:'long'});}
+function monTxt(iso){var d=new Date(iso+'T12:00:00'); return isNaN(d)?iso:d.toLocaleDateString('en-GB',{month:'long'});}
+function closeCountPage(){var ov=$('printOv'); ov.hidden=true; ov.textContent=''; document.body.classList.remove('printing'); COUNTPIN=null;}
+function openCountPage(id,m){
+  var ov=$('printOv'); ov.textContent=''; document.body.classList.add('printing'); ov.hidden=false;
+  var bar=el('div','pbar'); bar.appendChild(el('div',null,'Check count \u00b7 '+dayTxt(m.plan.countDate||tdy()))).style.cssText='flex:1;font-weight:700;align-self:center';
+  bar.appendChild(mkBtn('Close','ghost',function(){if(COUNTPIN)COUNTPIN.pin.forEach(function(x){x.line.qty=x.qty.value;}); save(); closeCountPage();})); ov.appendChild(bar);
+  var bx=el('div','info'); bx.style.cssText='padding:12px 12px 30px;overflow:auto;flex:1;background:var(--page)'; bx.className+=' keep'; ov.appendChild(bx);
+  var tmp=bubble0(Object.assign({},m,{pageMode:true,who:null,from:'bot',cf:null})), card=tmp.querySelector('.ec');
+  var tp=el('p',null,'Check every line against your paper. Fix a number, or change the match. Lines in orange need a look. Your stock does not change yet.'); tp.style.cssText='margin:0 0 10px;font-size:14px'; bx.appendChild(tp); if(card)bx.appendChild(card);
+}
+function cntSys(c,it){return it&&it.qty!=null?parseFloat(countStr(c,it)):null;}
+function countSave(id,m,pin){
+  var a=byId[id], c=S.chats[id]; if(!m.plan||m.plan.done)return;
+  var rows=[], base={}, skipped=0;
+  pin.forEach(function(x){
+    var v=x.sel.value, q=parseCount(x.qty.value), line=x.line; if(v==='skip')return;
+    if(q==null||q<0){skipped++; return;}
+    var it=(v&&v!=='new')?c.inv.filter(function(i){return i.id===v;})[0]:null; if(v&&v!=='new'&&!it)return;
+    var nm=String((it&&it.sheet)||line.raw||(it&&it.name)||'').toUpperCase();
+    rows.push({code:line.code||(it&&it.code)||'',name:nm,wid:it?it.id:null,raw:line.raw||'',q:q});
+    if(it){base[it.id]=cntSys(c,it); aliasSet(c,{code:line.code,name:line.raw},it);}
+  });
+  if(!rows.length){toast('There is no line with a count yet. Check the numbers first.'); return;}
+  var date=m.plan.countDate||tdy(), sid=sheetAdd(c,rows.map(function(r){return [r.code,r.name,r.q];}),'count',true); c.sheets[c.sheets.length-1].date=date;
+  c.countPend={sid:sid,date:date,rows:rows,base:base,ts:Date.now()};
+  m.plan.done=true; closeCountPage();
+  push(id,{from:'bot',text:'Count saved: '+rows.length+' items'+(skipped?' ('+skipped+' lines without a number were left out)':'')+'. Is this your count for '+dayTxt(date)+'?',cf:{step:'confirm'}});
+  save(); refreshChat(id); renderList(); try{snapNow('Count saved',true);}catch(e){}
+}
+function cntReport(c,P){
+  var sh=[],ex=[],ma=0,nw=[];
+  P.rows.forEach(function(r){
+    if(!r.wid){nw.push(r); return;}
+    var it=c.inv.filter(function(i){return i.id===r.wid;})[0], sys=P.base[r.wid]; if(!it)return;
+    if(sys==null){nw.push(r); return;}
+    var d=Math.round((r.q-sys)*100)/100;
+    if(d<0)sh.push({it:it,d:d,sys:sys,q:r.q}); else if(d>0)ex.push({it:it,d:d,sys:sys,q:r.q}); else ma++;
+  });
+  sh.sort(function(x,y){return x.d-y.d;}); ex.sort(function(x,y){return y.d-x.d;});
+  return {sh:sh,ex:ex,ma:ma,nw:nw};
+}
+function cntLines(list,sign,max){var t=list.slice(0,max).map(function(x){return '\u2022 '+x.it.name+(x.it.code?' ('+x.it.code+')':'')+': '+(x.d>0?'+':'\u2212')+num(Math.abs(x.d))+' (system '+num(x.sys)+', counted '+num(x.q)+')';}).join('\n'); if(list.length>max)t+='\n\u2026and '+(list.length-max)+' more.'; return t;}
+function cfStep(id,m,ans,label){
+  var c=S.chats[id], P=c.countPend; m.cf.done=true; m.cf.ans=label; push(id,{from:'me',text:label});
+  if(!P){push(id,{from:'bot',text:'That count is no longer open. Send the count photo again if you need it.'}); save(); refreshChat(id); return;}
+  var mon=monTxt(P.date);
+  if(m.cf.step==='confirm'){
+    if(ans==='today'){P.date=tdy(); var sh=c.sheets.filter(function(x){return x.id===P.sid;})[0]; if(sh)sh.date=P.date; mon=monTxt(P.date);}
+    push(id,{from:'bot',text:'Do you want the '+mon+' stock report?',cf:{step:'report'}});
+  }else if(m.cf.step==='report'){
+    if(ans==='yes'){
+      var R=cntReport(c,P), t=mon+' stock report\n\nShort ('+R.sh.length+')'+(R.sh.length?'\n'+cntLines(R.sh,'-',25):'\nNone.')+'\n\nExtra ('+R.ex.length+')'+(R.ex.length?'\n'+cntLines(R.ex,'+',25):'\nNone.')+'\n\nMatch ('+R.ma+')'+(R.nw.length?'\n\nNew or off menu ('+R.nw.length+')':'');
+      var missing=c.inv.filter(function(i){return i.qty!=null&&!P.rows.some(function(r){return r.wid===i.id;});}).length; if(missing)t+='\n\n'+missing+' items in stock were not in the count. I leave them as they are.';
+      if(R.sh.length||R.ex.length)push(id,{from:'bot',text:t+'\n\nDo you want to recount the short and extra items?',cf:{step:'recount'}});
+      else push(id,{from:'bot',text:t+'\n\nEverything matches. Do you want to use this count as the new stock?',cf:{step:'update'}});
+    }else push(id,{from:'bot',text:'Okay. Do you want to use this count as the new stock?',cf:{step:'update'}});
+  }else if(m.cf.step==='recount'){
+    if(ans==='yes'){save(); refreshChat(id); openRecount(id); return;}
+    push(id,{from:'bot',text:'Do you want to use this count as the new stock?',cf:{step:'update'}});
+  }else if(m.cf.step==='update'){
+    if(ans==='yes')cntApply(id,P);
+    else{c.countPend=null; push(id,{from:'bot',text:'Okay. Your stock is unchanged. The count is kept in Stock sheets as a record.'});}
+  }
+  save(); refreshChat(id); renderList();
+}
+function openRecount(id){
+  var c=S.chats[id], P=c.countPend; if(!P)return;
+  var diff=P.rows.filter(function(r){return r.wid&&P.base[r.wid]!=null&&Math.round((r.q-P.base[r.wid])*100)/100!==0;});
+  var ov=$('printOv'); ov.textContent=''; document.body.classList.add('printing'); ov.hidden=false;
+  var bar=el('div','pbar'); bar.appendChild(el('div',null,'Recount \u00b7 '+monTxt(P.date))).style.cssText='flex:1;font-weight:700;align-self:center'; bar.appendChild(mkBtn('Close','ghost',function(){closeCountPage();})); ov.appendChild(bar);
+  var bx=el('div','info'); bx.style.cssText='padding:12px 12px 30px;overflow:auto;flex:1;background:var(--page)'; bx.className+=' keep'; ov.appendChild(bx);
+  var tp=el('p',null,'Only the lines that were short or extra. Count them again. Change the number and the difference updates at once. Red is short, green is extra.'); tp.style.cssText='margin:0 0 10px;font-size:14px'; bx.appendChild(tp);
+  var inputs=[];
+  diff.forEach(function(r){
+    var it=c.inv.filter(function(i){return i.id===r.wid;})[0]; if(!it)return; var sys=P.base[r.wid];
+    var card=el('div','card'); card.style.cssText='display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center;margin:0 0 8px';
+    var l=el('div'); l.appendChild(el('b',null,it.name)); var sm=el('div',null,(it.code?it.code+' \u00b7 ':'')+'System: '+num(sys)+' \u00b7 First count: '+num(r.q)); sm.style.cssText='font-size:12px;color:var(--muted);margin-top:2px'; l.appendChild(sm);
+    var rt=el('div'); rt.style.cssText='display:flex;flex-direction:column;align-items:flex-end;gap:5px';
+    var qi=el('input','cgi'); qi.type='text'; qi.inputMode='decimal'; qi.value=num(r.q); qi.style.cssText='width:54px;text-align:center'; qi.setAttribute('aria-label','Recount of '+it.name);
+    var df=el('div'); df.style.cssText='border-radius:9px;padding:3px 10px;font-weight:800;font-size:12.5px;min-width:60px;text-align:center';
+    function paint(){var v=parseCount(qi.value); if(v==null){df.textContent='?'; df.style.cssText+=';background:transparent;color:var(--muted)'; return;} var d=Math.round((v-sys)*100)/100; df.textContent=d===0?'Match':(d>0?'+':'\u2212')+num(Math.abs(d)); df.style.background=d<0?'#fbe3e1':(d>0?'#d9efe3':'transparent'); df.style.color=d<0?'#b3261e':(d>0?'#1a7f4b':'var(--muted)');}
+    var mn=mkBtn('\u2212','ghost sm',function(){var v=parseFloat(String(qi.value).replace(',','.'))||0; qi.value=num(Math.max(0,v-1)); paint();}), pl=mkBtn('+','ghost sm',function(){var v=parseFloat(String(qi.value).replace(',','.'))||0; qi.value=num(v+1); paint();});
+    var rw=el('div'); rw.style.cssText='display:flex;align-items:center;gap:4px'; rw.appendChild(mn); rw.appendChild(qi); rw.appendChild(pl);
+    qi.addEventListener('input',paint); paint(); rt.appendChild(rw); rt.appendChild(df); card.appendChild(l); card.appendChild(rt); bx.appendChild(card); inputs.push({r:r,qi:qi});
+  });
+  var bb=el('div','btns'); bb.appendChild(mkBtn('Save recount','',function(){
+    var ch=0; inputs.forEach(function(x){var v=parseCount(x.qi.value); if(v!=null&&v>=0&&v!==x.r.q){x.r.q=v; ch++;}});
+    var rows=P.rows.map(function(r){return [r.code,r.name,r.q];}); var sid=sheetAdd(c,rows,'recount',true); c.sheets[c.sheets.length-1].date=P.date; P.sid=sid;
+    var R=cntReport(c,P); closeCountPage();
+    push(id,{from:'bot',text:'Recount saved ('+ch+' changed). Now short '+R.sh.length+', extra '+R.ex.length+', match '+R.ma+'.\n\nDo you want to use this count as the new stock?',cf:{step:'update'}});
+    save(); refreshChat(id); renderList(); try{snapNow('Recount saved',true);}catch(e){}
+  })); bb.appendChild(mkBtn('Cancel','ghost',function(){closeCountPage();})); bx.appendChild(bb);
+}
+function cntApply(id,P){
+  var a=byId[id], c=S.chats[id]; snap(c); var n=0, made=0, ch=[];
+  P.rows.forEach(function(r){
+    var it=r.wid?c.inv.filter(function(i){return i.id===r.wid;})[0]:null;
+    if(!it){
+      it={id:uid(),code:r.code||'',name:sheetClean(r.raw).name.replace(/\b[a-z]/g,function(x){return x.toUpperCase();})||r.raw,qty:null,open:0,pour:0,src:null,type:guessType(r.raw),glass:false,menu:!!c.noMenu,size:sheetClean(r.raw).size||750,price:'',gprice:'',sheet:r.raw}; c.inv.push(it); made++;
+    }
+    var before=cntSys(c,it), sp=splitCount(r.q,glassesPer(c,it)); it.qty=sp.qty; it.open=sp.open; if(r.code&&!it.code)it.code=r.code; n++;
+    if(before!==r.q&&ch.length<6)ch.push(it.name+' '+(before==null?'new':num(before))+' \u2192 '+num(r.q));
+  });
+  c.sheetUse=P.sid; c.countPend=null; syncLow();
+  push(id,{from:'bot',text:'Stock updated. '+n+' items now follow your count'+(made?' ('+made+' new, in Off menu)':'')+'. Names and your matches stayed as they were.'+(ch.length?'\n'+ch.join('\n')+(n>ch.length?'\n\u2026':''):'')+'\nThe count is saved in Stock sheets as the one in use. Say \u201cundo\u201d to go back.'});
+  try{snapNow('Stock updated from the count',true);}catch(e){}
 }
 function planCancel(id,m){if(!m.plan||m.plan.done)return; m.plan.done=true; m.plan.cancel=true; push(id,{from:'bot',text:'Okay, nothing was changed.'}); save(); refreshChat(id);}
 
@@ -5045,7 +5500,7 @@ function rptAgg(c,range,demo){
   });
   return A;
 }
-function openReports(id){rptId=id; if(!RPT.anchor)RPT.anchor=tdy(); setView('reports'); renderReports(id);}
+function openReports(id){var t=cmpToday(); openPeriodReport(id,{kind:'sales',from:t,to:t,label:dmyShort(t),name:'Today',filt:null,dept:id,mode:'day',vm:'all',cost:false});}
 function dlt(cur,prev){if(!prev)return ''; var d=Math.round((cur-prev)/prev*100); return (d>0?'+':'')+d+'% vs before';}
 function renderReports(id){
   var a=byId[id], c=S.chats[id], box=$('reportsPg'), keep=box.scrollTop; box.textContent='';
@@ -5113,10 +5568,6 @@ function renderInfo(id,keepScroll){
 
   var t=total(c.inv), noCount=c.inv.filter(function(i){return i.qty==null;}).length, openN=c.inv.filter(function(i){return i.open>0;}).length;
   var s1=el('div','card'); s1.appendChild(el('h3',null,stkUI(a)?'Stock':(a.seating?'Reservations':(MODBTN[id]?'Records':'Library'))));
-  if(stkUI(a))s1.appendChild(kv('Items in the list',String(c.inv.length)));
-  if(stkUI(a))s1.appendChild(kv(cap(a.units)+' in stock (unopened)',num(t)));
-  if(a.pour>0)s1.appendChild(kv(cap(a.units)+' opened',String(openN)));
-  if(noCount&&stkUI(a))s1.appendChild(kv('Items without a count',String(noCount)));
   var tl=[], nWine=c.inv.filter(function(i){return i.menu;}).length, offN=c.inv.filter(function(i){return !i.menu;}).length;
   if(a.pour>0){
     tl.push({icon:'wine',label:'Wine list',sub:nWine?nWine+' wines':'',fn:function(){location.hash=id+'-wines';}});
@@ -5130,7 +5581,7 @@ function renderInfo(id,keepScroll){
   if(a.seating){var rs0=c.rsv||{list:[],tables:[]}; tl.push({icon:'seat',label:'Seating plan',sub:rs0.list.length?rs0.list.length+' bookings':'',fn:function(){location.hash=id+'-seating';}});}
   if(MODBTN[id])MODBTN[id].forEach(function(x){var n=({staff:(c.staff||[]).length,events:(c.events||[]).length,guests:(c.guests||[]).length})[x[1]]; tl.push({icon:x[1],label:x[0],sub:n?String(n):'',fn:function(){location.hash=id+'-'+x[1];}});});
   if(id==='omar')tl.push({icon:'tag',label:'Cost list',sub:(c.costList&&c.costList.items.length)?c.costList.items.length+' items':'Item costs',fn:function(){costBrowse(id);}});
-  if(stkUI(a))tl.push({icon:'revenue',label:'Reports',sub:'Sales and best sellers',fn:function(){location.hash=id+'-reports';}});
+  if(stkUI(a))tl.push({icon:'revenue',label:'Reports',sub:'Sales and purchasing',fn:function(){location.hash=id+'-reports';}});
   var lbn=kbSlot(id).docs.length; tl.push({icon:'book',label:'Library',sub:lbn?lbn+(lbn===1?' document':' documents'):'Books and files',fn:function(){location.hash=id+'-lib';}});
   s1.appendChild(tileGrid(tl));
   var lr=el('div','kv'); lr.appendChild(el('span',null,'Low stock alert at (or fewer)'));
@@ -5263,6 +5714,7 @@ function renderInfo(id,keepScroll){
     if(zero)c.inv.forEach(function(i){if(!sums[i.id]){i.qty=0; i.open=0;}});
     order.forEach(function(k){var d=sums[k], sp=splitCount(d.t,glassesPer(c,d.w)); d.w.qty=sp.qty; d.w.open=sp.open;});
     c.kb.push({id:'d'+Date.now(),kind:'list',title:pendingTitle||'Stock list',count:order.length,ts:Date.now()});
+    sheetAdd(c,order.map(function(k){var d=sums[k]; return [d.w.code||'',sheetDesc(d.w),d.t];}),'count');
     pendingTitle=''; ta.value=''; ov={}; c.pendingText=null; save(); renderList();
     toast('Stock saved for '+order.length+(c.noMenu?(order.length===1?' item.':' items.'):(order.length===1?' wine.':' wines.'))+(made?(c.noMenu?' '+made+' new.':' '+made+' added to Off menu.'):'')+(left||pend?' '+(left+pend)+' lines were left out.':''));
     renderInfo(id);
@@ -5297,19 +5749,28 @@ function renderInfo(id,keepScroll){
     c.kb.push({id:'n'+Date.now(),kind:'note',title:v.length>60?v.slice(0,57)+'...':v,count:0,text:v,ts:Date.now()}); save(); toast('Note saved.'); renderInfo(id);
   }));
   tc.appendChild(nb); tc.appendChild(fi2);
-  tc.appendChild(el('p',null,'Choose file here loads text files into the note. '+(stkUI(a)?'Stock sheets and pictures go to the stock list box above.':'')));
   fi2.addEventListener('change',function(){var f=fi2.files&&fi2.files[0]; fi2.value=''; if(f)rdr.intake(f,nt);});
   box.appendChild(tc);
 
   var kc=el('div','card'); kc.appendChild(el('h3',null,'What '+a.name+' has learned'));
-  if(!c.kb.length)kc.appendChild(el('div','empty','Nothing yet. Add a list or a note above.'));
-  c.kb.slice().reverse().forEach(function(d){
+  var sheetUI=isWine||stkUI(a);
+  if(sheetUI){
+    var nsh=(c.sheets||[]).length, cur0=sheetInUse(c);
+    var sr=el('button','act'); sr.type='button'; var st0=el('span'); st0.appendChild(el('b',null,'Stock sheets')); st0.appendChild(document.createElement('br')); var ss0=el('span',null,nsh?('In use: '+sheetLabel(cur0)+' · '+nsh+' saved'):'No stock sheet saved yet'); ss0.style.cssText='font-weight:400;font-size:12.5px;color:var(--muted)'; st0.appendChild(ss0); sr.appendChild(st0); var ch0=el('span','›'); ch0.textContent='›'; ch0.style.cssText='margin-left:auto;font-size:22px'; sr.appendChild(ch0); sr.addEventListener('click',function(){openSheets(id);}); kc.appendChild(sr);
+  }
+  var shown=c.kb.filter(function(d){return !(sheetUI&&d.kind==='list');});
+  if(!sheetUI&&!shown.length)kc.appendChild(el('div','empty','Nothing yet. Add a list or a note above.'));
+  if(sheetUI&&!shown.length)kc.appendChild(el('div','empty','No notes yet.'));
+  shown.slice().reverse().forEach(function(d){
     var row=el('div','doc'); var tt=el('div','t'); tt.appendChild(el('b',null,d.title));
     tt.appendChild(el('span',null,(d.kind==='list'?d.count+' items · list':'note')+' · '+dayLabel(d.ts)+' '+hm(d.ts)));
     row.appendChild(tt);
     var rm=mkBtn('Remove','warn',function(){
-      if(d.kind==='list')c.inv=c.inv.filter(function(i){return i.src!==d.id;});
-      c.kb=c.kb.filter(function(x){return x.id!==d.id;}); save(); renderList(); toast('Removed.'); renderInfo(id);
+      confirm3({title:'Remove '+(d.kind==='list'?'this list':'this note'),steps:['Remove “'+d.title+'”?','Are you sure?','Last question. Remove it now?'],yes:'Remove'},function(){
+        snapNow('Before removing a '+(d.kind==='list'?'list':'note'),true);
+        if(d.kind==='list')c.inv=c.inv.filter(function(i){return i.src!==d.id;});
+        c.kb=c.kb.filter(function(x){return x.id!==d.id;}); save(); renderList(); toast('Removed.'); renderInfo(id);
+      });
     }); rm.setAttribute('aria-label','Remove '+d.title); row.appendChild(rm); kc.appendChild(row);
   });
   box.appendChild(kc);
@@ -5324,19 +5785,73 @@ function renderInfo(id,keepScroll){
 
   var ac=el('div','card');
   function act(label,cls,fn){var b=el('button','act'+(cls?' '+cls:''),label); b.type='button'; b.addEventListener('click',fn); ac.appendChild(b); return b;}
-  act('Copy stock list','',function(){
-    var txt=c.inv.map(function(i){return (i.code?i.code+', ':'')+i.name+', '+(i.qty==null?'':num(i.qty));}).join('\n');
-    try{navigator.clipboard.writeText(txt).then(function(){toast('Stock list copied.');},function(){toast('Copy was refused in this view.');});}catch(e){toast('Copy was refused in this view.');}
-  });
-  act('Clear chat','warn',function(){
-    c.msgs=[{from:'bot',text:'Chat cleared. My stock list and what I have learned are still here.',ts:Date.now()}]; save(); renderList(); toast('Chat cleared.'); renderInfo(id);
-  });
-  var armed=false, rb=act('Reset '+a.name+'\u2019s data','warn',function(){
-    if(!armed){armed=true; rb.textContent='Tap again to erase stock, notes and chat'; setTimeout(function(){armed=false; rb.textContent='Reset '+a.name+'\u2019s data';},4000); return;}
-    S.chats[id]=freshChat(a,A.indexOf(a)); syncLow(); save(); renderList(); toast('Reset.'); renderInfo(id);
+  var picN=c.msgs.filter(function(m){return m.img||m.photo;}).length;
+  var cp=act('Clear pictures','warn',function(){
+    if(!picN){toast('There are no pictures to clear.'); return;}
+    confirm3({title:'Clear pictures',steps:['Delete the '+picN+' pictures in the chat with '+a.name+'? All messages and all stock records stay.','Are you sure? Only the pictures go. Every message, date and PO stays.','Last question. Delete the pictures now?'],yes:'Delete pictures'},function(){
+      snapNow('Before clearing pictures',true);
+      c.msgs.forEach(function(m){if(m.img||m.photo){delete m.img; delete m.photo; if(!m.text)m.text='(picture removed)';}}); save(); renderList(); toast('Pictures cleared.'); renderInfo(id);
+    });
+  }); if(picN){var pn=el('span',null,String(picN)); pn.style.cssText='margin-left:auto;font-weight:500;color:var(--muted)'; cp.appendChild(pn);}
+  act('Reset '+a.name+'\u2019s data','warn',function(){
+    confirm3({title:'Reset '+a.name+'\u2019s data',steps:['Erase everything '+a.name+' holds: stock, notes, recipes and chat?','Are you sure? This is not just the chat. All of '+a.name+'\u2019s data goes back to the start.','Last question. Reset '+a.name+'\u2019s data now?'],yes:'Reset all'},function(){
+      snapNow('Before resetting '+a.name,true);
+      S.chats[id]=freshChat(a,A.indexOf(a)); syncLow(); save(); renderList(); toast('Reset.'); renderInfo(id);
+    });
   });
   box.appendChild(ac);
   box.scrollTop=keepScroll||0;
+}
+
+/* ---------- stock sheets: the saved counts ---------- */
+function sheetAdd(c,rows,kind,keep){
+  c.sheets=c.sheets||[]; var d=new Date(), id='s'+Date.now().toString(36)+Math.random().toString(36).slice(2,4), prev=c.sheetUse;
+  c.sheets.push({id:id,ts:Date.now(),date:isoL(d),kind:kind||'count',rows:rows}); if(c.sheets.length>240)c.sheets.shift(); c.sheetUse=keep?prev:id; return id;
+}
+function sheetInUse(c){var l=c.sheets||[]; var u=l.filter(function(x){return x.id===c.sheetUse;})[0]; return u||l[l.length-1]||null;}
+function sheetLabel(sh){if(!sh)return ''; var d=new Date(sh.date+'T12:00:00'); var m=isNaN(d)?sh.date:d.toLocaleDateString('en-GB',{month:'long',year:'numeric'}); return m+(sh.kind==='recount'?' · recount':'');}
+function openSheets(id){
+  var a=byId[id], c=S.chats[id], ov=$('printOv'); ov.textContent=''; document.body.classList.add('printing'); ov.hidden=false;
+  var bar=el('div','pbar'); bar.appendChild(el('div',null,'Stock sheets')).style.cssText='flex:1;font-weight:700;align-self:center'; bar.appendChild(mkBtn('Close','ghost',function(){ov.hidden=true; document.body.classList.remove('printing');})); ov.appendChild(bar);
+  var bx=el('div','info'); bx.style.cssText='padding:12px 16px 30px;overflow:auto;flex:1;background:var(--page)'; ov.appendChild(bx);
+  var c0=el('div','card'); c0.style.marginTop='0'; c0.appendChild(el('p',null,'Only the newest count is in use. The older ones are kept as a record, with date and time. '+a.name+' does not use them to answer.')); bx.appendChild(c0);
+  var list=(c.sheets||[]).slice().sort(function(x,y){return y.ts-x.ts;}), use=sheetInUse(c), lc=el('div','card'), open=false; bx.appendChild(lc);
+  function draw(){
+    lc.textContent='';
+    if(!list.length){lc.appendChild(el('div','empty','No stock sheet saved yet. When you save a count, it appears here.')); return;}
+    (open?list:list.slice(0,5)).forEach(function(sh){
+      var row=el('div','rp'), tt=el('div','t'); tt.appendChild(el('b',null,sheetLabel(sh))); tt.appendChild(el('span',null,'Counted '+fmtTime(sh.ts)+' \u00b7 '+sh.rows.length+' items')); row.appendChild(tt);
+      var tg=el('span',null,use&&sh.id===use.id?'In use':'Record'); tg.style.cssText='font-size:11.5px;font-weight:700;border-radius:8px;padding:3px 9px;'+(use&&sh.id===use.id?'background:#d9efe3;color:#1a7f4b':'background:var(--soft);color:var(--muted)'); row.appendChild(tg);
+      row.style.cursor='pointer'; row.addEventListener('click',function(){openSheet(id,sh.id);}); lc.appendChild(row);
+    });
+    if(list.length>5){var mb=mkBtn(open?'Show fewer':'Show older ('+(list.length-5)+') \u203a','ghost sm',function(){open=!open; draw();}); mb.style.marginTop='8px'; lc.appendChild(mb);}
+  }
+  draw();
+}
+function openSheet(id,sid){
+  var a=byId[id], c=S.chats[id], sh=(c.sheets||[]).filter(function(x){return x.id===sid;})[0]; if(!sh)return;
+  var ov=$('printOv'); ov.textContent='';
+  var bar=el('div','pbar'); bar.appendChild(el('div',null,sheetLabel(sh))).style.cssText='flex:1;font-weight:700;align-self:center'; bar.appendChild(mkBtn('Back','ghost',function(){openSheets(id);})); ov.appendChild(bar);
+  var bx=el('div','info'); bx.style.cssText='padding:12px 16px 30px;overflow:auto;flex:1;background:var(--page)'; ov.appendChild(bx);
+  var c1=el('div','card'); c1.style.marginTop='0'; var u=sheetInUse(c);
+  c1.appendChild(el('b',null,(sh.kind==='recount'?'Recount':'Stock count')+' \u00b7 '+fmtTime(sh.ts))); var tot=0; sh.rows.forEach(function(r){tot+=+r[2]||0;});
+  var ln=el('p',null,sh.rows.length+' items \u00b7 '+num(tot)+' bottles \u00b7 '+(u&&u.id===sh.id?'In use':'Record (not in use)')); ln.style.cssText='margin:4px 0 8px;font-size:13px;color:var(--muted)'; c1.appendChild(ln);
+  var b1=el('div','btns');
+  b1.appendChild(mkBtn('Download Excel','',function(){
+    var rows=sh.rows.map(function(r){return {code:r[0],desc:r[1],count:+r[2]};}); saveFile('Stock count '+a.name+' '+sh.date+'.xlsx',new Blob([sheetXlsx(rows)],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
+  }));
+  b1.appendChild(mkBtn('Copy','ghost',function(){copyText(sh.rows.map(function(r){return (r[0]?r[0]+', ':'')+r[1]+', '+r[2];}).join('\n'));}));
+  c1.appendChild(b1); bx.appendChild(c1);
+  var c2=el('div','card'), inp=el('input'); inp.type='search'; inp.placeholder='Search a wine or a code'; inp.setAttribute('aria-label','Search this count'); inp.style.cssText='width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:12px;padding:11px 12px;font-size:16px;background:var(--surface);color:inherit'; c2.appendChild(inp);
+  var info=el('p',null,''); info.style.cssText='margin:8px 0 0;font-size:13px;color:var(--muted)'; c2.appendChild(info); bx.appendChild(c2);
+  var rc=el('div','card'); rc.hidden=true; bx.appendChild(rc);
+  inp.addEventListener('input',function(){
+    var q=foldS(inp.value).toLowerCase().split(/\s+/).filter(Boolean); rc.textContent='';
+    if(!q.length){rc.hidden=true; info.textContent=''; return;}
+    var hit=sh.rows.filter(function(r){var t=foldS(r[0]+' '+r[1]).toLowerCase(); return q.every(function(w){return t.indexOf(w)>=0;});});
+    info.textContent=hit.length?hit.length+' found'+(hit.length>40?' (showing 40)':''):'Nothing found in this count.'; rc.hidden=!hit.length;
+    hit.slice(0,40).forEach(function(r){var row=el('div','rp'), tt=el('div','t'); tt.appendChild(el('b',null,r[1])); tt.appendChild(el('span',null,r[0]||'no code')); row.appendChild(tt); var q2=el('b',null,num(+r[2])); q2.style.fontSize='17px'; row.appendChild(q2); rc.appendChild(row);});
+  });
 }
 
 /* ---------- suggestions (search as you type) ---------- */
@@ -6874,6 +7389,7 @@ function botSay(id,text,extra){hideTyping(); var m={from:'bot',text:text}; if(ex
 function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 var PRINT_CSS='*{box-sizing:border-box}body{font-family:Georgia,"Times New Roman",serif;color:#1c1c1c;margin:0;padding:28px;max-width:820px}h1{font-size:26px;margin:0 0 4px;font-weight:600}h2{font-size:16px;margin:18px 0 6px;border-bottom:1px solid #999;padding-bottom:3px;font-weight:600}table{width:100%;border-collapse:collapse;font-size:13px}td,th{padding:5px 6px;border-bottom:1px solid #ddd;text-align:left;vertical-align:top}th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:#555}.r{text-align:right}.m{color:#666;font-size:12px}.neg{color:#a32818}.hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;border-bottom:2px solid #1c1c1c;padding-bottom:10px}.hd img{height:46px}';
 function printDoc(title,body,name){
+  if(body.indexOf('table class="rx"')<0){var o0=document.getElementById('rxpg'); if(o0)o0.remove();}
   var html='<!doctype html><html><head><meta charset="utf-8"><title>'+esc(title)+'</title><style>'+PRINT_CSS+'</style></head><body><div class="hd"><img src="'+LOGO_LL+'" alt="Ling Ling"><div style="text-align:center"><h1>'+esc(title)+'</h1><div class="m">'+(title?dmyShort(tdy()):'')+'</div></div><img src="'+LOGO_AT+'" alt="Atlantis"></div>'+body+'</body></html>';
   var ov=$('printOv'); ov.textContent=''; var bar=el('div','pbar'); bar.appendChild(mkBtn('Print / PDF','',function(){try{window.print();}catch(e){toast('Printing is not available here. Use Download and open the file.');}})); bar.appendChild(mkBtn('Download','ghost',function(){saveFile((name||'report')+'.html',html);})); bar.appendChild(mkBtn('Close','ghost',function(){ov.hidden=true; document.body.classList.remove('printing');}));
   var fr=el('iframe'); fr.title=title; fr.className='pfr'; fr.srcdoc=html; ov.appendChild(bar); ov.appendChild(fr); ov.hidden=false; document.body.classList.add('printing');
@@ -7252,7 +7768,7 @@ $('stockBtn').addEventListener('click',function(){send('Show stock');});
 $('teamBtn').addEventListener('click',function(){location.hash='team';});
 /* ---------- Settings page (replaces the small three-dot menu) ---------- */
 var SETVIEW=null, SETSIG='';
-function setSig(){return [activeAI()[0],storedKey()?1:0,keyOn(),smartOn,aiOff,localOn(),isMain(),(navigator.onLine!==false),syncMsg,inClaude].join('|');}
+function setSig(){return [ERRS.length+':'+(ERRS.length?ERRS[ERRS.length-1].t:0),activeAI()[0],storedKey()?1:0,keyOn(),smartOn,aiOff,localOn(),isMain(),(navigator.onLine!==false),syncMsg,inClaude].join('|');}
 function activeAI(){
   var off=(navigator.onLine===false);
   if(inClaude)return ['Online','on'];
@@ -7284,25 +7800,34 @@ function sCard(title,paras,body){var c=el('div','scard'); c.appendChild(el('h3',
 function sBtns(list,body){var d=el('div','sbtns'); list.forEach(function(x){d.appendChild(mkBtn(x[0],x[2]||'',x[1]));}); body.appendChild(d);}
 function renderSettings(){
   var pg=$('setPg'); if(!pg)return; SETSIG=setSig(); pg.textContent='';
-  var v=SETVIEW||{name:'list'}, title={list:'Settings',online:'Online (Google key)',smart:'Smart replies',local:'Offline (on this phone)',device:'This device',about:'About and privacy'}[v.name]||'Settings';
+  var v=SETVIEW||{name:'list'}, title={list:'Settings',problems:'Last problems',online:'Online (Google key)',smart:'Smart replies',local:'Offline (on this phone)',device:'This device',about:'About and privacy'}[v.name]||'Settings';
   var bar=el('div','sbar'), bk=el('button',null,'\u2039'); bk.type='button'; bk.setAttribute('aria-label','Back');
   bk.addEventListener('click',function(){if(v.name==='list')closeSettings(); else{SETVIEW={name:'list'}; renderSettings();}});
   bar.appendChild(bk); bar.appendChild(el('div',null,title)); pg.appendChild(bar);
   var body=el('div','sbody'); pg.appendChild(body); if(v.name==='about')body.className+=' keep';
   var os=onlineSt(), ss=smartSt();
   if(v.name==='list'){
-    (function(){var ac=activeAI(), hh=el('div','shero'); hh.appendChild(el('div','sd','ANSWERING WITH')).style.cssText='font-weight:700;letter-spacing:.06em;font-size:12px'; hh.appendChild(el('div',null,ac[0])).style.cssText='font-size:17px;font-weight:700;margin-top:4px'; body.appendChild(hh);})();
+    (function(){var ac=activeAI(), hh=el('div','shero'); hh.appendChild(el('div','sd','ANSWERING WITH')).style.cssText='font-weight:700;letter-spacing:.06em;font-size:12px'; hh.appendChild(el('div',null,ac[0])).style.cssText='font-size:17px;font-weight:700;margin-top:4px'; if(AILAST&&activeAI()[1]==='on')hh.appendChild(el('div','sd','Last problem: '+AILAST.msg)); body.appendChild(hh);})();
     if(false&&!inClaude&&!storedKey()){var h=el('div','shero'); h.appendChild(el('div','sd','NEEDS ATTENTION')).style.cssText='font-weight:700;letter-spacing:.06em;font-size:12px'; h.appendChild(el('div',null,'Online mode has no key')).style.cssText='font-size:17px;font-weight:700;margin-top:4px'; h.appendChild(el('div','sd','Photos of invoices and smart answers need the key. Paste it once, it stays on this phone.')); var hb=el('div','sbtns'); hb.style.margin='10px 0 0'; hb.appendChild(mkBtn('Paste key','',function(){keySheet();})); h.appendChild(hb); body.appendChild(h);}
     else if(false&&!inClaude&&storedKey()&&!keyOn()){var h2=el('div','shero'); h2.appendChild(el('div',null,'Online mode is off')).style.cssText='font-size:17px;font-weight:700'; h2.appendChild(el('div','sd','Your key is saved. Turn it on to read photos and get smart answers.')); var hb2=el('div','sbtns'); hb2.style.margin='10px 0 0'; hb2.appendChild(mkBtn('Turn on','',function(){setKeyOn(true); smartLabel(); renderSettings();})); h2.appendChild(hb2); body.appendChild(h2);}
     sGrp('AI',[
       sRow('\u2726','g','Online','Google key. Best answers, reads photos. Needs internet',os,function(){SETVIEW={name:'online'}; renderSettings();}),
       sRow('\u25A3','p','Offline','Small AI on this phone. No internet, simpler answers',localOn()?['On','on']:['Off','mid'],function(){SETVIEW={name:'local'}; renderSettings();})],body);
+    sGrp('Help',[sRow('\u26A0','o','Last problems','What went wrong in the app, and when',ERRS.length?[String(ERRS.length),'off']:['None','on'],function(){SETVIEW={name:'problems'}; renderSettings();})],body);
     sGrp('Data',[
-      sRow('\u27F3','o','Refresh data','Reload stock lists and chats from the other device',null,function(){closeSettings(); refreshData();}),
-      sRow('\u21C4','g','Backup and move data','Copy everything as text, for a new phone or before deleting the app',null,function(){openXfer();})],body);
+      sRow('\u27F3','o','Refresh data','Reload stock lists and chats from the other device',null,function(){closeSettings(); refreshData();})],body);
     sGrp('This device',[
       sRow('\u260E','gy','Role',isMain()?'Main computer':'Phone',null,function(){SETVIEW={name:'device'}; renderSettings();}),
+      sRow('\u21C4','g','Backup','Save a file, restore it, or go back in time',null,function(){closeSettings(); openBackup();}),
       sRow('\u24D8','gy','About and privacy','Version '+((typeof APPVER!=='undefined'&&APPVER!=='__'+'VER__')?APPVER:'web'),null,function(){SETVIEW={name:'about'}; renderSettings();})],body);
+  } else if(v.name==='problems'){
+    function fmtT(t){var d=new Date(t); return d.toLocaleDateString(undefined,{day:'numeric',month:'short'})+' '+d.toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit'});}
+    if(!ERRS.length)sCard('No problems',['Nothing has gone wrong since the last clear.'],body);
+    else{
+      var txt=ERRS.slice().reverse().map(function(e){return fmtT(e.t)+' · '+e.src+(e.n>1?' ×'+e.n:'')+' · '+e.msg+(e.at?' ('+e.at+')':'');}).join('\n');
+      ERRS.slice().reverse().forEach(function(e){var c=el('div','scard keep'); c.appendChild(el('h3',null,e.src+(e.n>1?' ×'+e.n:''))); c.appendChild(el('p',null,e.msg+(e.at?' ('+e.at+')':''))); c.appendChild(el('div','sd',fmtT(e.t))); body.appendChild(c);});
+      sBtns([['Copy all',function(){var done=false; try{if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt); done=true;}}catch(x){} if(!done){var ta=el('textarea'); ta.value=txt; document.body.appendChild(ta); ta.select(); try{document.execCommand('copy');}catch(x){} ta.remove();} toast('Copied. Paste it to me.');}],['Clear',function(){ERRS=[]; try{localStorage.removeItem(ELKEY);}catch(x){} renderSettings();},'ghost']],body);
+    }
   } else if(v.name==='online'){
     sCard('Status: '+os[0],[
       'Online uses your Google Gemini key (free from Google AI Studio). It gives the best answers and can read photos of lists and invoices. Your question and the matching passages from the books go to Google.',
@@ -7320,14 +7845,14 @@ function renderSettings(){
     sCard('This device is: '+(isMain()?'the main computer':'a phone'),['The main computer is the one whose data is never overwritten by a refresh from another device. Keep this on one device only.'],body);
     sBtns([[isMain()?'Change to phone':'Change to main computer',function(){$('mainBtn').click(); renderSettings();}]],body);
   } else if(v.name==='about'){
-    sCard('Duty Buddy',['Version '+((typeof APPVER!=='undefined'&&APPVER!=='__'+'VER__')?APPVER:'web'),'Prototype. Stock lists and chats are saved in this browser only. Deleting the app icon from the home screen deletes this data, so back it up first (Settings, Backup and move data).','A photo leaves your phone only when Online mode is on.'],body);
+    sCard('Duty Buddy',['Version '+((typeof APPVER!=='undefined'&&APPVER!=='__'+'VER__')?APPVER:'web'),'Prototype. Stock lists and chats are saved in this browser only. Deleting the app icon from the home screen deletes this data, so back it up first (Settings, Backup).','A photo leaves your phone only when Online mode is on.'],body);
     (function(){var on=false; try{on=localStorage.getItem('dutybuddy.kbdbg')==='1';}catch(e){} var cd=el('div','scard'); cd.appendChild(el('h3',null,'Keyboard check')); cd.appendChild(el('p',null,'Turn this on, open a chat, tap the message box and take a screenshot. A small green strip shows what the phone reports, so I can see why the keyboard covers the box.')); cd.appendChild(mkBtn(on?'Turn off the keyboard check':'Turn on the keyboard check','ghost',function(){try{localStorage.setItem('dutybuddy.kbdbg',on?'0':'1');}catch(e){} try{window.__fitScreen&&window.__fitScreen();}catch(e){} renderSettings();})); body.appendChild(cd);})();
   }
 }
 
 /* ---- long explanations hide behind a small ? button (job description and About stay open) ---- */
 (function(){
-  var SKIP='.keep,.jd,.msg,.bub,#msgs,[aria-live],textarea,.sum,.prev';
+  var SKIP='.keep,.jd,.msg,.bub,#msgs,[aria-live],textarea,.sum,.prev,.c3';
   function labelish(e){if(!e||e.nodeType!==1)return false; if(/^(BUTTON|INPUT|SELECT|TEXTAREA|P|UL|OL|IMG)$/.test(e.tagName))return false; if(e.querySelector('button,input,select,textarea'))return false; var t=(e.textContent||'').trim(); return t.length>0&&t.length<48;}
   function tip(p){
     if(p.hasAttribute('data-tip'))return; p.setAttribute('data-tip','0');
@@ -7347,6 +7872,25 @@ function renderSettings(){
   function later(){if(pend)return; pend=true; (window.requestAnimationFrame||setTimeout)(scan);}
   try{new MutationObserver(later).observe(document.body,{childList:true,subtree:true});}catch(e){}
   later();
+})();
+/* ---- every text box starts as one small line and grows while you type ---- */
+(function(){
+  var d=null; try{d=Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype,'value');}catch(e){}
+  function grow(t){
+    if(!t||t.id==='text')return; var cap=t.readOnly?110:Math.round((window.innerHeight||700)*0.45);
+    t.style.height='auto'; var h=t.scrollHeight; if(h<8){t.style.height=''; return;} t.style.height=Math.min(h+2,cap)+'px';
+  }
+  function short(ph){ph=String(ph||'').split('\n')[0]; if(ph.length>46){var re=/[.!?] /g, mm; while((mm=re.exec(ph))){if(mm.index>14&&mm.index<70){ph=ph.slice(0,mm.index+1); break;}}} return ph.length>60?ph.slice(0,58)+'\u2026':ph;}
+  function prep(t){
+    if(t.__ag||t.id==='text')return; t.__ag=1; t.rows=1; if(t.placeholder)t.placeholder=short(t.placeholder); grow(t);
+  }
+  if(d&&d.set){try{Object.defineProperty(HTMLTextAreaElement.prototype,'value',{get:d.get,set:function(v){d.set.call(this,v); if(this.__ag)grow(this);},configurable:true});}catch(e){}}
+  document.addEventListener('input',function(e){var t=e.target; if(t&&t.tagName==='TEXTAREA'){prep(t); grow(t);}},true);
+  document.addEventListener('focusin',function(e){var t=e.target; if(t&&t.tagName==='TEXTAREA'){prep(t); grow(t);}},true);
+  var pend=false;
+  function scan(){pend=false; var l=document.querySelectorAll('textarea'); for(var i=0;i<l.length;i++){try{prep(l[i]); if(l[i].style.height===''||l[i].scrollHeight>l[i].clientHeight+3)grow(l[i]);}catch(e){}}}
+  try{new MutationObserver(function(){if(pend)return; pend=true; (window.requestAnimationFrame||setTimeout)(scan);}).observe(document.body,{childList:true,subtree:true});}catch(e){}
+  scan();
 })();
 function closeMenu(){$('menu').hidden=true; $('menuBtn').setAttribute('aria-expanded','false');}
 function smartLabel(){
