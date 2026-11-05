@@ -360,6 +360,13 @@ input,textarea,[contenteditable]{-webkit-user-select:text;user-select:text}
 .pendbar img{width:56px;height:56px;object-fit:cover;border-radius:10px;border:1px solid var(--line);flex:none}
 .pendbar span{flex:1;min-width:0;font-size:12.5px;color:var(--muted);line-height:1.3}
 .pendbar button{flex:none;width:36px;height:36px;border-radius:18px;border:0;background:var(--surface);color:var(--ink);font-size:20px;line-height:1}
+
+.qm{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;min-width:22px;margin-left:8px;border-radius:50%;border:1.5px solid currentColor;background:transparent;color:inherit;opacity:.7;font:700 13px/1 var(--font);padding:0;vertical-align:middle;cursor:pointer;position:relative;flex:none;-webkit-tap-highlight-color:transparent}
+.qm::before{content:'';position:absolute;inset:-10px}
+.qm.on{opacity:1;background:var(--chip-on);color:var(--chip-ink);border-color:var(--chip-ink)}
+.tiphid{display:none!important}
+.tiphid.tipshow{display:block!important;background:var(--soft);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin:8px 0;color:var(--ink)}
+.qwrap{margin:4px 0 2px}
 </style>
 
 <div id="app">
@@ -2155,7 +2162,7 @@ function profileKpis(a,c,id){
 }
 function privateCard(a,c,id){
   var card=el('div','card'); card.appendChild(el('h4',null,'Private file reading'));
-  var p=el('p',null,'Reads a photo or a file on this phone only. Nothing is sent to Google or Claude. Photos are read by the phone\u2019s own text reader, so check and fix the lines. You can also type or paste the lines yourself.'); p.style.cssText='margin:0 0 8px;font-size:13.5px;color:var(--muted)'; card.appendChild(p);
+  var p=el('p',null,'Reads a photo or a file on this phone only. Nothing is sent to Google. Photos are read by the phone\u2019s own text reader, so check and fix the lines. You can also type or paste the lines yourself.'); p.style.cssText='margin:0 0 8px;font-size:13.5px;color:var(--muted)'; card.appendChild(p);
   var ta=el('textarea'); ta.rows=6; ta.placeholder='The text appears here. Edit it, or type your own lines.'; ta.setAttribute('aria-label','Private text'); ta.style.cssText='width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:10px;padding:10px;font:inherit;font-size:14px;background:var(--soft);color:inherit;min-height:120px'; card.appendChild(ta);
   var msg=el('p',null,''); msg.style.cssText='margin:8px 0;font-size:13.5px'; card.appendChild(msg);
   var fi=el('input'); fi.type='file'; fi.hidden=true; fi.accept='.csv,.tsv,.txt,.md,.xlsx,.xls,.ods,.pdf,.heic,.heif,image/*,text/plain,text/csv'; card.appendChild(fi);
@@ -3429,7 +3436,7 @@ function kbExcerpt(c,q){
   var t=best.map(function(b){return b.x;}).join(' '); return t.length>460?t.slice(0,457)+'...':t;
 }
 var KMORE={};
-function kbPassage(c){var t=c.t.replace(/\s+/g,' ').trim(); if(t.length<=950)return t; var cut=t.lastIndexOf('. ',950); return t.slice(0,cut>500?cut+1:950);}
+function kbPassage(c){var t=c.t.replace(/^[ \t]*(?:#{2,}|={3,}|-{5,}).*$/gm,' ').replace(/[#=_]{4,}/g,' ').replace(/\s+/g,' ').trim(); if(t.length<=950)return t; var cut=t.lastIndexOf('. ',950); return t.slice(0,cut>500?cut+1:950);}
 function kbAnswer(o,text){
   var more=/^\s*(continue|more|go on|next|keep going|devam|devam et)\s*[.!?]*\s*$/i.test(text), prev=KMORE[o];
   if(more&&!prev)return null;
@@ -3594,7 +3601,7 @@ async function kbDetail(o,d){
   try{
     var sample=null; try{sample=await getSample();}catch(e){}
     var lim=null; if(sample){try{lim=await sample.limits();}catch(e){}}
-    if(!sample||!lim||!lim.images){d.detNote='Detailed check needs Online mode (menu, Online mode, add your Anthropic key).'; kbBarUpdate(); return;}
+    if(!sample||!lim||!lim.images){d.detNote='Detailed check needs Online mode (Settings, Online, paste your Google key).'; kbBarUpdate(); return;}
     d.detNote='';
     var todo=d.pgs.filter(function(x){return !x.det&&!x.nodet;}).sort(function(a,b){return a.p-b.p;}), n=0, fails=0, free=!(inClaude||/^sk-ant-/i.test(apiKey())); CAPSTAT[d.id]={n:0,total:todo.length,label:'checking pages'};
     for(var i=0;i<todo.length;i++){
@@ -3624,7 +3631,7 @@ async function kbDetail(o,d){
       if(n&&n%5===0){await kbPut(d); kbBuild(o);}
     }
     await kbPut(d); kbBuild(o);
-    if(n)toast('Checked '+n+' pages of '+d.name+' with Claude.');
+    if(n)toast('Checked '+n+' pages of '+d.name+' with Google AI.');
   }finally{CAPRUN[d.id]=0; delete CAPSTAT[d.id]; kbBarUpdate(); try{kbRefreshLib(o);}catch(e){}}
 }
 var CAPNEXT=0;
@@ -4425,7 +4432,7 @@ try{smartOn=localStorage.getItem('dutybuddy.smart')!=='0';}catch(e){}
   }
   window.addEventListener('resize',apply); window.addEventListener('orientationchange',function(){setTimeout(apply,60);}); apply();
 })();
-var APPVER='067bedd4';
+var APPVER='7327bfd4';
 var KEYNAME='dutybuddy.apikey', inClaude=false;
 function storedKey(){try{return localStorage.getItem(KEYNAME)||'';}catch(e){return '';}}
 function keyOn(){try{return localStorage.getItem('dutybuddy.keyoff')!=='1';}catch(e){return true;}}
@@ -4527,7 +4534,9 @@ async function callAI(sample,id,text,teamNote){
   var t=String(r.text||'').replace(/```[a-z]*/gi,'').replace(/\*\*/g,'').trim();
   return t||null;
 }
+var AINOTE='';
 async function smartSend(id,text){
+  AINOTE='';
   if(!smartOn||aiOff)return false;
   var sample=await getSample(); if(!sample)return false;
   try{
@@ -4549,10 +4558,10 @@ async function smartSend(id,text){
     }
     var a=byId[id], c=S.chats[id];
     if(needsRules(a,c,text))return false;
-    var tx=await callAI(sample,id,text,false); if(!tx)return false;
+    var tx=await callAI(sample,id,text,false); if(!tx){AINOTE='empty answer from the AI';return false;}
     hideTyping(); push(id,{from:'bot',text:tx,ai:true,sug:dymFromAI(tx)}); save(); refreshChat(id); renderList(); return true;
   }catch(e){
-    var code=e&&e.code;
+    var code=e&&e.code; AINOTE=String((e&&e.message)||code||'unknown error').slice(0,140);
     if(code==='not_granted'||code==='sampling_disabled'){aiOff=true; toast('Smart replies need your OK. I will use simple answers for now. Turn them back on in the menu.');}
     else if(code==='rate_limited')toast('Too many smart replies at once. Using a simple answer.');
     return false;
@@ -4673,7 +4682,7 @@ function send(text){
   var id=cur; push(id,{from:'me',text:text}); save(); renderMsgs(); showTyping();
   if(id==='team'){var tfo=null; try{tfo=teamFlow(text);}catch(e){tfo=null;} if(tfo){setTimeout(function(){hideTyping(); tfo.forEach(function(m){m.from='bot'; push('team',m);}); save(); refreshChat('team'); renderList();},350); return;}}
   else{var fg=foreignGuard(id,text); if(fg){setTimeout(function(){hideTyping(); push(id,{from:'bot',text:fg}); save(); refreshChat(id); renderList();},300); return;}}
-  picSend(id,text).catch(function(){return false;}).then(function(done){if(done)return; return smartSend(id,text).then(function(ok){if(!ok)legacySend(id,text);},function(){legacySend(id,text);});});
+  picSend(id,text).catch(function(){return false;}).then(function(done){if(done)return; return smartSend(id,text).then(function(ok){if(!ok){if(AINOTE&&navigator.onLine!==false&&apiKey()){push(id,{from:'bot',text:'The online AI did not answer: '+AINOTE+'. Below is the plain book text. Send again to retry.'});} legacySend(id,text);}},function(){legacySend(id,text);});});
 }
 function legacySend(id,text){
   if(id==='team'){
@@ -4757,7 +4766,7 @@ function sendPhoto(file,note){
 var INVPROMPT='You read a photo of a restaurant document. Decide what it is. The first line is exactly one of:\nTYPE: delivery (a supplier invoice or delivery note: stock coming in)\nTYPE: sales (a sales or items-sold report: stock going out)\nTYPE: unknown\nTYPE: label (a photo of a wine bottle or a wine label, with no quantities; write nothing else)\nTYPE: other (not about drinks)\nThen, only if printed, one line PO: with the purchase order, picklist or invoice number (digits as printed, for example PO: 01386199), and one line DATE: with the document date as YYYY-MM-DD. Dates on these documents are month/day/year, so 10/30/2026 is DATE: 2026-10-30. Skip a line that is not printed.\nThen one line per wine, champagne, sake, spirit or other drink item, exactly like this: code|name|qty\nOn a pick list the Item column reads “code - description”: the code is the number before the dash. The quantity is the number picked next to the unit (EACH 6 gives 6, BOTTLES2 gives 2, BOTTLES 12 gives 12). Ignore handwritten notes such as W-37, circles, signatures and stamps.\n- code: the item code if one is printed, otherwise leave it empty.\n- name: copy the description exactly as printed. Do not correct, translate or shorten it.\n- qty: the quantity delivered or sold, in bottles or units, digits only (a decimal point is allowed). If you cannot read it, write ?.\nSkip food, totals, taxes, dates and headers. Write nothing else.';
 async function readInvoice(file,note){
   var sample=null; try{sample=await getSample();}catch(e){sample=null;}
-  if(!sample)return {err:'Reading pictures needs Online mode. Open the menu (three dots), tap Online mode and add your Anthropic key. Until then, type or paste the text.'};
+  if(!sample)return {err:'Reading pictures needs Online mode. Open Settings, tap Online and paste your Google key. Until then, type or paste the text.'};
   var lim=null; try{lim=await sample.limits();}catch(e){lim=null;}
   if(!lim||!lim.images)return {err:ERR.images_unavailable||'Pictures cannot be read in this view.'};
   var blob=await toJpeg(file), o={cache:false,images:[blob],effort:'high',note:String(note||'').slice(0,300)}; if((lim.modelTiers||[]).indexOf('complex')>-1)o.modelTier='complex';
@@ -4816,7 +4825,7 @@ function invMerge(passes,partial){
 }
 async function imgSetup(file){
   var sample=null; try{sample=await getSample();}catch(e){sample=null;}
-  if(!sample)return {err:'Reading pictures needs Online mode. Open the menu (three dots), tap Online mode and add your Anthropic key. Until then, type or paste the text.'};
+  if(!sample)return {err:'Reading pictures needs Online mode. Open Settings, tap Online and paste your Google key. Until then, type or paste the text.'};
   var lim=null; try{lim=await sample.limits();}catch(e){lim=null;}
   if(!lim||!lim.images)return {err:ERR.images_unavailable||'Pictures cannot be read in this view.'};
   var blob=await toJpeg(file), o={cache:false,images:[blob],effort:'high'}; if((lim.modelTiers||[]).indexOf('complex')>-1)o.modelTier='complex';
@@ -5359,7 +5368,7 @@ function stockPrompt(wine){
   var t='These are photos or scans of a restaurant inventory counting sheet (month-end stock count), one image per page, in order. Pages can be rotated or photographed at an angle: turn them in your head and read them anyway.\nThe table has printed columns such as Last Updated Date&Time, Business Unit, Item, Item Description, UOM, Count and Total Count. The Count column is filled in BY HAND. Read only three things per row:\n(1) code = the number in the Item column (about 9 digits). Not the Business Unit number, which is the same on every row.\n(2) name = the Item Description exactly as printed, in capitals as printed, including prefixes such as RW, WW, SPK, DW, SAKE and size text such as 750ML/EA or 75CL/BT. Never use the | character inside a field.\n(3) count = the handwritten Count, copied EXACTLY as written. Sums stay as sums: write 35+3+6 as 35+3+6, never as 44. Write a decimal point as a dot (12.4, 2.8). Do not add up, do not round, do not fix anything. If a number is crossed out or scribbled over, read the clear number next to it. If the Count box is empty or holds only words (for example "transferred to Carbone"), leave the count empty. If the Count box is empty but the Total Count column has a handwritten number, use that.\nIgnore everything else: dates, Business Unit, UOM, stars, signatures, notes, page numbers, empty rows, and the printed title.\nReply with ONLY lines in this exact format, no commentary, no markdown:\ncode|name|year|count\nThe first line must be exactly: code|name|year|count\nRules:\n- One row of the table per line, in the order printed. Keep every row, also non-wine items such as tequila.\n- year: the 4-digit vintage if one appears in the description, otherwise empty. Leave the year inside the name as printed too.\n- If a handwritten digit is hard to read, give your best reading; never invent a row and never skip a row.';
   return wine?t:t.replace(/inventory counting sheet/g,'stock list');
 }
-var ERR={not_granted:'Reading was not allowed. You can still paste lines or choose a CSV or Excel file.',sampling_disabled:'Claude is not available for this account, so pictures cannot be read here.',images_unavailable:'This view cannot send pictures to Claude. In the phone app the iPhone reads them offline.',image_rejected:'Claude could not use one of the pictures. Try a clearer JPEG.',rate_limited:'Too many requests. Wait a moment, then tap Read again.',session_expired:'Please sign in to Claude again, then try once more.',refused:'Claude declined to read this picture. Try a clearer photo.',upstream_error:'The connection to Claude dropped. Tap Read again.',invalid_json:'The answer was not in the expected shape. Tap Read again.',empty_completion:'Claude returned nothing for this picture. Try a clearer photo.',prompt_too_large:'Too much to read at once. Use fewer pages.'};
+var ERR={not_granted:'Reading was not allowed. You can still paste lines or choose a CSV or Excel file.',sampling_disabled:'Google AI is not available for this key, so pictures cannot be read here.',images_unavailable:'This view cannot send pictures to Google. In the phone app the iPhone reads them offline.',image_rejected:'Google could not use one of the pictures. Try a clearer JPEG.',rate_limited:'Too many requests. Wait a moment, then tap Read again.',session_expired:'Please sign in to Claude again, then try once more.',refused:'Claude declined to read this picture. Try a clearer photo.',upstream_error:'The connection to Claude dropped. Tap Read again.',invalid_json:'The answer was not in the expected shape. Tap Read again.',empty_completion:'Claude returned nothing for this picture. Try a clearer photo.',prompt_too_large:'Too much to read at once. Use fewer pages.'};
 Object.defineProperty(ERR,'upstream_error',{get:function(){return 'The online service did not answer'+(LASTAIERR?' ('+LASTAIERR+')':'')+'. Wait a minute and tap Read again.';}});
 var RAWX=/\.(dng|cr2|cr3|nef|arw|raf|orf|rw2|raw|pef|srw)$/i;
 function loadLib(url){
@@ -5411,7 +5420,7 @@ function makeReader(cfg){
     rd.textContent='';
     if(!pend.length)return;
     var th=el('div','thumbs'); pend.forEach(function(b){var im=el('img'); im.src=URL.createObjectURL(b.blob); im.alt='Page to read'; th.appendChild(im);}); rd.appendChild(th);
-    rd.appendChild(el('p',null,pend.length+(pend.length===1?' page':' pages')+' ready. Tip: one page per photo, flat, in good light, filling the frame. Pictures and scanned PDFs are read on your phone, or by Claude if you turned on Online mode. CSV, Excel and PDFs with text are read on your device.'));
+    rd.appendChild(el('p',null,pend.length+(pend.length===1?' page':' pages')+' ready. Tip: one page per photo, flat, in good light, filling the frame. Pictures and scanned PDFs are read on your phone, or by Google AI if Online is on. CSV, Excel and PDFs with text are read on your device.'));
     var b2=el('div','btns'), rb=mkBtn(busy?'Reading...':'Read the picture','',read); rb.disabled=busy; b2.appendChild(rb);
     if(busy)b2.appendChild(mkBtn('Stop','ghost',function(){if(ctl)ctl.abort();}));
     else b2.appendChild(mkBtn('Clear pages','ghost',function(){pend=[]; render();}));
@@ -5789,7 +5798,7 @@ async function renderLib(id,msg){
   var fi=el('input'); fi.type='file'; fi.multiple=true; fi.hidden=true; fi.accept='.pdf,.docx,.epub,.html,.htm,.txt,.md,.csv,.tsv,.json,.jpg,.jpeg,.png,.webp';
   var mdw=el('div'); mdw.style.cssText='margin:10px 0 4px'; var mdl=el('label',null,'Reading mode'); mdl.style.cssText='display:block;font-size:13px;font-weight:700;margin-bottom:4px'; var mds=el('select'); mds.style.cssText='width:100%;min-height:44px;font-size:15px;border-radius:10px;padding:0 10px;border:1px solid var(--line);background:var(--surface);color:var(--ink)';
   [['1','Detailed (most accurate)'],['0','Standard (fast)']].forEach(function(x){var op=el('option',null,x[1]); op.value=x[0]; if((kbDetailDefault()?'1':'0')===x[0])op.selected=true; mds.appendChild(op);});
-  mds.addEventListener('change',function(){try{localStorage.setItem('dutybuddy.detail',mds.value);}catch(e){}}); mdl.appendChild(mds); mdw.appendChild(mdl); var mdn=el('div',null,'Detailed: Claude also reads tables, scans and pictures page by page, twice, and marks pages it could not confirm. Slower, needs Claude online. Standard: text only, pictures get a short description.'); mdn.style.cssText='font-size:12.5px;color:var(--muted);margin-top:4px;font-weight:400'; mdw.appendChild(mdn);
+  mds.addEventListener('change',function(){try{localStorage.setItem('dutybuddy.detail',mds.value);}catch(e){}}); mdl.appendChild(mds); mdw.appendChild(mdl); var mdn=el('p',null,'Detailed: Google AI also reads tables, scans and pictures page by page, twice, and marks pages it could not confirm. Slower, needs Online.  Standard: text only, pictures get a short description.'); mdn.style.cssText='font-size:12.5px;color:var(--muted);margin-top:4px;font-weight:400'; mdw.appendChild(mdn);
   var prog=el('div','rd'); prog.setAttribute('aria-live','polite'); if(msg)prog.textContent=msg;
   var b=el('div','btns'); b.appendChild(mkBtn('Add files','',function(){if(!libBusy)fi.click();})); b.appendChild(mkBtn('Choose from library','ghost',function(){libPicker(id);})); hd.appendChild(mdw); hd.appendChild(b); hd.appendChild(fi); hd.appendChild(prog);
   fi.addEventListener('change',async function(){
@@ -5815,7 +5824,7 @@ async function renderLib(id,msg){
     var bb=el('div','btns'); bb.style.marginTop='6px';
     if(cs&&!d.capPause)bb.appendChild(mkBtn('Pause','sm',function(){d.capPause=1; kbPut(d); kbBarUpdate(); renderLib(id,'Paused. Tap Continue to resume.');}));
     else if(d.status==='done'&&d.capPause&&(capLeft||(d.detail&&(d.pgs||[]).some(function(x){return !x.det&&!x.nodet;}))))bb.appendChild(mkBtn('Continue','sm',function(){d.capPause=0; kbPut(d); if(d.detail)kbDetail(id,d); else kbCaption(id,d); renderLib(id,'Continuing.');}));
-    if(d.status==='done'&&(d.pgs||[]).some(function(x){return !x.det&&!x.nodet;})&&!CAPSTAT[d.id])bb.appendChild(mkBtn('Check pages with Claude','sm',function(){d.detail=1; kbPut(d); kbDetail(id,d); renderLib(id,'Checking pages of '+d.name+' with Claude. You can leave this page.');}));
+    if(d.status==='done'&&(d.pgs||[]).some(function(x){return !x.det&&!x.nodet;})&&!CAPSTAT[d.id])bb.appendChild(mkBtn('Check pages with Google AI','sm',function(){d.detail=1; kbPut(d); kbDetail(id,d); renderLib(id,'Checking pages of '+d.name+' with Claude. You can leave this page.');}));
     if(d.status==='error')bb.appendChild(mkBtn('Try again','sm',function(){d.status='reading'; d.err=''; kbRun(id,d); renderLib(id,'Trying again.');}));
     bb.appendChild(mkBtn('Save a copy','ghost sm',async function(){var bl=await kbBlob(d.id); if(!bl){toast('The original file is not stored here.'); return;} saveFile(d.name,bl);}));
     var rm=mkBtn('Remove','ghost sm',async function(){
@@ -7264,9 +7273,10 @@ function openSettings(){
 function closeSettings(){var p=$('setPg'); if(p)p.hidden=true;}
 function sRow(ic,cls,title,desc,st,fn){
   var b=el('button','srow'); b.type='button';
-  var i=el('div','sic '+cls,ic), tx=el('div'); tx.appendChild(el('div','st',title)); if(desc)tx.appendChild(el('div','sd',desc));
+  var i=el('div','sic '+cls,ic), tx=el('div'), dd=null; tx.appendChild(el('div','st',title)); if(desc){dd=el('div','sd',desc); if(desc.length>=30)dd.style.display='none'; tx.appendChild(dd); if(desc.length<30)dd=null;}
   b.appendChild(i); b.appendChild(tx);
-  var r=el('div','sside'); if(st)r.appendChild(el('span','spill '+st[1],st[0])); r.appendChild(el('span',null,'\u203a')).style.cssText='font-size:22px;margin-left:4px'; b.appendChild(r);
+  var r=el('div','sside'); if(st)r.appendChild(el('span','spill '+st[1],st[0]));
+  if(dd){var qq=el('span','qm','?'); qq.setAttribute('role','button'); qq.setAttribute('aria-label','What is this?'); qq.setAttribute('aria-expanded','false'); qq.addEventListener('click',function(ev){ev.stopPropagation(); var on=dd.style.display==='none'; dd.style.display=on?'block':'none'; qq.classList.toggle('on',on); qq.setAttribute('aria-expanded',on?'true':'false');}); r.insertBefore(qq,r.firstChild);} r.appendChild(el('span',null,'\u203a')).style.cssText='font-size:22px;margin-left:4px'; b.appendChild(r);
   b.addEventListener('click',fn); return b;
 }
 function sGrp(title,rows,body){body.appendChild(el('div','ssec',title)); var g=el('div','sgrp'); rows.forEach(function(r){g.appendChild(r);}); body.appendChild(g);}
@@ -7278,7 +7288,7 @@ function renderSettings(){
   var bar=el('div','sbar'), bk=el('button',null,'\u2039'); bk.type='button'; bk.setAttribute('aria-label','Back');
   bk.addEventListener('click',function(){if(v.name==='list')closeSettings(); else{SETVIEW={name:'list'}; renderSettings();}});
   bar.appendChild(bk); bar.appendChild(el('div',null,title)); pg.appendChild(bar);
-  var body=el('div','sbody'); pg.appendChild(body);
+  var body=el('div','sbody'); pg.appendChild(body); if(v.name==='about')body.className+=' keep';
   var os=onlineSt(), ss=smartSt();
   if(v.name==='list'){
     (function(){var ac=activeAI(), hh=el('div','shero'); hh.appendChild(el('div','sd','ANSWERING WITH')).style.cssText='font-weight:700;letter-spacing:.06em;font-size:12px'; hh.appendChild(el('div',null,ac[0])).style.cssText='font-size:17px;font-weight:700;margin-top:4px'; body.appendChild(hh);})();
@@ -7314,6 +7324,30 @@ function renderSettings(){
     (function(){var on=false; try{on=localStorage.getItem('dutybuddy.kbdbg')==='1';}catch(e){} var cd=el('div','scard'); cd.appendChild(el('h3',null,'Keyboard check')); cd.appendChild(el('p',null,'Turn this on, open a chat, tap the message box and take a screenshot. A small green strip shows what the phone reports, so I can see why the keyboard covers the box.')); cd.appendChild(mkBtn(on?'Turn off the keyboard check':'Turn on the keyboard check','ghost',function(){try{localStorage.setItem('dutybuddy.kbdbg',on?'0':'1');}catch(e){} try{window.__fitScreen&&window.__fitScreen();}catch(e){} renderSettings();})); body.appendChild(cd);})();
   }
 }
+
+/* ---- long explanations hide behind a small ? button (job description and About stay open) ---- */
+(function(){
+  var SKIP='.keep,.jd,.msg,.bub,#msgs,[aria-live],textarea,.sum,.prev';
+  function labelish(e){if(!e||e.nodeType!==1)return false; if(/^(BUTTON|INPUT|SELECT|TEXTAREA|P|UL|OL|IMG)$/.test(e.tagName))return false; if(e.querySelector('button,input,select,textarea'))return false; var t=(e.textContent||'').trim(); return t.length>0&&t.length<48;}
+  function tip(p){
+    if(p.hasAttribute('data-tip'))return; p.setAttribute('data-tip','0');
+    var t=(p.textContent||'').trim(); if(t.length<46||p.closest(SKIP)||p.querySelector('a,button,input,select'))return;
+    var anchor=null,b=null,e=p.previousElementSibling,hops=0;
+    while(e&&hops<3){ if(e.tagName==='P'&&e.__qb){b=e.__qb; break;} if(labelish(e)){anchor=e; break;} e=e.previousElementSibling; hops++; }
+    if(!b&&anchor&&anchor.__qb)b=anchor.__qb;
+    if(!b){
+      b=document.createElement('button'); b.type='button'; b.className='qm'; b.textContent='?'; b.setAttribute('aria-label','What is this?'); b.setAttribute('aria-expanded','false'); b.__ps=[];
+      b.addEventListener('click',function(ev){ev.preventDefault(); ev.stopPropagation(); var on=b.getAttribute('aria-expanded')!=='true'; b.setAttribute('aria-expanded',on?'true':'false'); b.classList.toggle('on',on); b.__ps.forEach(function(x){x.classList.toggle('tipshow',on);});});
+      if(anchor){anchor.appendChild(b); anchor.__qb=b;} else {var w=document.createElement('div'); w.className='qwrap'; w.appendChild(b); p.parentNode.insertBefore(w,p);}
+    }
+    p.__qb=b; p.setAttribute('data-tip','1'); p.classList.add('tiphid'); b.__ps.push(p);
+  }
+  var pend=false;
+  function scan(){pend=false; var l=document.querySelectorAll('p:not([data-tip])'); for(var i=0;i<l.length;i++){try{tip(l[i]);}catch(e){}}}
+  function later(){if(pend)return; pend=true; (window.requestAnimationFrame||setTimeout)(scan);}
+  try{new MutationObserver(later).observe(document.body,{childList:true,subtree:true});}catch(e){}
+  later();
+})();
 function closeMenu(){$('menu').hidden=true; $('menuBtn').setAttribute('aria-expanded','false');}
 function smartLabel(){
   var off=(typeof navigator!=='undefined'&&navigator.onLine===false), has=!!apiKey(), hasStored=!!storedKey();
@@ -7339,7 +7373,7 @@ function keySheet(toLocal){
   (function(){
     var hr=el('div'); hr.style.cssText='border-top:1px solid var(--line);margin:14px 0 8px'; sh.appendChild(hr);
     sh.appendChild(el('h3',null,'Offline (on this phone)')).style.cssText='margin:2px 0 6px;font-size:16px';
-    var t=el('p',null,'A small AI that runs on this phone, so it can answer simple questions from your books with no internet and nothing leaves the phone. It downloads about 1 GB once (use Wi-Fi). It is much weaker than Claude or Gemini and cannot read photos. If you do not like it, tap Remove and it is gone; the rest of the app is not affected.'); t.style.cssText='margin:0 0 8px;font-size:14px;color:var(--muted)'; sh.appendChild(t);
+    var t=el('p',null,'A small AI that runs on this phone, so it can answer simple questions from your books with no internet and nothing leaves the phone. It downloads about 1 GB once (use Wi-Fi). It is much weaker than Gemini and cannot read photos. If you do not like it, tap Remove and it is gone; the rest of the app is not affected.'); t.style.cssText='margin:0 0 8px;font-size:14px;color:var(--muted)'; sh.appendChild(t);
     var lm=el('p',null,''); lm.style.cssText='margin:6px 0;font-size:13.5px'; sh.appendChild(lm);
     var lb=el('div','btns'); sh.appendChild(lb);
     function draw(){
