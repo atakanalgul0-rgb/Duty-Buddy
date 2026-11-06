@@ -273,6 +273,7 @@ html{background:var(--outer)}
 .wr .ct{width:34px;flex:none;text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
 .nmx{flex:1;min-width:0;overflow-wrap:anywhere;font-size:15px}
 .rm{flex:none;width:36px;height:36px;border-radius:50%;border:0;background:var(--chip);color:var(--muted);font-size:20px;line-height:1;padding:0}
+.sw .chv{position:absolute;right:2px;top:2px;width:34px;height:36px;border:0;background:transparent;color:var(--muted);font-size:15px;padding:0}.sw input.hasChv{padding-right:34px}.chvd{margin:4px 0 6px;padding:8px 10px;border-radius:10px;background:var(--soft)}.chvr{display:flex;flex-direction:column;padding:3px 0;font-size:13px}.chvr span{color:var(--muted);font-size:11.5px;text-transform:uppercase;letter-spacing:.04em}.chvr b{font-weight:600;word-break:break-word}
 .sw{position:relative;flex:1;min-width:0}
 .sug{position:absolute;left:0;right:0;top:100%;z-index:6;margin-top:2px;background:var(--surface);border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.25);max-height:264px;overflow:auto}
 .sug button{display:flex;justify-content:space-between;align-items:center;gap:8px;width:100%;min-height:44px;border:0;border-bottom:1px solid var(--line);background:transparent;color:var(--ink);padding:6px 10px;text-align:left;font-size:14.5px}
@@ -319,6 +320,12 @@ html.rotR body{left:100%;top:0;transform:rotate(90deg)}
 #setPg .spill.on{background:var(--chip-on);color:var(--chip-ink)}#setPg .spill.off{background:#F8DDD7;color:#A32818}#setPg .spill.mid{background:var(--chip);color:var(--muted)}
 #setPg .shero{margin:14px 12px 0;background:linear-gradient(135deg,#1D4A40,#0B3F3C);color:#fff;border-radius:20px;padding:16px}
 #setPg .shero .sd{color:#C4D9D5;font-size:13.5px}
+.chgf{display:flex;gap:6px;margin:0 12px 8px;overflow-x:auto}.chgf button{flex:none;padding:6px 12px;border-radius:16px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;font-size:13px}.chgf button.on{background:var(--chip-on);color:var(--chip-ink);border-color:var(--chip-ink);font-weight:700}
+.chgd{font-size:12px;font-weight:700;letter-spacing:.06em;color:var(--muted);margin:14px 16px 6px}.chgc{margin-top:0!important;margin-bottom:8px}.chgt{display:flex;justify-content:space-between;align-items:center;gap:8px}.chgp{background:var(--chip-on);color:var(--chip-ink);border-radius:12px;padding:2px 9px;font-size:12px;font-weight:700}.chgv{margin-top:6px;font-size:14px}
+.chgb{margin-top:8px;margin-right:6px;padding:7px 14px;border-radius:18px;border:0;background:var(--soft);color:var(--ink);font:inherit;font-weight:700;font-size:13px}.chgl{margin-top:8px;border-top:1px solid var(--line);padding-top:6px;font-size:13.5px}.chgr{display:flex;justify-content:space-between;gap:10px;padding:3px 0}.chgr span:last-child{text-align:right;color:var(--muted)}.chgu{font-style:italic}
+.mctag{display:inline-block;border-radius:9px;padding:1px 8px;font-size:11.5px;font-weight:700;margin-bottom:4px}.mctag.g{background:#d7ebe6;color:#0f5d4e}.mctag.y{background:#fdf0c9;color:#7a5b00}.mctag.r{background:#fbdcdc;color:#9a2b2b}.mcb{margin:6px 0;padding:8px 10px;border-radius:10px;background:var(--soft)}.mcl{display:flex;gap:8px;padding:2px 0;font-size:13px}.mck{flex:none;width:84px;color:var(--muted);font-size:11px;font-weight:700;letter-spacing:.04em;padding-top:2px}.mcv{min-width:0;word-break:break-word}
+.mmwarn{margin:10px 0;padding:10px 12px;border-radius:12px;background:#fdf0c9;color:#5a4200}.mmwarn b{display:block;margin-bottom:2px}
+.tdh{display:flex;justify-content:space-between;align-items:center}.tdb{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}.tdi{padding:9px 14px;border-radius:20px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;font-size:14px;text-align:left}.tdi.on{background:var(--chip-on);color:var(--chip-ink);border-color:var(--chip-ink);text-decoration:line-through;opacity:.8}.tder{display:flex;gap:6px;width:100%}.tder input{flex:1}.tdrem{display:block;margin:10px 0;font-size:14px}
 #setPg .scard{margin:14px 12px 0;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px;font-size:14.5px;line-height:1.45}
 #setPg .scard h3{margin:0 0 6px;font-size:16px}#setPg .scard p{margin:0 0 8px;color:var(--muted)}
 #setPg .sbtns{display:flex;gap:8px;flex-wrap:wrap;margin:12px 12px 0}
@@ -415,6 +422,7 @@ textarea:not(#text){min-height:44px!important;height:auto;resize:none!important;
 #tabBar button.on{color:var(--mint)}#tabBar button.on .tpill{background:var(--tile)}
 .psheet button{display:flex;align-items:center;gap:12px;width:100%;text-align:left;border:0;background:var(--chip);color:var(--ink);border-radius:16px;padding:12px 14px;margin-bottom:8px;font:inherit}
 .psheet button b{display:block}.psheet button small{color:var(--muted)}
+#toast.toast.tipbar,#listView:not([hidden]) ~ #toast.toast.tipbar{top:calc(6px + var(--sat,0px));bottom:auto;left:10px;transform:none;width:calc(100% - 20px);max-width:none;font-size:13px;padding:8px 14px;display:flex;justify-content:space-between;gap:10px;opacity:.96}
 #toast.toast{cursor:pointer;z-index:95;bottom:calc(96px + var(--sab));font-size:13px;padding:9px 14px}
 #listView:not([hidden]) ~ #toast.toast{bottom:calc(142px + var(--sab))}
 
@@ -473,6 +481,13 @@ textarea:not(#text){min-height:44px!important;height:auto;resize:none!important;
 #printOv > [data-gb]::before{content:"";width:12px;height:12px;border-left:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg);display:block;margin:0 auto 0 18px}
 .mr .ml p{font-size:13.5px;line-height:1.4;margin:6px 4px}
 @media (prefers-reduced-motion:reduce){.dball,.dring{display:none!important}}
+
+.mmchips{display:flex;gap:8px;margin-top:10px;overflow-x:auto;scrollbar-width:none}.mmchip{flex:none;min-height:34px;border:1px solid var(--line);background:var(--surface);color:var(--chip-ink);font-size:13px;font-weight:600;padding:5px 12px;border-radius:17px;white-space:nowrap}.mmchip.on{background:var(--focus);border-color:var(--focus);color:#fff}
+.mmlist{padding:8px var(--gr) 24px var(--gl)}.mmr{position:relative;display:block;width:100%;text-align:left;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:12px;padding:9px 11px;margin:0 0 8px;font:inherit}
+.mml{display:flex;gap:8px;font-size:12.5px;line-height:1.4;min-width:0}.mmk{flex:none;width:46px;font-size:9.5px;font-weight:700;letter-spacing:.4px;color:var(--chip-ink);padding-top:2px}.mmv{min-width:0;overflow-wrap:anywhere}.mmv.mme{color:var(--muted)}
+.mmst{position:absolute;right:9px;top:8px;font-size:10px;font-weight:700;padding:2px 7px;border-radius:9px}.mmst.ok{background:#e1f2e8;color:#14683a}.mmst.md{background:#fff1d6;color:#8a5a00}.mmst.no{background:#fde2e4;color:#b3213b}
+.mmimp{margin:0 0 8px}.mmimp b{display:block;font-size:13px;margin-bottom:3px}.mmov{position:fixed;inset:0;background:rgba(0,0,0,.45);display:grid;place-items:center;z-index:9999;padding:20px}.mmbox{background:var(--surface);color:var(--ink);border-radius:16px;padding:18px;max-width:340px;width:100%}.mmbl{font-size:14px;line-height:1.45;margin-bottom:4px}.mmbar{height:8px;border-radius:4px;background:var(--soft);overflow:hidden;margin:8px 0 4px}.mmbar i{display:block;height:100%;background:var(--focus)}.mmempty{padding:20px 4px;color:var(--muted);font-size:14px}.mmf{margin:10px 0 0}.mmf label{display:block;font-size:11px;font-weight:700;letter-spacing:.4px;color:var(--chip-ink);margin-bottom:3px}.mmf small{display:block;font-size:11.5px;color:var(--muted);margin-top:3px}
+.mmsug{margin-top:8px}.mmsh{font-size:10.5px;font-weight:700;letter-spacing:.4px;color:var(--chip-ink);margin:8px 0 4px}.mmsb{display:flex;justify-content:space-between;gap:8px;width:100%;text-align:left;border:1px solid var(--line);background:var(--soft);color:var(--ink);border-radius:10px;padding:8px 10px;margin-bottom:6px;font:inherit;font-size:12.5px}.mmsb small{flex:none;color:var(--muted)}.mmlink{margin-top:10px;font-size:12.5px;color:var(--chip-ink);font-weight:600}
 </style>
 
 <div id="app">
@@ -925,7 +940,7 @@ function sheetFromInv(c,ts){
 }
 function normChat(id,c,fb){
   if(!c||!Array.isArray(c.inv)||!Array.isArray(c.msgs)||!c.msgs.length)return fb;
-  c.micros=c.micros||{}; c.low=c.low||0; c.noMenu=!(byId[id]&&byId[id].pour>0); c.recipes=Array.isArray(c.recipes)?c.recipes:[]; c.log=Array.isArray(c.log)?c.log:[]; c.rsv=c.rsv||null; c.staff=Array.isArray(c.staff)?c.staff:[]; c.events=Array.isArray(c.events)?c.events:[]; c.guests=Array.isArray(c.guests)?c.guests:[]; c.sales=Array.isArray(c.sales)?c.sales:[]; c.costs=Array.isArray(c.costs)?c.costs:[]; c.chkCfg=c.chkCfg||null; c.chkDay=c.chkDay||{}; c.asked=c.asked||{}; c.starterV=c.starterV||0; c.glassFix=c.glassFix||0; c.costRep=c.costRep||null; c.costHist=Array.isArray(c.costHist)?c.costHist:[]; c.costBook=c.costBook||null; c.inv.forEach(function(it){if(!it.id)it.id=uid(); if(it.type==null)it.type=guessType(it.name); else {var g0=guessType(it.name); if(g0==='Sake'||g0==='Non-alcoholic'||(it.type==='Other'&&g0!=='Other'))it.type=g0;} if(it.glass==null)it.glass=false; if(it.menu==null)it.menu=true; if(it.size==null)it.size=750; if(it.size!==750&&!/\(\s*\d+\s*ml\s*\)\s*$/i.test(it.name))it.name=it.name+' ('+it.size+' ml)';}); c.ml=c.ml||{}; c.pool=c.pool||[]; c.alias=c.alias||{}; c.pendingText=c.pendingText||null; c.quiz=c.quiz||null; c.quizOff=c.quizOff||null; c.undo=Array.isArray(c.undo)?c.undo:[]; c.unread=c.unread||0; c.kb=c.kb||[]; c.costList=c.costList||null; c.extra=Array.isArray(c.extra)?c.extra:[]; c.feedback=c.feedback||[]; c.notes=c.notes||[]; c.pour=c.pour||0; c.instr=c.instr||''; c.sheets=Array.isArray(c.sheets)?c.sheets:[]; c.sheetUse=c.sheetUse||null; c.countPend=c.countPend||null; if(!c.sheets.length&&c.kb.length&&c.inv.length){var k0=c.kb.filter(function(d){return d.kind==='list';}).sort(function(x,y){return y.ts-x.ts;})[0]; if(k0&&byId[id]&&(byId[id].pour>0||byId[id].stock)){var sh0=sheetFromInv(c,k0.ts); if(sh0.rows.length){c.sheets.push(sh0); c.sheetUse=sh0.id;}}}
+  c.micros=c.micros||{}; c.mm=(c.mm&&Array.isArray(c.mm.rows))?c.mm:null; if(c.mm&&!c.mm.snap)c.mm.snap=null; c.low=c.low||0; c.noMenu=!(byId[id]&&byId[id].pour>0); c.recipes=Array.isArray(c.recipes)?c.recipes:[]; c.log=Array.isArray(c.log)?c.log:[]; c.rsv=c.rsv||null; c.staff=Array.isArray(c.staff)?c.staff:[]; c.events=Array.isArray(c.events)?c.events:[]; c.guests=Array.isArray(c.guests)?c.guests:[]; c.sales=Array.isArray(c.sales)?c.sales:[]; c.costs=Array.isArray(c.costs)?c.costs:[]; c.chkCfg=c.chkCfg||null; c.chkDay=c.chkDay||{}; c.todo=Array.isArray(c.todo)?c.todo:[]; c.rem=Array.isArray(c.rem)?c.rem:[]; c.asked=c.asked||{}; c.starterV=c.starterV||0; c.glassFix=c.glassFix||0; c.costRep=c.costRep||null; c.costHist=Array.isArray(c.costHist)?c.costHist:[]; c.costBook=c.costBook||null; c.inv.forEach(function(it){if(!it.id)it.id=uid(); if(it.type==null)it.type=guessType(it.name); else {var g0=guessType(it.name); if(g0==='Sake'||g0==='Non-alcoholic'||(it.type==='Other'&&g0!=='Other'))it.type=g0;} if(it.glass==null)it.glass=false; if(it.menu==null)it.menu=true; if(it.size==null)it.size=750; if(it.size!==750&&!/\(\s*\d+\s*ml\s*\)\s*$/i.test(it.name))it.name=it.name+' ('+it.size+' ml)';}); c.ml=c.ml||{}; c.pool=c.pool||[]; c.alias=c.alias||{}; c.pendingText=c.pendingText||null; c.quiz=c.quiz||null; c.quizOff=c.quizOff||null; c.undo=Array.isArray(c.undo)?c.undo:[]; c.unread=c.unread||0; c.kb=c.kb||[]; c.costList=c.costList||null; c.extra=Array.isArray(c.extra)?c.extra:[]; c.feedback=c.feedback||[]; c.notes=c.notes||[]; c.pour=c.pour||0; c.instr=c.instr||''; c.sheets=Array.isArray(c.sheets)?c.sheets:[]; c.sheetUse=c.sheetUse||null; c.countPend=c.countPend||null; if(!c.sheets.length&&c.kb.length&&c.inv.length){var k0=c.kb.filter(function(d){return d.kind==='list';}).sort(function(x,y){return y.ts-x.ts;})[0]; if(k0&&byId[id]&&(byId[id].pour>0||byId[id].stock)){var sh0=sheetFromInv(c,k0.ts); if(sh0.rows.length){c.sheets.push(sh0); c.sheetUse=sh0.id;}}}
   return c;
 }
 function load(){
@@ -949,22 +964,119 @@ function serial(){
     var o={v:2,chats:{}};
     Object.keys(S.chats).forEach(function(id){
       var c=S.chats[id];
-      o.chats[id]={rev:c.rev||0,noMenu:c.noMenu,recipes:c.recipes||[],log:c.log||[],rsv:c.rsv||null,staff:c.staff||[],events:c.events||[],guests:c.guests||[],sales:c.sales||[],costs:c.costs||[],chkCfg:c.chkCfg||null,chkDay:c.chkDay||{},asked:c.asked||{},starterV:c.starterV||0,glassFix:c.glassFix||0,inv:c.inv,undo:c.undo,unread:c.unread,pour:c.pour,low:c.low,ml:c.ml,pool:c.pool,alias:c.alias,micros:c.micros||{},pendingText:c.pendingText,base:c.base||null,sheets:c.sheets||[],sheetUse:c.sheetUse||null,countPend:c.countPend||null,quiz:c.quiz,quizOff:c.quizOff,instr:c.instr,kb:c.kb,costList:c.costList||null,costRep:c.costRep||null,costHist:c.costHist||[],costBook:c.costBook||null,extCost:c.extCost||null,pick:c.pick||null,chosen:c.chosen||null,costPend:c.costPend||null,filePend:c.filePend||null,extra:c.extra||[],feedback:c.feedback,notes:c.notes,msgs:c.msgs.slice(-300).map(function(m){
-        var x={from:m.from,text:m.text||'',ts:m.ts}; if(m.who)x.who=m.who; if(m.ai)x.ai=1; if(m.dl)x.dl=m.dl; if(m.sug)x.sug=m.sug; if(m.wrep)x.wrep=m.wrep; if(m.prep)x.prep=m.prep; if(m.crep)x.crep=m.crep; if(m.rows)x.rows=m.rows; if(m.pg)x.pg=m.pg; if(m.react)x.react=m.react; if(m.fwd)x.fwd=m.fwd; if(m.edit)x.edit=m.edit; if(m.chg)x.chg=m.chg; if(m.opts)x.opts=m.opts; if(m.more)x.more=1; if(m.chosen)x.chosen=m.chosen; if(m.rc)x.rc=m.rc; if(m.plan)x.plan=m.plan; if(m.cf)x.cf=m.cf; if(m.seat)x.seat=m.seat; if(m.sales)x.sales=m.sales; if(m.img||m.photo)x.photo=true; return x;})};
+      o.chats[id]={rev:c.rev||0,noMenu:c.noMenu,recipes:c.recipes||[],log:c.log||[],rsv:c.rsv||null,staff:c.staff||[],events:c.events||[],guests:c.guests||[],sales:c.sales||[],costs:c.costs||[],chkCfg:c.chkCfg||null,chkDay:c.chkDay||{},todo:c.todo||[],rem:c.rem||[],asked:c.asked||{},starterV:c.starterV||0,glassFix:c.glassFix||0,inv:c.inv,undo:c.undo,unread:c.unread,pour:c.pour,low:c.low,ml:c.ml,pool:c.pool,alias:c.alias,micros:c.micros||{},mm:c.mm||null,pendingText:c.pendingText,base:c.base||null,sheets:c.sheets||[],sheetUse:c.sheetUse||null,countPend:c.countPend||null,quiz:c.quiz,quizOff:c.quizOff,instr:c.instr,kb:c.kb,costList:c.costList||null,costRep:c.costRep||null,costHist:c.costHist||[],costBook:c.costBook||null,extCost:c.extCost||null,pick:c.pick||null,chosen:c.chosen||null,costPend:c.costPend||null,filePend:c.filePend||null,extra:c.extra||[],feedback:c.feedback,notes:c.notes,msgs:c.msgs.slice(-300).map(function(m){
+        var x={from:m.from,text:m.text||'',ts:m.ts}; if(m.who)x.who=m.who; if(m.ai)x.ai=1; if(m.dl)x.dl=m.dl; if(m.sug)x.sug=m.sug; if(m.wrep)x.wrep=m.wrep; if(m.prep)x.prep=m.prep; if(m.crep)x.crep=m.crep; if(m.rows)x.rows=m.rows; if(m.pg)x.pg=m.pg; if(m.react)x.react=m.react; if(m.fwd)x.fwd=m.fwd; if(m.edit)x.edit=m.edit; if(m.chg)x.chg=m.chg; if(m.opts)x.opts=m.opts; if(m.more)x.more=1; if(m.chosen)x.chosen=m.chosen; if(m.rc)x.rc=m.rc; if(m.plan)x.plan=m.plan; if(m.cf)x.cf=m.cf; if(m.seat)x.seat=m.seat; if(m.sales)x.sales=m.sales; if(m.rem)x.rem=m.rem; if(m.mc)x.mc=m.mc; if(m.img||m.photo)x.photo=true; return x;})};
     });
     return o;
 }
 var SIG={}, DIRTY={}, DBX=null, pushT=null, pushing=false, DEVICE='', syncMsg='Sync: starting';
 try{DEVICE=localStorage.getItem('dutybuddy.dev')||''; if(!DEVICE){DEVICE='d'+Math.random().toString(36).slice(2,10); localStorage.setItem('dutybuddy.dev',DEVICE);}}catch(e){DEVICE='d'+Math.random().toString(36).slice(2,10);}
 function chatSig(oc){return JSON.stringify(oc,function(k,v){return (k==='rev'||k==='unread')?undefined:v;});}
-function sigInit(){var o=serial(); Object.keys(o.chats).forEach(function(id){SIG[id]=chatSig(o.chats[id]);});}
+function sigInit(){var o=serial(); Object.keys(o.chats).forEach(function(id){SIG[id]=chatSig(o.chats[id]);}); try{chgSnapAll();}catch(e){}}
+/* ---------- Last changes: every change to stock names, codes, numbers and prices, kept in full ---------- */
+var CHGKEY='dutybuddy.chg2', CHGF=['name','sheet','code','qty','open','size','type','glass','menu','price','gprice','cost','gml'], CHGSNAP={}, CHGMS={}, CHGSRC='', CHGL=null, CHGON=false; setTimeout(function(){try{chgSnapAll();}catch(e){} CHGON=true;},4000);
+var CHGLAB={name:'Menu name',sheet:'Stock name',code:'Stock code',qty:'Bottles',open:'Open',size:'Size',type:'Type',glass:'Glass',menu:'On menu',price:'Price',gprice:'Glass price',cost:'Cost',gml:'Pour ml',bt:'Micros bottle',gl:'Micros glass',sid:'Linked to',mn:'Menu name','+':'Added','-':'Removed'};
+function chgLoad(){if(CHGL)return CHGL; try{CHGL=JSON.parse(localStorage.getItem(CHGKEY)||'null');}catch(e){} if(!CHGL||!Array.isArray(CHGL.e))CHGL={e:[],g:{}}; return CHGL;}
+function chgStore(){try{localStorage.setItem(CHGKEY,JSON.stringify(CHGL));}catch(e){try{logErr('Storage','Last changes could not be saved (phone storage full)','');}catch(x){}}}
+function chgSnapOne(id){var c=S.chats[id]; if(!c)return; var m={}; (c.inv||[]).forEach(function(i){m[i.id]=CHGF.map(function(f){return i[f]===undefined?null:i[f];});}); CHGSNAP[id]=m; var r={}; ((c.mm&&c.mm.rows)||[]).forEach(function(x){r[x.id]=[x.bt,x.gl,x.sid,x.mn];}); CHGMS[id]=r;}
+function chgSnapAll(){Object.keys(S.chats).forEach(chgSnapOne);}
+function chgSrc(){
+  if(CHGSRC)return CHGSRC; var h=location.hash.replace('#','');
+  if(/-match/.test(h))return 'Matching'; if(/-wines$/.test(h))return 'Wine list'; if(/-off$/.test(h))return 'Extra wines'; if(/-glass$/.test(h))return 'Glass list'; if(/-stock$/.test(h))return 'Stock list'; if(/-info$/.test(h))return 'Profile'; if(/-lib$/.test(h))return 'Library'; if(/-reports?$|-.rep$/.test(h))return 'Reports';
+  return 'Chat';
+}
+function chgDiff(id){
+  var c=S.chats[id]; if(!c)return; var pv=CHGSNAP[id], pm=CHGMS[id]; if(!pv||!CHGON){chgSnapOne(id); return;}
+  var L=chgLoad(), out=[], now=Date.now(), seen={};
+  (c.inv||[]).forEach(function(i){
+    seen[i.id]=1; var p=pv[i.id], nm=i.sheet||i.name||i.code||'';
+    if(!p){out.push([now,id,'i',i.id,nm,'+',null,null,0]); return;}
+    CHGF.forEach(function(f,k){var a=p[k], b=i[f]===undefined?null:i[f]; if(a!==b&&!(a==null&&b==null)&&!(a===''&&b==null)&&!(a==null&&b===''))out.push([now,id,'i',i.id,nm,f,a,b,0]);});
+  });
+  Object.keys(pv).forEach(function(k){if(!seen[k]){var o={id:k}; CHGF.forEach(function(f,j){o[f]=pv[k][j];}); out.push([now,id,'i',k,o.sheet||o.name||o.code||'','-',JSON.stringify(o),null,0]);}});
+  var rs=(c.mm&&c.mm.rows)||[], sn={};
+  rs.forEach(function(x){sn[x.id]=1; var p=pm&&pm[x.id], cur=[x.bt,x.gl,x.sid,x.mn]; if(!p){out.push([now,id,'m',x.id,x.bt||x.mn||'','+',null,null,0]); return;} ['bt','gl','sid','mn'].forEach(function(f,k){if((p[k]||'')!==(cur[k]||''))out.push([now,id,'m',x.id,x.bt||x.mn||'',f,p[k]||'',cur[k]||'',0]);});});
+  if(pm)Object.keys(pm).forEach(function(k){if(!sn[k]){var p=pm[k]; out.push([now,id,'m',k,p[0]||p[3]||'','-',JSON.stringify({id:k,bt:p[0],gl:p[1],sid:p[2],mn:p[3]}),null,0]);}});
+  chgSnapOne(id);
+  if(!out.length)return;
+  var src=chgSrc(), g=0; if(out.length>=6){g=now.toString(36)+Math.random().toString(36).slice(2,5); L.g[g]={t:now,s:src,a:id};}
+  out.forEach(function(e){e.push(g||0,src);}); /* e[9]=group, e[10]=source */
+  L.e.push.apply(L.e,out); chgStore();
+}
+function chgLine(e){
+  var c=S.chats[e[1]], nameOf=function(v){var it=c&&c.inv.filter(function(x){return x.id===v;})[0]; return it?(it.sheet||it.name):(v||'–');};
+  var f=e[5], lab=CHGLAB[f]||f;
+  if(f==='+')return 'Added';
+  if(f==='-')return 'Removed';
+  var sh=function(v){if(v===null||v===''||v===undefined)return '–'; if(f==='sid')return nameOf(v); if(f==='menu'||f==='glass')return v?'yes':'no'; return String(v);};
+  return lab+': '+sh(e[6])+' → '+sh(e[7]);
+}
+function chgCat(f){return /^(qty|open)$/.test(f)?'Stock':/^(price|gprice|cost)$/.test(f)?'Prices':'Names';}
+function chgApply(e){
+  var c=S.chats[e[1]]; if(!c||e[8])return 'gone'; var f=e[5];
+  if(e[2]==='i'){
+    var it=c.inv.filter(function(x){return x.id===e[3];})[0];
+    if(f==='+'){if(!it)return 'gone'; c.inv=c.inv.filter(function(x){return x!==it;});}
+    else if(f==='-'){if(it)return 'gone'; try{c.inv.push(JSON.parse(e[6]));}catch(x){return 'gone';}}
+    else{if(!it)return 'gone'; if(it[f]!==e[7]&&!(it[f]==null&&e[7]==null))return 'moved'; it[f]=e[6];}
+  } else {
+    var m=c.mm&&c.mm.rows; if(!m)return 'gone'; var r=m.filter(function(x){return x.id===e[3];})[0];
+    if(f==='+'){if(!r)return 'gone'; c.mm.rows=m.filter(function(x){return x!==r;});}
+    else if(f==='-'){if(r)return 'gone'; try{m.push(Object.assign({conf:'Manual',sc:0,near:''},JSON.parse(e[6])));}catch(x){return 'gone';}}
+    else{if(!r)return 'gone'; if((r[f]||'')!==(e[7]||''))return 'moved'; r[f]=e[6];}
+  }
+  e[8]=1; return 'ok';
+}
+function chgUndoMany(list,after){
+  CHGSRC='Undo'; var ok=0, mv=0; list.forEach(function(e){var r=chgApply(e); if(r==='ok')ok++; else mv++;});
+  try{save();}catch(x){} CHGSRC=''; chgStore();
+  toast(ok+' undone'+(mv?'. '+mv+' not undone because they changed again or no longer exist.':'.')); after();
+}
+function chgRender(body,redraw){
+  var L=chgLoad(); body.appendChild(el('div','ssec','Last changes'));
+  var all=L.e; if(!all.length){sCard('No changes yet',['Every change to a stock name, code, number or price from now on is listed here, in full, with the old and the new value.'],body); return;}
+  var st=chgRender.st=chgRender.st||{cat:'All',who:'all',open:{},n:100}, wrap=el('div','chgw');
+  var fr=el('div','chgf'); ['All','Stock','Prices','Names'].forEach(function(k){var b=el('button',st.cat===k?'on':'',k); b.type='button'; b.addEventListener('click',function(){st.cat=k; st.n=100; redraw();}); fr.appendChild(b);}); body.appendChild(fr);
+  var ids={}; all.forEach(function(e){ids[e[1]]=1;}); var idl=Object.keys(ids);
+  if(idl.length>1){var fw=el('div','chgf'); [['all','Everyone']].concat(idl.map(function(i){return [i,(byId[i]&&byId[i].name)||i];})).forEach(function(p){var b=el('button',st.who===p[0]?'on':'',p[1]); b.type='button'; b.addEventListener('click',function(){st.who=p[0]; st.n=100; redraw();}); fw.appendChild(b);}); body.appendChild(fw);}
+  var rows=[], gi={}; 
+  for(var i=all.length-1;i>=0;i--){var e=all[i]; if(st.who!=='all'&&e[1]!==st.who)continue; if(st.cat!=='All'&&chgCat(e[5])!==st.cat&&!(e[5]==='+'||e[5]==='-')||(st.cat!=='All'&&(e[5]==='+'||e[5]==='-')&&st.cat!=='Names'))continue;
+    if(e[9]){var G=gi[e[9]]; if(!G){G=gi[e[9]]={g:e[9],es:[],t:e[0]}; rows.push(G);} G.es.push(e);} else rows.push({es:[e],t:e[0]});}
+  if(!rows.length){body.appendChild(el('div','sd','Nothing here with this filter.')).style.margin='10px 16px'; return;}
+  var lastDay='', shown=0;
+  rows.slice(0,st.n).forEach(function(R){
+    var d=new Date(R.t), dl=sameDay(d,new Date())?'Today':(sameDay(d,new Date(Date.now()-864e5))?'Yesterday':d.toLocaleDateString(undefined,{day:'numeric',month:'short',year:'numeric'}));
+    if(dl!==lastDay){lastDay=dl; var h=el('div','chgd',dl.toUpperCase()); body.appendChild(h);}
+    var card=el('div','scard keep chgc'), e0=R.es[0], who=(byId[e0[1]]&&byId[e0[1]].name)||'';
+    if(R.g){
+      var G=L.g[R.g]||{s:e0[10]}, top=el('div','chgt'); top.appendChild(el('b',null,G.s+' · '+who)); top.appendChild(el('span','chgp',String(R.es.length))); card.appendChild(top);
+      var cn={}; R.es.forEach(function(e){var k=(e[5]==='+')?'added':(e[5]==='-')?'removed':CHGLAB[e[5]].toLowerCase(); cn[k]=(cn[k]||0)+1;});
+      card.appendChild(el('div','sd',hm(R.t)+' · '+Object.keys(cn).map(function(k){return cn[k]+' '+k;}).join(' · ')));
+      var op=!!st.open[R.g], lst=el('div','chgl'); 
+      var tg=el('button','chgb',op?'Hide ▴':'Show all '+R.es.length+' ▾'); tg.type='button'; tg.addEventListener('click',function(){st.open[R.g]=!op; redraw();}); card.appendChild(tg);
+      if(op){R.es.slice(0,(st.open[R.g+'n']||100)).forEach(function(e){var r=el('div','chgr'); r.appendChild(el('span',null,e[4]||'(no name)')); r.appendChild(el('span',e[8]?'chgu':'',e[8]?'Undone':chgLine(e))); lst.appendChild(r);}); if(R.es.length>(st.open[R.g+'n']||100)){var mb=el('button','chgb','Show 100 more'); mb.type='button'; mb.addEventListener('click',function(){st.open[R.g+'n']=(st.open[R.g+'n']||100)+100; redraw();}); lst.appendChild(mb);} card.appendChild(lst);}
+      var un=R.es.filter(function(e){return !e[8];});
+      if(un.length){var ub=el('button','chgb',(un.length===R.es.length?'↶ Undo all ':'↶ Undo the other ')+un.length); ub.type='button'; ub.addEventListener('click',function(){confirm3({title:'Undo '+un.length+' changes',steps:['Put the '+un.length+' values of “'+G.s+'” back to how they were?','Are you sure? Anything added by it will be removed again.','Last question. Undo now?'],yes:'Undo'},function(){chgUndoMany(un,redraw);});}); card.appendChild(ub);}
+    } else {
+      var e=e0, top2=el('div','chgt'); top2.appendChild(el('b',null,e[4]||'(no name)')); card.appendChild(top2);
+      card.appendChild(el('div','sd',hm(e[0])+' · '+(who?who+' · ':'')+(e[10]||'')));
+      card.appendChild(el('div','chgv',e[8]?'Undone: '+chgLine(e):chgLine(e)));
+      if(!e[8]){var b1=el('button','chgb','↶ Undo'); b1.type='button'; b1.addEventListener('click',function(){
+        var go=function(){chgUndoMany([e],redraw);};
+        if(e[5]==='+')confirm3({title:'Remove again',steps:['Remove “'+(e[4]||'this item')+'” that was added?','Are you sure?','Last question. Remove it?'],yes:'Remove'},go); else go();}); card.appendChild(b1);}
+    }
+    body.appendChild(card); shown++;
+  });
+  if(rows.length>st.n){var mb2=el('button','chgb','Show more ('+(rows.length-st.n)+' left)'); mb2.type='button'; mb2.style.margin='10px 12px'; mb2.addEventListener('click',function(){st.n+=100; redraw();}); body.appendChild(mb2);}
+  var kp=el('div','sd','Everything is kept. Nothing is deleted automatically. Saved on this phone only.'); kp.style.margin='12px 16px 24px'; body.appendChild(kp);
+}
 function save(){
   if(draft&&draft.dirty)return;
   try{
     var o=serial();
     Object.keys(o.chats).forEach(function(id){
       var sg=chatSig(o.chats[id]);
-      if(SIG[id]!==undefined&&sg!==SIG[id]){var c=S.chats[id]; c.rev=Date.now(); o.chats[id].rev=c.rev; DIRTY[id]=1;}
+      if(SIG[id]!==undefined&&sg!==SIG[id]){var c=S.chats[id]; c.rev=Date.now(); o.chats[id].rev=c.rev; DIRTY[id]=1; try{chgDiff(id);}catch(ex){}}
       SIG[id]=sg;
     });
     localStorage.setItem(KEY,JSON.stringify(o));
@@ -999,7 +1111,7 @@ function applyRemote(id,data,force){
     if(!data||typeof data.json!=='string'||!S.chats[id])return false;
     var cur0=S.chats[id].rev||0; if(!force&&!(data.rev>cur0))return false;
     var c=normChat(id,JSON.parse(data.json),null); if(!c)return false;
-    c.undo=[]; c.rev=data.rev; S.chats[id]=c; SIG[id]=chatSig(serial().chats[id]); return true;
+    c.undo=[]; c.rev=data.rev; S.chats[id]=c; SIG[id]=chatSig(serial().chats[id]); try{chgSnapOne(id);}catch(e){} return true;
   }catch(e){return false;}
 }
 function afterRemote(){
@@ -1072,7 +1184,7 @@ async function refreshData(){
 }
 function fmtTime(t){var d=new Date(t), n=new Date(), y=new Date(Date.now()-864e5), day=sameDay(d,n)?'Today':(sameDay(d,y)?'Yesterday':d.toLocaleDateString(undefined,{day:'numeric',month:'short'})); return day+' '+hm(t);}
 async function backupSave(ids){
-  var o=serial(); Object.keys(o.chats).forEach(function(id){if(ids&&ids.indexOf(id)<0)delete o.chats[id]; else o.chats[id].undo=[];}); o.app='dutybuddy'; o.saved=Date.now();
+  var o=serial(); Object.keys(o.chats).forEach(function(id){if(ids&&ids.indexOf(id)<0)delete o.chats[id]; else o.chats[id].undo=[];}); o.app='dutybuddy'; o.saved=Date.now(); try{var CL=chgLoad(); o.chg=ids?{e:CL.e.filter(function(e){return ids.indexOf(e[1])>=0;}),g:CL.g}:CL;}catch(e){}
   var d=new Date(), stamp=today()+' '+two(d.getHours())+'-'+two(d.getMinutes()), nm=ids&&ids.length===1&&byId[ids[0]]?byId[ids[0]].name+' ':'';
   var fname='Duty Buddy backup '+nm+stamp+'.json', blob=new Blob([JSON.stringify(o)],{type:'application/json'}), ok=null;
   try{var f=new File([blob],fname,{type:'application/json'}); if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:fname}); ok=true; toast('Choose Save to Files, then pick where to keep it.');}}catch(e){if(e&&e.name==='AbortError')return false;}
@@ -1093,7 +1205,7 @@ function restoreFromFile(file,ids,after){
     if(!have.length){toast(ids?'This file has nothing for '+(byId[ids[0]]?byId[ids[0]].name:'this assistant')+'.':'This file has no assistants.'); return;}
     var when=o.saved?fmtTime(o.saved):'an unknown time', who=ids?byId[ids[0]].name:'everything ('+have.length+' assistants)';
     confirm3({title:'Restore '+who,steps:['Replace '+who+' in the app with the backup from '+when+'?','Are you sure? What is in the app now for '+who+' will be replaced.','Last question. Restore now?'],yes:'Restore'},function(){
-      var n=applyBackup(o,ids,'Before restoring a file'); toast('Restored '+n+(n===1?' assistant':' assistants')+'.'); if(after)after(); try{if(ids)renderInfo(ids[0]);}catch(e){}
+      var n=applyBackup(o,ids,'Before restoring a file'); try{if(o.chg&&Array.isArray(o.chg.e)){var CL=chgLoad(), rid=ids||Object.keys(o.chats); CL.e=CL.e.filter(function(e){return rid.indexOf(e[1])<0;}).concat(o.chg.e.filter(function(e){return rid.indexOf(e[1])>=0;})).sort(function(x,y){return x[0]-y[0];}); Object.keys(o.chg.g||{}).forEach(function(k){CL.g[k]=o.chg.g[k];}); chgStore(); chgSnapAll();}}catch(e){} toast('Restored '+n+(n===1?' assistant':' assistants')+'.'); if(after)after(); try{if(ids)renderInfo(ids[0]);}catch(e){}
     });
   };
   r.readAsText(file);
@@ -1872,6 +1984,7 @@ function microsCard(a,c,rows,pre){
     if(r.qty<=0){if(r.qty<0)neg++; skipped.push(r.raw+' ('+r.qty+')'); return;}
     var it=null, k='ok', cands=[], lid=c.micros[r.mx];
     if(lid)it=c.inv.filter(function(x){return x.id===lid;})[0]||null;
+    if(!it){var mmi=mmFind(c,r.raw); if(mmi){it=mmi; lid=mmi.id;}}
     if(!it){
       var rk=microsRank(c,r,W); cands=rk.slice(0,5).map(function(x){return x.it.id;});
       if(rk.length){var top=rk[0], sec=rk.length>1?rk[1].eff:0; it=top.it; k=(top.sc>=0.8&&(top.eff-sec)>=0.1)?'ok':'check'; cands=cands.filter(function(i){return i!==it.id;});}
@@ -2048,7 +2161,7 @@ function doQuery(a,c,text){
   var qt=toks(text).map(norm).filter(function(w){return !STOP[w]&&!LISTW[w];});
   if(/\b(codes?|skus?)\b/.test(low)){
     if(!qt.length){
-      var withCode=c.inv.filter(function(i){return i.code;}).sort(function(x,y){return x.code.localeCompare(y.code);});
+      var withCode=c.inv.filter(function(i){return i.code;}).sort(function(x,y){return String(x.code).localeCompare(String(y.code));});
       if(!withCode.length)return {text:'I have no codes saved yet. Teach me a list with codes: tap my name at the top.'};
       return {text:withCode.length+' codes saved.'+(withCode.length>14?' Showing the first 14.':''),rows:withCode.slice(0,14).map(function(i){return {label:i.name,code:'',value:i.code};})};
     }
@@ -3199,7 +3312,7 @@ function xlsxGrid(title,subs,T,sheetName){
   T.body.forEach(function(row){r++; sd.push('<row r="'+r+'">'+row.map(function(v,i){return cs(r,i,v,false);}).join('')+'</row>');});
   r++; sd.push('<row r="'+r+'">'+T.foot.map(function(v,i){return cs(r,i,v,true);}).join('')+'</row>');
   T.notes.forEach(function(n){r+=2; sd.push('<row r="'+r+'">'+cs(r,0,n)+'</row>');});
-  var cw='<col min="1" max="1" width="14" customWidth="1"/><col min="2" max="2" width="52" customWidth="1"/>'; if(T.head.length>2)cw+='<col min="3" max="'+T.head.length+'" width="10" customWidth="1"/>';
+  var cw='<col min="1" max="1" width="14" customWidth="1"/><col min="2" max="2" width="52" customWidth="1"/>'; if(T.head.length>2)cw+='<col min="3" max="'+T.head.length+'" width="10" customWidth="1"/>'; if(T.widths)cw=T.widths.map(function(w,i){return '<col min="'+(i+1)+'" max="'+(i+1)+'" width="'+w+'" customWidth="1"/>';}).join('');
   var sheet=X+'<worksheet xmlns="'+NS+'"><sheetPr><pageSetUpPr fitToPage="1"/></sheetPr><sheetViews><sheetView workbookViewId="0"><pane xSplit="2" ySplit="'+hr+'" topLeftCell="C'+(hr+1)+'" activePane="bottomRight" state="frozen"/></sheetView></sheetViews><cols>'+cw+'</cols><sheetData>'+sd.join('')+'</sheetData><pageMargins left="0.4" right="0.4" top="0.5" bottom="0.6" header="0.3" footer="0.3"/><pageSetup paperSize="9" orientation="landscape" fitToWidth="1" fitToHeight="0"/><headerFooter><oddFooter>&amp;LLing Ling · Atlantis The Royal&amp;RPage &amp;P of &amp;N</oddFooter></headerFooter></worksheet>';
   return xlsxZip(sheet,sheetName||'Report',hr);
 }
@@ -3567,6 +3680,8 @@ function respondInner(id,text){
     return [{text:'How many for '+(it0?it0.name+(it0.code?' ('+it0.code+')':''):ref)+'? Tap an amount, or type any number.',sug:qs.slice(0,6).map(function(n){return {label:verb+' '+n,text:verb+' '+n+' '+ref};})}];
   }
   if(/^(undo|revert)\b/i.test(first))return [doUndo(a,c)];
+  var td1=handleTodoCmd(a,c,id,text,lines); if(td1)return td1;
+  if(stkUI(a)){var mc1=handleMatchCmd(a,c,id,text,lines); if(mc1)return mc1;}
   if(/^(help|commands|what can you do)\b/i.test(first)||first==='?')return [helpMsg(a,c)];
   var fu1=handleFileUse(a,c,text); if(fu1)return fu1;
   var mx1=handleMicros(a,c,text); if(mx1)return mx1;
@@ -4456,9 +4571,9 @@ function baseXlsxBlob(){
 
 /* ---------- views ---------- */
 function setView(v){$('listView').hidden=v!=='list'; $('chatView').hidden=v!=='chat'; $('infoView').hidden=v!=='info'; $('glassView').hidden=v!=='glass'; $('wineView').hidden=v!=='wines'; $('offView').hidden=v!=='off'; $('stockView').hidden=v!=='stock'; $('libView').hidden=v!=='lib'; $('recipesView').hidden=v!=='recipes'; $('seatingView').hidden=v!=='seating'; $('reportsView').hidden=v!=='reports'; $('modView').hidden=v!=='mod';}
-function toast(msg){
-  var t=$('toast'); t.textContent=msg; t.hidden=false; clearTimeout(toastTimer); t.onclick=function(){t.hidden=true;};
-  toastTimer=setTimeout(function(){t.hidden=true;},3800);
+function toast(msg,o){
+  var t=$('toast'), tip=!!(o&&o.tip); if(tip){t.textContent=''; var sp=document.createElement('span'); sp.textContent=msg; var xx=document.createElement('b'); xx.textContent='\u2715'; t.appendChild(sp); t.appendChild(xx);} else t.textContent=msg; t.classList.toggle('tipbar',tip); t.hidden=false; clearTimeout(toastTimer); t.onclick=function(){t.hidden=true;};
+  toastTimer=setTimeout(function(){t.hidden=true;},tip?5000:3800);
 }
 function lastMsg(id){var m=S.chats[id].msgs; return m[m.length-1];}
 function previewText(id){
@@ -4649,6 +4764,8 @@ function bubble0(m){
   }
   if(m.cmp&&m.from==='bot'){d.appendChild(cmpCard(m)); var cdb=el('div','btns'); cdb.appendChild(mkBtn('Open report','',function(){openCmpReport(cur,m.cmp);})); d.appendChild(cdb);}
   if(m.sug&&m.sug.length&&m.from==='bot'){var sb=el('div','btns'); m.sug.forEach(function(x){var lb=typeof x==='string'?x:x.label, tx=typeof x==='string'?x:x.text; sb.appendChild(mkBtn(lb,'ghost sm',function(){if(cur&&cur!=='team'&&!m.sugUsed){if(x.fill){var ta0=$('text'); ta0.value=tx; grow(); ta0.focus(); return;} if(x.pend&&S.chats[cur])S.chats[cur].cmpPend=x.pend; send(tx);}}));}); d.appendChild(sb);}
+  if(m.rem&&m.from==='bot'&&cur&&cur!=='team')remBubbleUI(d,m);
+  if(m.mc&&m.from==='bot'&&cur&&cur!=='team')mcUI(d,m);
   if(m.dl&&m.dl.length){var db=el('div','btns'); m.dl.forEach(function(x){db.appendChild(mkBtn(x.label,'ghost sm',function(){exportStock(x.id,x.fmt);}));}); d.appendChild(db);}
   if(m.chg&&m.from==='bot'){
     var cg=m.chg, cg0why=m.chg&&m.chg.why, cbox=el('div','rows chg'), cid=cur, cc=S.chats[cid], MODES={add:['Add to stock','Added to stock'],sub:[cg0why==='flat'?'Confirm flat':cg0why==='waste'?'Confirm wasted':cg0why==='used'?'Confirm used':'Confirm sold',cg0why==='flat'||cg0why==='waste'?'Recorded as waste':'Taken out of stock'],par:['Save par levels','Par levels saved'],order:['Save order list','Order list saved']};
@@ -4993,7 +5110,7 @@ function kbExpand(q){var out=[], seen={}; String(q).toLowerCase().split(/\s+/).f
 function kbFollow(id,text){var cw=contentWords(String(text).replace(LENRX,' ')), low=String(text).toLowerCase().trim(); var short=cw.length<=2||/^(and|what about|how about|peki|ya |and its|its |their |that |this |it |those |these |bunun|onun|şunun)/.test(low); return (short&&KBLAST[id])?KBLAST[id]:'';}
 try{smartOn=localStorage.getItem('dutybuddy.smart')!=='0';}catch(e){}
 (function(){try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();}catch(e){}
-  try{var k='dutybuddy.bktip', lf=+localStorage.getItem('dutybuddy.lastfile')||0, lt=+localStorage.getItem(k)||0; if(Date.now()-lf>864e5&&Date.now()-lt>12*36e5){localStorage.setItem(k,String(Date.now())); setTimeout(function(){try{toast('Tip: save a backup file today. Menu, Settings, Backup.');}catch(e){}},5000);}}catch(e){}})();
+  })();
 try{setTimeout(function(){snapNow('Opened the app');},6000); document.addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden')snapNow('');});}catch(e){}
 /* fill the whole screen (under the camera, down to the bottom edge) even when iOS reports a shorter page */
 (function(){
@@ -5079,7 +5196,7 @@ try{setTimeout(function(){snapNow('Opened the app');},6000); document.addEventLi
   }
   window.addEventListener('resize',apply); window.addEventListener('orientationchange',function(){setTimeout(apply,60);}); apply();
 })();
-var APPVER='32497aed';
+var APPVER='a2583359';
 var KEYNAME='dutybuddy.apikey', inClaude=false;
 function storedKey(){try{return localStorage.getItem(KEYNAME)||'';}catch(e){return '';}}
 function keyOn(){try{return localStorage.getItem('dutybuddy.keyoff')!=='1';}catch(e){return true;}}
@@ -5336,7 +5453,7 @@ function foreignGuard(id,text){
 function send(text){
   text=(text||'').trim(); if(!text||!cur)return;
   var id=cur; push(id,{from:'me',text:text}); save(); renderMsgs(); showTyping();
-  if(id==='team'){var tfo=null; try{tfo=teamFlow(text);}catch(e){tfo=null;} if(tfo){setTimeout(function(){hideTyping(); tfo.forEach(function(m){m.from='bot'; push('team',m);}); save(); refreshChat('team'); renderList();},350); return;}}
+  if(id==='team'){var tfo=null; try{tfo=teamRemind(text)||teamFlow(text);}catch(e){tfo=null;} if(tfo){setTimeout(function(){hideTyping(); tfo.forEach(function(m){m.from='bot'; push('team',m);}); save(); refreshChat('team'); renderList();},350); return;}}
   else{var fg=foreignGuard(id,text); if(fg){setTimeout(function(){hideTyping(); push(id,{from:'bot',text:fg}); save(); refreshChat(id); renderList();},300); return;}}
   picSend(id,text).catch(function(){return false;}).then(function(done){if(done)return; return smartRetry(id,text).then(function(ok){if(!ok)legacySend(id,text);},function(){legacySend(id,text);});});
 }
@@ -5747,6 +5864,7 @@ function openInfo(id){
   infoId=id; var c=S.chats[id]; c.unread=0; save(); setView('info'); renderInfo(id);
 }
 var TILEICON={
+ todo:'<path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15L6 16zM10 20a2 2 0 0 0 4 0"/>',
  wine:'<path d="M8 3h8l-.5 6a3.5 3.5 0 0 1-7 0L8 3zM12 12.5V20M8.5 20h7"/>',
  glass:'<path d="M6 5h12l-1.5 14a1 1 0 0 1-1 .9h-7a1 1 0 0 1-1-.9L6 5zM7 10h10"/>',
  box:'<path d="M3 7.5 12 3l9 4.5v9L12 21l-9-4.5v-9zM3 7.5l9 4.5 9-4.5M12 12v9"/>',
@@ -5758,6 +5876,7 @@ var TILEICON={
  events:'<rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/>',
  guests:'<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/>',
  revenue:'<path d="M4 20V10M10 20V4M16 20v-7M2 20h20"/>',
+ match:'<path d="M4 8h13M13 4l4 4-4 4M20 16H7M11 12l-4 4 4 4"/>',
  checklist:'<path d="M9 6h11M9 12h11M9 18h11M3.5 6l1.5 1.5L7 5M3.5 12l1.5 1.5L7 11M3.5 18l1.5 1.5L7 17"/>'
 };
 function tileGrid(list){
@@ -5891,6 +6010,7 @@ function renderInfo(id,keepScroll){
     tl.push({icon:'box',label:'Stock',sub:c.inv.length?c.inv.length+' items':'',fn:function(){location.hash=id+'-stock';}});
     var rn=(c.recipes||[]).length; if(RCAT[id])tl.push({icon:'recipe',label:'Recipes',sub:rn?rn+' saved':'',fn:function(){location.hash=id+'-recipes';}});
   }
+  if(stkUI(a)){var mst=mmStats(c); tl.push({icon:'match',label:'Matching',sub:mst.ok+' matched · '+mst.todo+' to do',fn:function(){location.hash=id+'-match';}}); var tn=todoOpenN(c)+(c.rem||[]).filter(function(r){return r.state==='open';}).length; tl.push({icon:'todo',label:'Reminders',sub:tn?tn+' open':'Order lists',fn:function(){location.hash=id+'-todo';}});}
   if(a.seating){var rs0=c.rsv||{list:[],tables:[]}; tl.push({icon:'seat',label:'Seating plan',sub:rs0.list.length?rs0.list.length+' bookings':'',fn:function(){location.hash=id+'-seating';}});}
   if(MODBTN[id])MODBTN[id].forEach(function(x){var n=({staff:(c.staff||[]).length,events:(c.events||[]).length,guests:(c.guests||[]).length})[x[1]]; tl.push({icon:x[1],label:x[0],sub:n?String(n):'',fn:function(){location.hash=id+'-'+x[1];}});});
   if(id==='omar')tl.push({icon:'tag',label:'Cost list',sub:(c.costList&&c.costList.items.length)?c.costList.items.length+' items':'Item costs',fn:function(){costBrowse(id);}});
@@ -6435,6 +6555,17 @@ function openWines(id){
   if(!(byId[id].pour>0)){openInfo(id); return;}
   wineId=id; beginDraft(id); setView('wines'); renderWines(id);
 }
+function nameChev(c,it,sw,ni){
+  var b=el('button','chv','▾'); b.type='button'; b.setAttribute('aria-label','Show the full names of '+it.name); b.setAttribute('aria-expanded','false'); sw.appendChild(b); ni.classList.add('hasChv');
+  var d=null;
+  b.addEventListener('click',function(e){e.preventDefault(); e.stopPropagation();
+    if(d){d.remove(); d=null; b.setAttribute('aria-expanded','false'); b.textContent='▾'; return;}
+    d=el('div','chvd'); var L=[['Menu name',it.name],['Stock name',it.sheet],['Stock code',it.code]], rows=((c.mm&&c.mm.rows)||[]).filter(function(r){return r.sid===it.id;});
+    rows.forEach(function(r){if(r.bt)L.push(['Micros bottle',r.bt]); if(r.gl)L.push(['Micros glass',r.gl]);});
+    L.forEach(function(x){var r=el('div','chvr'); r.appendChild(el('span',null,x[0])); r.appendChild(el('b',null,x[1]?String(x[1]):'–')); d.appendChild(r);});
+    sw.appendChild(d); b.setAttribute('aria-expanded','true'); b.textContent='▴';
+  });
+}
 function stockNameLine(it){var d=el('div','sn'); d.textContent=it.sheet?'Stock name: '+it.sheet:'Stock name: not set (add it on the Stock page)'; return d;}
 function mkInput(cls,val,label,mode){var i=el('input',cls); i.type='text'; if(mode)i.inputMode=mode; i.value=val==null?'':String(val); i.setAttribute('aria-label',label); return i;}
 function mkRm(label,fn){var b=el('button','rm','×'); b.type='button'; b.setAttribute('aria-label',label); b.addEventListener('click',fn); return b;}
@@ -6512,7 +6643,7 @@ function renderWines(id){
     var cd=el('div','card'), th=el('div','th'); th.appendChild(el('span',null,t+' · '+g2[t].length)); th.appendChild(el('span','pl','Bottle')); th.appendChild(el('span','pl','Glass')); cd.appendChild(th);
     g2[t].forEach(function(it){
       var row=el('div','wr'), sw=el('div','sw'), ni=mkInput('',it.name,'Wine name');
-      sw.appendChild(ni); sw.appendChild(stockNameLine(it));
+      sw.appendChild(ni); sw.appendChild(stockNameLine(it)); nameChev(c,it,sw,ni);
       attachSuggest(sw,ni,function(){return poolFor(c).filter(function(x){return nameKey(x.name)!==nameKey(it.name);});},function(p){it.name=p.name; if(p.price)it.price=p.price; if(p.gprice)it.gprice=p.gprice; if(p.type)it.type=p.type; dsave(); renderWines(id);});
       ni.addEventListener('change',function(){if(ni.value.trim()){it.name=cap(ni.value.trim()); dsave();} else ni.value=it.name;});
       var pi=mkInput('pi',it.price,'Bottle price of '+it.name,'decimal'); pi.placeholder='Bottle'; pi.addEventListener('change',function(){it.price=cleanPrice(pi.value); pi.value=it.price; dsave();});
@@ -6575,7 +6706,7 @@ function renderOff(id){
     if(!g[t].length)return;
     var cd=el('div','card'), th=el('div','th'); th.appendChild(el('span',null,t+' · '+g[t].length)); th.appendChild(el('span','pl','Count')); cd.appendChild(th);
     g[t].forEach(function(it){
-      var row=el('div','wr'), sw=el('div','sw'), ni=mkInput('',it.name,'Wine name'); sw.appendChild(ni); sw.appendChild(stockNameLine(it));
+      var row=el('div','wr'), sw=el('div','sw'), ni=mkInput('',it.name,'Wine name'); sw.appendChild(ni); sw.appendChild(stockNameLine(it)); nameChev(c,it,sw,ni);
       ni.addEventListener('change',function(){if(ni.value.trim()){it.name=cap(ni.value.trim()); dsave();} else ni.value=it.name;});
       var qi=mkInput('pi',countStr(c,it),'Count of '+it.name,'decimal'); qi.placeholder='Count';
       qi.addEventListener('change',function(){
@@ -7455,11 +7586,11 @@ function chipRow(parent,items){var r=el('div'); r.style.cssText='display:flex;fl
 /* module router: one generic page */
 var modCtx={id:null,kind:null,sub:null}, modQ='';
 function openMod(id,kind,sub){
-  if(!byId[id]||!MODS[kind]||MODS[kind].who!==id){openInfo(id); return;}
+  if(!byId[id]||!modOK(kind,id)){openInfo(id); return;}
   if(modCtx.id!==id||modCtx.kind!==kind||modCtx.sub!==sub)modQ=(modCtx.kind===kind&&modCtx.id===id)?modQ:'';
   modCtx={id:id,kind:kind,sub:sub||null}; setView('mod'); renderMod();
 }
-function renderMod(){var m=modCtx; if(!m.kind)return; var box=$('modPg'), keep=box.scrollTop; box.textContent=''; $('modTitle').textContent=MODS[m.kind].title; MODS[m.kind].render(m.id,m.sub,box); box.scrollTop=keep;}
+function renderMod(){var m=modCtx; if(!m.kind)return; var box=$('modPg'), keep=box.scrollTop, mk=m.id+'|'+m.kind+'|'+(m.sub||''); if(renderMod.last!==mk)keep=0; renderMod.last=mk; box.textContent=''; $('modTitle').textContent=MODS[m.kind].title; MODS[m.kind].render(m.id,m.sub,box); box.scrollTop=keep;}
 function modGo(kind,sub){location.hash=modCtx.id+'-'+kind+(sub?'-'+sub:'');}
 function dnavEl(prevFn,label,nextFn){
   var nav=el('div','dnav'), pv=el('button',null,'\u2039'), nx=el('button',null,'\u203a'); pv.type=nx.type='button'; pv.setAttribute('aria-label','Earlier'); nx.setAttribute('aria-label','Later');
@@ -8039,8 +8170,498 @@ function modBlock(id,text){
 var MODBTN={karim:[['Staff','staff']],zara:[['Events','events']],leo:[['Guests','guests']],victor:[['Revenue','revenue']],chloe:[['Checklists','checklist']]};
 function modTimers(){try{hrCheck();}catch(e){} try{evCheck();}catch(e){} try{chkCheck();}catch(e){}}
 
+/* ---------- MATCHING (Micros button name <-> stock name <-> menu name) ---------- */
+var MMSEED=[{"c":"200230210","s":"APERITIF TAYLOR FINE TAWNY EA 750ML/EA","b":"Taylor Fine Tawny BT","g":"","cf":"High","sc":0.93},{"c":"200084221","s":"CHAMPAGNE ARMAND DE BRIGNAC BRUT ACE OF SPADES ROSE 750ML/EA","b":"Ace Of Spades Rose 750ML BT","g":"","cf":"High","sc":0.83},{"c":"200361342","s":"CHAMPAGNE ARMAND DE BRIGNAC BRUT GOLD ACE OF SPADES 1.5L/EA","b":"Ace Of Spades Gold 1.5L BT","g":"","cf":"High","sc":0.86},{"c":"200361344","s":"CHAMPAGNE ARMAND DE BRIGNAC BRUT GOLD ACE OF SPADES 6L/EA","b":"Ace Of Spades 6L BT","g":"","cf":"Medium","sc":0.77},{"c":"200361341","s":"CHAMPAGNE ARMAND DE BRIGNAC BRUT GOLD ACE OF SPADES 750ML/EA","b":"Ace Of Spades Gold 750ML BT","g":"","cf":"High","sc":0.85},{"c":"200102162","s":"CHAMPAGNE ARMAND DE BRIGNAC BRUT ROSE ACE OF SPADES 1.5L/EA","b":"Ace Of Spades Rose 1.5L BT","g":"","cf":"High","sc":0.85},{"c":"200082401","s":"CHAMPAGNE ARMAND DE BRIGNAC BRUT ROSE ACE OF SPADES 3L/EA","b":"Ace Of Spades 3L BT | Ace Rose 3L BT","g":"","cf":"Medium","sc":0.73},{"c":"200361348","s":"CHAMPAGNE ARMAND DE BRIGNAC BRUT ROSE ACE OF SPADES 6L/EA","b":"Ace Rose 6L BT","g":"","cf":"Medium","sc":0.76},{"c":"200110526","s":"CHAMPAGNE BILLECART SALMON BRUT ROSE 750ML/EA","b":"Billecart Rose BT","g":"","cf":"High","sc":0.83},{"c":"200092437","s":"CHAMPAGNE BOLLINGER BRUT ROSE 750ML/EA","b":"Bollinger Brut 750ml BT | Bollinger Rose BT","g":"","cf":"High","sc":0.85},{"c":"200118677","s":"CHAMPAGNE CARBON BRUT LUMINOUS 1.5L/EA","b":"Carbon Lumin 1,5 BT","g":"","cf":"Medium","sc":0.68},{"c":"200118678","s":"CHAMPAGNE CARBON BRUT ROSE 750ML/EA","b":"Carbon Brut BT | Carbon Rose BT","g":"","cf":"Medium","sc":0.84},{"c":"200108336","s":"CHAMPAGNE CARBON BUGATTI EB01 BRUT 2002 750ML/EA","b":"EB01 Bugatti BT","g":"","cf":"High","sc":0.87},{"c":"200111489","s":"CHAMPAGNE CHAMPAGNE CHAR TAILLET ST ANNE FRA BT 750ML/EA","b":"Chartogne Taillet St Anne BT","g":"","cf":"High","sc":0.9},{"c":"200118024","s":"CHAMPAGNE CHAMPAGNE CHAVOST ASSEMBLAGE BRUT NATURE FRA EA 750ML/EA","b":"Chavost Assemblage NV BT","g":"","cf":"Medium","sc":0.62},{"c":"200112650","s":"CHAMPAGNE CHAMPAGNE L BERNIER ROSE SAIGN 1ER CRU XTRA BRUT FRA B 750ML/EA","b":"Lermandier Bernier Rose Saignee BT","g":"","cf":"Low","sc":0.51},{"c":"200117144","s":"CHAMPAGNE CHAMPAGNE MARGUET SHAMAN FRA EA 750ML/EA","b":"Marguet Shaman BT","g":"","cf":"High","sc":0.93},{"c":"200117143","s":"CHAMPAGNE CHAMPAGNE MARGUET YUMAN FRA EA 750ML/EA","b":"Marguet Yuman BT","g":"","cf":"High","sc":0.93},{"c":"200114545","s":"CHAMPAGNE CHAMPAGNE NOWACK S A LA TUILLERIRE 2012 FRA750ML EA 750ML/EA","b":"Nowack Tuillerir BT","g":"","cf":"Medium","sc":0.73},{"c":"200114539","s":"CHAMPAGNE CHAMPAGNE NOWACK SA SANS ANNEE NV FRA EA 750ML/EA","b":"Nowack Sans Annee BT","g":"","cf":"High","sc":0.84},{"c":"200111498","s":"CHAMPAGNE CHAMPAGNE R MONCUIT LES GRANDS BLANCS BDB FRA BT 750ML/EA","b":"MoncuitLes Gblan BT","g":"","cf":"Medium","sc":0.65},{"c":"200350861","s":"CHAMPAGNE DOM PERIGNON BRUT 2012 1.5L/EA","b":"Dom Perignon Brut 1.5L BT","g":"","cf":"High","sc":1},{"c":"200106847","s":"CHAMPAGNE DOM PERIGNON BRUT 2015 750ML/EA","b":"Dom Perignon Lumino BT | Dom Perignon VD BT","g":"Dom Perignon Brut GL","cf":"Medium","sc":0.63},{"c":"200090029","s":"CHAMPAGNE DOM PERIGNON BRUT P2 PLENITUDE 2006 750ML/EA","b":"Dom Perignon P2 750ML BT","g":"","cf":"High","sc":0.88},{"c":"200101188","s":"CHAMPAGNE DOM PERIGNON BRUT ROSE 2009 1.5L/EA","b":"DOM PERIGNON BRUT ROSE FRANCE 150CL/BT","g":"","cf":"High","sc":0.94},{"c":"200106043","s":"CHAMPAGNE DOM PERIGNON BRUT ROSE 2009 750ML/EA","b":"Dom Perignon Rose BT | Dom Perignon Rose Luminous BT","g":"","cf":"Medium","sc":0.72},{"c":"200112633","s":"CHAMPAGNE HENRI GIRAUD BRUT ESPIRIT NATURE 750ML/EA","b":"Henri Giraud Nouvel Espirit BT","g":"","cf":"Medium","sc":0.7},{"c":"200123350","s":"CHAMPAGNE KRUG BRUT GRANDE CUVEE 172 EME EDITION 750ML/EA","b":"Krug 172ème BT | Krug Gc Wbt BT","g":"","cf":"Medium","sc":0.65},{"c":"200620410","s":"CHAMPAGNE LAURENT PERRIER BRUT GRAND SIECLE ITERATION NO 27 750ML/EA","b":"Grand Siecle Lp BT","g":"","cf":"High","sc":0.83},{"c":"200110525","s":"CHAMPAGNE LAURENT PERRIER CUVEE ROSE 750ML/EA","b":"Laurent Perrier Rose 75Cl BT","g":"","cf":"High","sc":0.91},{"c":"200084219","s":"CHAMPAGNE LOUIS ROEDERER BRUT CRISTAL 2009 3L/EA","b":"Cristal 3l BT | Cristal Brut 3L BT","g":"","cf":"Medium","sc":0.75},{"c":"200361337","s":"CHAMPAGNE LOUIS ROEDERER BRUT CRISTAL 2012 1.5L/EA","b":"Cristal Brut 1.5L BT","g":"","cf":"High","sc":0.84},{"c":"200084220","s":"CHAMPAGNE LOUIS ROEDERER BRUT CRISTAL 2016 6L/EA","b":"Cristal 6L BT","g":"","cf":"Medium","sc":0.75},{"c":"200120420","s":"CHAMPAGNE LOUIS ROEDERER BRUT CRISTAL 2016 750ML/EA","b":"L Roederer Cristal 16 BT","g":"","cf":"Low","sc":0.49},{"c":"200111717","s":"CHAMPAGNE LOUIS ROEDERER BRUT CRISTAL ROSE 2014 750ML/EA","b":"Cristal Rose BT","g":"","cf":"Medium","sc":0.79},{"c":"200361338","s":"CHAMPAGNE LOUIS ROEDERER ROSE CRISTAL 2013 1.5L/EA","b":"Louis Roederer Cristal Rose 1.5L BT","g":"","cf":"High","sc":1},{"c":"200320033","s":"CHAMPAGNE MOET CHANDON BRUT IMPERIAL 1.5L/EA","b":"Moet & Chandon Brut 1.5L BT | Moet Brut 1.5l BT","g":"","cf":"High","sc":0.84},{"c":"200103047","s":"CHAMPAGNE MOET CHANDON BRUT IMPERIAL 3L/EA","b":"Moet & Chandon Brut 3L BT | Moet Brut 3L BT","g":"","cf":"High","sc":0.8},{"c":"200310030","s":"CHAMPAGNE MOET CHANDON BRUT IMPERIAL FRANCE 750ML/EA","b":"Moet & Chandon Brut 750ml BT | Moet & Chandon VD BT","g":"Moet Brut GL","cf":"Low","sc":0.54},{"c":"200310040","s":"CHAMPAGNE MOET CHANDON BRUT ROSE 750ML/EA","b":"Moet & Chandon Rose 750ml BT","g":"Moet Chandon Rose GL","cf":"High","sc":0.94},{"c":"200101187","s":"CHAMPAGNE MOET CHANDON BRUT ROSE IMPERIAL 1.5L/EA","b":"Moet & Chandon Rose 1.5L BT | MOET CHANDON BRUT ROSE IMPERIAL FRANCE 150CL/BT","g":"","cf":"High","sc":0.89},{"c":"200101186","s":"CHAMPAGNE MOET CHANDON BRUT ROSE IMPERIAL 3L/EA","b":"Moet & Chandon Rose 3L BT","g":"","cf":"High","sc":0.87},{"c":"200361245","s":"CHAMPAGNE MOET CHANDON DEMI SEC ICE IMPERIAL 750ML/EA","b":"Moet Ice 750ml BT","g":"","cf":"Medium","sc":0.77},{"c":"200101182","s":"CHAMPAGNE PERRIER JOUET BRUT BELLE EPOQUE 2008 3L/EA","b":"Belle Epoque 3L BT","g":"","cf":"High","sc":0.81},{"c":200101181,"s":"CHAMPAGNE PERRIER JOUET BRUT BELLE EPOQUE 2012 1.5L/EA","b":"L-Perrier Brut 1.5L BT | Belle Epoque 1.5 BT","g":"","cf":"Low","sc":0.59},{"c":"200310245","s":"CHAMPAGNE PERRIER JOUET BRUT BELLE EPOQUE 2014 750ML/EA","b":"PJ Belle Epoque 750ml BT","g":"","cf":"Low","sc":0.52},{"c":"200109748","s":"CHAMPAGNE PERRIER JOUET BRUT BELLE EPOQUE ROSE 2013 750ML/EA","b":"PJ Epoque Rose BT | Belle Epoque Ros BT","g":"","cf":"Medium","sc":0.65},{"c":"200114031","s":"CHAMPAGNE PERRIER JOUET BRUT BLANC DE BLANCS 750ML/EA","b":"Perrier J BDB BT","g":"Perrier-Jouet Blanc De Blancs GL","cf":"Low","sc":0.57},{"c":"","s":"CHAMPAGNE POL ROGER BRUT SIR WINSTON CHURCHILL 2015 750ML/EA","b":"Winston Churchill BT","g":"","cf":"Medium","sc":0.78},{"c":"200110523","s":"CHAMPAGNE RUINART BRUT BLANC DE BLANCS 750ML/EA","b":"Peters Blanc De Blancs BT | Ruinart Blanc De Blancs 750ML BT | Delamotte Blanc De Blancs BT | Billecart Blanc de Blancs BT","g":"","cf":"Low","sc":0.52},{"c":"200101132","s":"CHAMPAGNE RUINART BRUT R DE RUINART 750ML/EA","b":"R De Ruinart MV 750ML BT | Ruinart Brut BT","g":"","cf":"Medium","sc":0.85},{"c":"200210797","s":"CHAMPAGNE RUINART BRUT ROSE 750ML/EA","b":"Ruinart Rose BT","g":"","cf":"High","sc":0.92},{"c":"200104337","s":"CHAMPAGNE TAITTINGER BRUT PRESTIGE ROSE 750ML/EA","b":"Taittinger Rose BT","g":"","cf":"High","sc":0.83},{"c":"200310020","s":"CHAMPAGNE VEUVE CLIQUOT BRUT ROSE 750ML/EA","b":"Vueve Clicquot Rose 750ml BT","g":"","cf":"High","sc":0.95},{"c":"200310010","s":"CHAMPAGNE VEUVE CLIQUOT BRUT YELLOW LABEL 750ML/EA","b":"Vueve Cliquot Yellow BT","g":"","cf":"High","sc":0.9},{"c":"200111247","s":"CHAMPAGNE VILMART CIE BRUT LES BLANCHES VOIES BLANC DE BLANCS 2012 750ML/EA","b":"Villmart BDB Voles BT","g":"","cf":"Low","sc":0.46},{"c":"200110361","s":"DSW MUSCAT DE BEAUMES DEVENISE DOMAINE DE COYEUX EA 375ML/EA","b":"Muscat Coyeux BT","g":"","cf":"Medium","sc":0.65},{"c":"200099483","s":"DW CHATEAU D ARMAJAN DES ORMES SAUTERNES FRANCE 2020 750ML/EA","b":"Chateau D'Armajan BT","g":"Chateau D'Armajan GL","cf":"Medium","sc":0.65},{"c":"200102571","s":"DW CHATEAU D YQUEM SAUTERNES FRANCE 2014 375ML/EA","b":"Chateau D'Yquem 2014 Half Bottle BT","g":"","cf":"Medium","sc":0.65},{"c":"200110027","s":"DW DE BORTOLI BOTRYTIS SEMILLON NOBLE ONE RIVERINA AUSTRALIA 2019 375ML/EA","b":"De Bortoli Noble One BT","g":"","cf":"Medium","sc":0.65},{"c":"200110554","s":"DW ELYSIUM BLACK MUSAT ANDREW QUADY EA 375ML/EA","b":"Elysium Black Muscat BT","g":"","cf":"Medium","sc":0.65},{"c":"200101089","s":"DW EMPERATRIZ EUGENIA SOLERA GRAN RESERVA OLOROSO EA 500ML/EA","b":"Eugenia Solera BT","g":"","cf":"Medium","sc":0.65},{"c":"200096998","s":"DW FONSECA BIN 27 RESERVE PORT PORTUGAL 750ML/EA","b":"Port Fonseca Vintage BT","g":"Fonseca Port GL","cf":"Low","sc":0.56},{"c":"200099828","s":"DW MAURY DOUX EXPRESSION MAS LAVAIL FRANCE BT 750ML/EA","b":"Maury Doux BT","g":"","cf":"Medium","sc":0.79},{"c":"200104387","s":"DW WW OREMUS TOKAJ 2016 HUN BT 500ML/EA","b":"Oremus Putton BT","g":"","cf":"Medium","sc":0.65},{"c":"200211327","s":"RSW CHATEAU MINUTY ROSE ET OR COTES DE PROVENCE FRANCE 2022 750ML/EA","b":"Chateau Minuty Rose BT","g":"","cf":"Medium","sc":0.8},{"c":"","s":"RSW DOMAINE OTT CHATEAU ROMASSAN BANDOL FRANCE 2023 750ML/EA","b":"Chateau Romassan BT","g":"","cf":"Medium","sc":0.78},{"c":"","s":"RSW DONNAFUGATA DOLCE GABBANA ROSA SICILY ITALY 2023 750ML/EA","b":"Dolce & Gabbana Rosa BT","g":"","cf":"High","sc":0.87},{"c":"","s":"RSW MIRAVAL COTES DE PROVENCE FRANCE 2023 750ML/EA","b":"Miraval BT","g":"","cf":"Medium","sc":0.78},{"c":"","s":"RSW PEARL CHATEAU DES ANGLADES COTES DE PROVENCE FRANCE 2023 750ML/EA","b":"Pearl Rose BT","g":"Pearl Rose 15 GL","cf":"Low","sc":0.54},{"c":"200096736","s":"RSW ROSE WINE LIQUID GEOGRAPHY ROSADO BT 750ML/EA","b":"Liquid Geographyb BT","g":"Liquid Geography GL CNY","cf":"Medium","sc":0.7},{"c":"200350763","s":"RSW WINE ROSE CHAPOUTIER MARUIS EA 750ML/EA","b":"Chapoutier Rose Marius BT","g":"Chapoutier Rose Marius GL","cf":"Low","sc":0.53},{"c":"200099756","s":"RW ACHAVAL FERRER QUIMERA MENDOZA 2019 750ML/EA","b":"Achaval Quimera BT","g":"","cf":"High","sc":0.88},{"c":"200124446","s":"RW ALTER EGO DE PALMER MARGAUX 2019 750ML/EA","b":"Alter Ego 2019 BT","g":"","cf":"High","sc":0.94},{"c":"200101200","s":"RW ANTINORI PEPPOLI CHIANTI CLASSICO 2023 750ML/EA","b":"Ricasoli Chianti Classico BT | Peppoli Chianti BT","g":"","cf":"Low","sc":0.54},{"c":"200115416","s":"RW ANTINORI SOLAIA 2011 750ML/EA","b":"Solaia 2011 BT","g":"","cf":"High","sc":0.95},{"c":"200099704","s":"RW BANFI BRUNELLO DI MONTALCINO POGGIO ALE MURA 2019 750ML/EA","b":"Banfi Poggio Mura BT","g":"","cf":"High","sc":0.83},{"c":"200082392","s":"RW BODEGAS RODA SELA RIOJA 2022 750ML/EA","b":"Roda Sela BT","g":"","cf":"High","sc":0.85},{"c":"200097001","s":"RW BOEKENHOUTSKLOOF SYRAH SWARTLAND SOUTH AFRICA 2020 750ML/EA","b":"Boekenhoutskloof Syrah Swartland BT","g":"","cf":"High","sc":0.9},{"c":"200122435","s":"RW BP ROTHSCHILD ESCUDO ROJO RESERVA P NOIR CHL EA 750ML/EA","b":"Escudo Rojo Reserva Pinot Noir BT","g":"","cf":"Medium","sc":0.72},{"c":"200106457","s":"RW BRETON CHINON LES BEAUX MON FRA BT 750ML/EA","b":"Chinon BT","g":"","cf":"Medium","sc":0.72},{"c":"200100021","s":"RW BREWER CLIFTON PINOT NOIR STA RITA HILLS 2021 750ML/EA","b":"Brewer Clifton BT","g":"","cf":"Medium","sc":0.76},{"c":"200117914","s":"RW BRUNO GIACOSA DOLCETTO D ALBA 2023 750ML/EA","b":"Bruno Giacosa Dolcetto D Alba BT","g":"","cf":"High","sc":1},{"c":"200620873","s":"RW BY CLINET CHATEAU CLINET POMEROL 2018 750ML/EA","b":"Chateau Gazin Pomerol BT | By Clinet BT","g":"","cf":"Low","sc":0.5},{"c":"200120412","s":"RW CASTELLO MONTEPO SASSOALLORO 2021 ITA EA 750ML/EA","b":"Castello Montepo Sassoalloro 2021 BT","g":"","cf":"High","sc":1.04},{"c":"200111192","s":"RW CASTELO DI GABBIANO ALEANZA 2018 750ML/EA","b":"Gabbiano Alenzza BT","g":"","cf":"Medium","sc":0.77},{"c":"200100050","s":"RW CATENA MALBEC MENDOZA 2023 750ML/EA","b":"Ov Catena Malbec BT | Catena Alta Malbec BT","g":"Catena Malbec GL","cf":"Medium","sc":0.7},{"c":"200097035","s":"RW CATENA ZAPATA ADRIANNA VINEYARD MUNDUS BACILLUS TERREA MALBEC MENDOZA 2018 750ML/EA","b":"Zapata Adrianna Mundus BT","g":"","cf":"Medium","sc":0.79},{"c":"200112940","s":"RW CATENA ZAPATA ARGENTINO MALBEC MENDOZA 2021 750ML/EA","b":"Zapata Nicasia Malbec BT | Malbec Argentino BT","g":"","cf":"Low","sc":0.53},{"c":"200111201","s":"RW CH DE PEZ FRA BT 750ML/EA","b":"Chateau de Pez BT","g":"","cf":"High","sc":0.93},{"c":"200112065","s":"RW CH LA MISSION HAUT BRION 2013 FRA BT 750ML/EA","b":"Mission Haut-Brion 2012 BT | Mission Haut-Brion 2013 BT","g":"","cf":"Medium","sc":0.83},{"c":"200104145","s":"RW CHATEAU BRANAIRE DUCRU SAINT JULIEN 2014 750ML/EA","b":"Branaire Ducru 2014 BT","g":"","cf":"High","sc":0.93},{"c":"200120264","s":"RW CHATEAU CAPBERN GASQUETON SAINT ESTEPHE 2008 750ML/EA","b":"Chateau Capbern Gasqueton BT","g":"","cf":"High","sc":0.86},{"c":"200101204","s":"RW CHATEAU CHANGYU MOSER XV CABERNET SAUVIGNON CHINA 2018 750ML/EA","b":"Chateau Changyu Moser, Cab Sauv, China BT","g":"","cf":"High","sc":0.94},{"c":"200114710","s":"RW CHATEAU DE BEAUCASTEL CHATEAUNEUF DU PAPE 2020 750ML/EA","b":"Chateau de Beaucastel CNDP BT | Beaucastel Cndp BT","g":"","cf":"High","sc":0.99},{"c":"200102560","s":"RW CHATEAU DUHART MILON PAUILLAC 2010 750ML/EA","b":"Chateau Duhart Milon Rothschild BT","g":"","cf":"Medium","sc":0.76},{"c":"200081755","s":"RW CHATEAU EGLISE D ARMENS SAINT EMILION GRAND CRU 2022 750ML/EA","b":"Eglise d'Armens BT","g":"","cf":"Medium","sc":0.69},{"c":"200112059","s":"RW CHATEAU HAUT BAILLY PESSAC LEOGNAN 2007 750ML/EA","b":"Haut Bailly 2007 BT","g":"","cf":"High","sc":0.91},{"c":"200100149","s":"RW CHATEAU KEFRAYA BEKAA VALLEY LEBANON 2019 750ML/EA","b":"Ch. Kefraya Rouge BT | Chateau Kefraya Comte de M, Bekaa Valley Lebanon BT","g":"","cf":"Low","sc":0.48},{"c":"200104196","s":"RW CHATEAU LAFITE ROTHSCHILD PAUILLAC 2012 750ML/EA","b":"Lafite Rothschild 2012 BT","g":"","cf":"High","sc":0.96},{"c":"200118833","s":"RW CHATEAU LEOVILLE LAS CASES SAINT JULIEN 2007 750ML/EA","b":"Chateau Leoville Las Cases BT","g":"","cf":"High","sc":0.9},{"c":"200090038","s":"RW CHATEAU PALMER MARGAUX 2010 750ML/EA","b":"Chateau Margaux BT | Chateau Palmer 2010 BT | Ch. Palmer '05 BT","g":"","cf":"Low","sc":0.55},{"c":"200104014","s":"RW CHATEAU PAVIE SAINT EMILION GRAND CRU CLASSE A 2012 750ML/EA","b":"Chateau Pavie 2012 BT","g":"","cf":"High","sc":0.85},{"c":"200105473","s":"RW CHATEAU PONTET CANET PAUILLAC 2012 750ML/EA","b":"Chateau Pontet-Canet 2012 BT","g":"","cf":"High","sc":1.02},{"c":"200099760","s":"RW CHEVAL DES ANDES MENDOZA 2018 750ML/EA","b":"Cheval D Ande BT","g":"","cf":"High","sc":0.9},{"c":"200104630","s":"RW CLOS LA MADELEINE 2016 FR BT 750ML/EA","b":"Clos de Madeline BT","g":"","cf":"Medium","sc":0.78},{"c":"200116684","s":"RW COMANDO G ROZAS 1ER 2021 ESP EA 750ML/EA","b":"G Amoit CM 1er BT | Commado G Rozas BT","g":"","cf":"Low","sc":0.46},{"c":"","s":"RW CUNE RIOJA GRAN RESERVA 2018 750ML/EA","b":"Cune Gran Reserva BT | Vilmart Grande Reserve BT","g":"","cf":"Low","sc":0.46},{"c":"200099778","s":"RW CUVEE JULIETTE LOUISE FRANCE BT 750ML/EA","b":"Cuvee Juliette Louise BT","g":"","cf":"High","sc":1},{"c":"200120358","s":"RW DAVID DUBAND MOREY SAINT DENIS CLOS SORBE 2018 750ML/EA","b":"Duband Morey Clos Sorbe BT","g":"","cf":"High","sc":0.86},{"c":"200120350","s":"RW DE MONTILLE VOSNE ROMANEE AUX MALCONSORTS 2021 750ML/EA","b":"Montille Vosne Romanee Aux Malconsorts BT","g":"","cf":"High","sc":1},{"c":"200100066","s":"RW DESCENDIENTES DE J PALACIOS PETALOS BIERZO 2022 750ML/EA","b":"Petalos De Palac BT","g":"","cf":"Medium","sc":0.71},{"c":"200123935","s":"RW DOM DES PEDRIX VOSNEE ROMANEE 2020 FRA EA 750ML/EA","b":"Domaine Des Pedrix BT","g":"","cf":"Low","sc":0.52},{"c":"200104679","s":"RW DOMAINE BELLEVILLE CHAMBOLLE MUSIGNY LES DRAZEYS 2018 750ML/EA","b":"Chambolle Musigny 18 BT","g":"","cf":"Low","sc":0.52},{"c":"200099960","s":"RW DOMAINE DE CHIRATS SYRAH ROCKPILE SONOMA COUNTY 2016 750ML/EA","b":"Chirats Rockpile Syrah BT","g":"","cf":"High","sc":0.84},{"c":"200620294","s":"RW DOMAINE DE LA JANASSE CHATEAUNEUF DU PAPE 2021 750ML/EA","b":"Domaine de la Janasse BT","g":"","cf":"High","sc":0.81},{"c":"200100076","s":"RW DOMAINE NICOLAS ROSSIGNOL POMMARD 2019 750ML/EA","b":"Rossignol Pommard BT","g":"","cf":"High","sc":0.85},{"c":"200103141","s":"RW DOMAINE PAUL JABOULET AINE LA CHAPELLE HERMITAGE 2013 750ML/EA","b":"Hermitage Jab 13 BT","g":"","cf":"Medium","sc":0.65},{"c":"200104693","s":"RW DOMINUS NAPA VALLEY 2014 750ML/EA","b":"Cab Dominus 2014 BT","g":"","cf":"Medium","sc":0.69},{"c":"200116382","s":"RW DON MELCHOR CABERNET SAUVIGNON PUENTE ALTO MAIPO 2020 750ML/EA","b":"Don Melchor BT","g":"","cf":"Medium","sc":0.77},{"c":"200123440","s":"RW DREISSIGACKER VINTAGES PINOT NOIR RHEINHESSEN GERMANY 750ML/EA","b":"Dreissigacker Pinot BT","g":"","cf":"Medium","sc":0.78},{"c":"200097042","s":"RW E GUIGAL BRUNE BLONDE DE GUIGAL COTE ROTIE 2021 750ML/EA","b":"Guigal Cote Rotie BT","g":"","cf":"High","sc":0.82},{"c":"200103144","s":"RW EISELE VINEYARD CABERNET SAUVIGNON NAPA VALLEY 2018 750ML/EA","b":"Eisele Cab Sauv 13 BT","g":"","cf":"Low","sc":0.59},{"c":"200092379","s":"RW FAMIGLIA CIELO CENTENERO AMARONE DELLA VALPOLICELLA VENETO 2021 750ML/EA","b":"Zenato, Amarone della Valpolicella, Classico, Veneto BT | Centereno Amarone BT","g":"","cf":"Medium","sc":0.63},{"c":"200103024","s":"RW FLOWERS PINOT NOIR SONOMA COAST 2021 750ML/EA","b":"Flowers Pn 21 BT","g":"","cf":"Low","sc":0.6},{"c":"200125772","s":"RW FREEMARK ABBEY NAPA VALLEY USA BT 750ML/EA","b":"Freemark Abbey Chardonnay BT | Free Mark Merlot 18 BT","g":"","cf":"Medium","sc":0.65},{"c":"200103709","s":"RW G D VAJRA BAROLO CERRETTA 2018 750ML/EA","b":"Vajra Barolo BT | Vajra Barolo Rose BT | Vajra Ceretta Barolo BT","g":"","cf":"Medium","sc":0.7},{"c":"200106183","s":"RW GAJA BAROLO DAGROMIS 2020 750ML/EA","b":"Dagromis Gaja BT","g":"","cf":"High","sc":0.89},{"c":"200115400","s":"RW GAJA BRUNELLO DI MONTALCINO PIEVE SANTA RESTITUTA RENNINA 2018 750ML/EA","b":"Gaja Rennina Brunello Montalcino 18 BT","g":"","cf":"Medium","sc":0.67},{"c":"200104307","s":"RW GAJA CA MARCANDA MAGARI 2022 750ML/EA","b":"Gaja Magari BT","g":"","cf":"High","sc":0.82},{"c":"200620823","s":"RW GAJA CA MARCANDA PROMIS TUSCANY ITALY 2022 750ML/EA","b":"Gaja Promis BT","g":"","cf":"Medium","sc":0.65},{"c":"200100096","s":"RW GRAN MORAINE YAMHILL CARLTON PINOT NOIR WILLAMETTE VALLEY 2019 750ML/EA","b":"Gran Moraine Pinot BT","g":"","cf":"Medium","sc":0.78},{"c":"200100095","s":"RW HAMILTON RUSSELL PINOT NOIR WALKER BAY SOUTH AFRICA 2021 750ML/EA","b":"Hamilton Russell Pinot Noirt BT","g":"","cf":"Medium","sc":0.77},{"c":"200112461","s":"RW HENSCHKE HILL OF GRACE EDEN VALLEY AUSTRALIA 2019 750ML/EA","b":"Henschke Hill Of Grace BT","g":"","cf":"High","sc":0.88},{"c":"200620878","s":"RW IDDA ETNA ROSSO SICILY 2022 750ML/EA","b":"Idda Etna Rosso BT","g":"","cf":"High","sc":0.92},{"c":"200101246","s":"RW J L CHAVE SELECTION OFFERUS SAINT JOSEPH FRANCE BT 750ML/EA","b":"Offerus St. Joseph 2019 BT","g":"","cf":"Medium","sc":0.79},{"c":"200114108","s":"RW J LABET DECHELETTE CHATEAU DE LA TOUR CLOS DE VOUGEOT 2019 750ML/EA","b":"Ch De La Tour Clos De Vougeot BT","g":"","cf":"High","sc":0.83},{"c":"200211166","s":"RW JOSEPH DROUHIN LAFORET BOURGOGNE 2022 750ML/EA","b":"Joseph Drouhin La Foret Blanc BT | Drouhin Laforet Pinot Noir BT","g":"","cf":"Low","sc":0.51},{"c":"200104418","s":"RW JOSEPH PHELPS INSIGNIA NAPA VALLEY 2017 750ML/EA","b":"Insignia 18 BT","g":"","cf":"Medium","sc":0.65},{"c":"200119758","s":"RW JUSTIN GIRARDIN MARANGES VIEILLES VIGNES 2021 750ML/EA","b":"Justin Girardin Maranges BT","g":"","cf":"High","sc":0.87},{"c":"200104793","s":"RW KRACHER W REUNION BLAUFRANKISCH AUS BT 750ML/EA","b":"RW Reunion Passion 2015 BT","g":"","cf":"Medium","sc":0.65},{"c":"200100058","s":"RW L ENCLOS DES DOMAINE EDMOND DE ROTHSCHILD SAINT EMILION 2021 750ML/EA","b":"Lenclos Edmund Rothschild BT","g":"","cf":"Low","sc":0.45},{"c":"200101205","s":"RW LAPOSTOLLE CABERNET SAUVIGNON BLEND COLCHAGUA VALLEY 2022 750ML/EA","b":"Lapostolle Le Rose Colchagua BT","g":"","cf":"Medium","sc":0.66},{"c":"200092426","s":"RW LE DIX DE LOS VASCOS CABERNET SAUVIGNON COLCHAGUA VALLEY 2017 750ML/EA","b":"Los Vascos Chardonnay BT | Le Dix De Los Vascos BT | Los Vascos Cabernet Sauvignon BT","g":"","cf":"Medium","sc":0.63},{"c":"200120404","s":"RW LE MACCHIOLE PALEO BOLGHERI 2020 750ML/EA","b":"Le Macchiole Paleo BT","g":"","cf":"High","sc":0.9},{"c":"200104811","s":"RW LE VOLTE DELL ORNELLAIA BOLGHERI 2023 750ML/EA","b":"Le Volte Dell Ornellaia BT | Le Volte Ornellaia BT","g":"","cf":"High","sc":0.83},{"c":"200104083","s":"RW LES ALLEES CANTEMERLE 2015 FR BT 1.5L/EA","b":"Les Alle Cant 1.5L Bt BT","g":"","cf":"High","sc":0.81},{"c":"200099455","s":"RW LES FORTS DE LATOUR CHATEAU LATOUR PAUILLAC 2006 750ML/EA","b":"Les Forts Latour '06 BT","g":"","cf":"Medium","sc":0.66},{"c":"200099659","s":"RW LES LAVIERES PREMIER CRU CHANDON DE BRIAILLES BT 750ML/EA","b":"Brialilles Les Lavieres BT","g":"","cf":"Medium","sc":0.76},{"c":"200101639","s":"RW LOUIS JADOT COTE DE NUITS VILLAGES LE VAUCRAIN 2022 750ML/EA","b":"Louis J Cote Nuit BT","g":"","cf":"Medium","sc":0.61},{"c":"200104304","s":"RW LOUIS LATOUR BOURGOGNE 2022 750ML/EA","b":"Louis Latour Pinot Nour BT","g":"","cf":"Low","sc":0.52},{"c":"200110196","s":"RW M CHAPOUTIER LES MEYSONNIERS CROZES HERMITAGE 2023 750ML/EA","b":"Chapoutier Crozes Hermitage BT","g":"","cf":"High","sc":0.83},{"c":"200101222","s":"RW MARCHESI DI GRESY MARTINENGA BARBARESCO 2018 750ML/EA","b":"Marchesi Di Gresy, Mart BT","g":"","cf":"High","sc":0.85},{"c":"200120191","s":"RW MARQUES DE CACERES RIOJA RESERVA 2018 750ML/EA","b":"Caceres Rioja BT","g":"","cf":"High","sc":0.83},{"c":"200113325","s":"RW MARQUES DE RISCAL RIOJA RESERVA RIOJA SPAIN 2021 750ML/EA","b":"Marques De Riscal Reserva Rioja BT","g":"Marques De Riscal Rioja Reserva GL","cf":"High","sc":1},{"c":"200361116","s":"RW MEERLUST ESTATE RUBICON STELLENBOSCH SOUTH AFRICA 2021 750ML/EA","b":"Rubicon Meerlust BT","g":"","cf":"Medium","sc":0.8},{"c":"200110548","s":"RW MONTES ALPHA CABERNET SAUVIGNON COLCHAGUA VALLEY 2022 750ML/EA","b":"Montes Alpha Cabernet BT","g":"","cf":"High","sc":0.85},{"c":"200123418","s":"RW MOUTON CADET CUVEE HERITAGE BORDEAUX 2022 750ML/EA","b":"Mouton Cadet Heritage BT","g":"","cf":"High","sc":0.88},{"c":"200350768","s":"RW MUD HOUSE PINOT NOIR CENTRAL OTAGO NEW ZEALAND 2022 750ML/EA","b":"Mud House Sau Blanc BTL","g":"Mudhouse Pinot Noir GL","cf":"Low","sc":0.45},{"c":"200104385","s":"RW OPUS ONE NAPA VALLEY 2018 750ML/EA","b":"Opus 2018 BT","g":"","cf":"High","sc":0.87},{"c":"200115364","s":"RW ORNELLAIA BOLGHERI SUPERIORE 2020 750ML/EA","b":"Tenuta dell'Ornellaia, 'Ornellaia' 2020 BT","g":"","cf":"Medium","sc":0.65},{"c":"200082388","s":"RW PALACIOS REMONDO LA VENDIMIA RIOJA 2022 750ML/EA","b":"Alvaro Palacios La Vendimia BT","g":"","cf":"Low","sc":0.58},{"c":"200099919","s":"RW PARES BALTA INDIGENA GRENACHE PENEDES 2021 750ML/EA","b":"Pares Balta, Garnacha, Indigena, Penedes BT","g":"","cf":"Medium","sc":0.77},{"c":"200100135","s":"RW PE TINTO ALENTEJO ESPORAO PRT BT 750ML/EA","b":"Pe Tinto Alentejo BT","g":"Pe Tinto Alentejo GL","cf":"Medium","sc":0.78},{"c":"200097005","s":"RW PENFOLDS CABERNET SHIRAZ BIN 389 SOUTH AUSTRALIA 2019 750ML/EA","b":"Penfolds Bin 389 BT","g":"","cf":"High","sc":0.85},{"c":"200116612","s":"RW PENFOLDS ST HENRI SHIRAZ SOUTH AUSTRALIA 2018 750ML/EA","b":"Penfold St Heneri BT","g":"","cf":"Medium","sc":0.71},{"c":"200099616","s":"RW PETER MICHAEL LES PAVOTS KNIGHTS VALLEY SONOMA 2014 750ML/EA","b":"P.Michael Pavots BT","g":"","cf":"Low","sc":0.55},{"c":"200118417","s":"RW PINTIA TEMPOS VEGA SICILIA TORO 2019 750ML/EA","b":"Vega Sicilia Pintia BT","g":"","cf":"High","sc":0.85},{"c":"200104435","s":"RW PRUNOTTO SECONDINE 2018 ITL BT 750ML/EA","b":"Prunnot Second BT","g":"","cf":"Medium","sc":0.65},{"c":"200101235","s":"RW QUINTESSA NAPA VALLEY 2016 750ML/EA","b":"Quintessa BT","g":"","cf":"High","sc":0.82},{"c":"200103048","s":"RW RIDGE LYTON SPRINGS DRY CREEK USA 2019 BT 750ML/EA","b":"Ridge Lyton BT | Ridge Lytton Springs BT","g":"","cf":"Medium","sc":0.77},{"c":"200088117","s":"RW RUFFINO CHIANTI TUSCANY ITALY 2024 750ML/EA","b":"Ruffino Chian BT","g":"Ruffino Chianti GL | Rufino Chianti GL","cf":"High","sc":0.85},{"c":"200120710","s":"RW RW BACKHOUSE CABERNET SAUVIGNON USA EA 750ML/EA","b":"Backhouse Cabernet Sauvignon BT","g":"","cf":"High","sc":0.92},{"c":"200090026","s":"RW RW BAROLO VIGNETO GARRETTI LA SPINETTA BT 750ML/EA","b":"Barolo V.Garetti BT","g":"","cf":"Low","sc":0.49},{"c":"200120396","s":"RW RW CASANOVA DI NERI BRUNELLO WHITE LABEL 2019 ITA EA 750ML/EA","b":"Casanova di Neri Brunello BT","g":"","cf":"High","sc":0.85},{"c":"200122056","s":"RW RW CASTELLO DI ALBOLA CHIANTI CLASSICO ITA EA 750ML/EA","b":"Castello Di Albola Chianti BT","g":"","cf":"High","sc":0.87},{"c":"200100137","s":"RW RW CHALKBOARD MERLOT CHALKBOARD BT 750ML/EA","b":"Chalkboard Merlot BT","g":"","cf":"High","sc":1},{"c":"200084449","s":"RW RW CHATEAU LASSEGUE BORDEAUX EA 750ML/EA","b":"Ch. Lassegue BT","g":"","cf":"High","sc":0.87},{"c":"200112668","s":"RW RW DAOU CABERNET SAUVIGNON USA BT 750ML/EA","b":"Daou Cabernet Sauvignon BT","g":"","cf":"High","sc":0.92},{"c":"200122436","s":"RW RW DE BORTOLI WINDY PEAK PINOT NOIR AUS EA 750ML/EA","b":"Bortoli Windy Peak Pinot Noir BT","g":"","cf":"High","sc":0.94},{"c":"200210836","s":"RW RW ERATH PINOT NOIR EA 750ML/EA","b":"Mudhouse Pinot Noir BT | Erath Pinot Noir BT","g":"","cf":"Low","sc":0.5},{"c":"200620857","s":"RW RW GAMLA SYRAH GOLAN HEIGHTS EA 750ML/EA","b":"Gamla Syrah BT","g":"","cf":"High","sc":0.83},{"c":"200101219","s":"RW RW GIRARD CABERNET SAUVIGNON 2018 USA BT 750ML/EA","b":"Girard Cab Sauv BT","g":"","cf":"High","sc":0.92},{"c":"200083305","s":"RW RW LA LINDA MALBEC BODEGA LUIGI BOSCA EA 750ML/EA","b":"La Linda Malbec BT","g":"La Linda Malbec GL | La Linda Malbec GL CNY","cf":"Medium","sc":0.7},{"c":"200121151","s":"RW RW LE FOU PINOT NOIR FRA EA 750ML/EA","b":"Le Fou Pinot Noir BT","g":"","cf":"High","sc":0.93},{"c":"200103025","s":"RW RW LIEU DIT CABERNET FRANC SANTA YNEZ VALLEY 2021 BT 750ML/EA","b":"Cabernet Franc BT","g":"","cf":"Medium","sc":0.74},{"c":"200110422","s":"RW RW MALBEC ULTRA KAIKEN MONTES MENDOZA ARGENTINA EA 750ML/EA","b":"Montes Kaiken Ultra Malbec BT","g":"","cf":"High","sc":1},{"c":"200351240","s":"RW RW PINOTAGE KANONKOP EA 750ML/EA","b":"Kanonkop Pinotage BT","g":"","cf":"High","sc":1},{"c":"200101224","s":"RW RW SMITH MADRONE CABERNET SAUVIGNON USA BT 750ML/EA","b":"Smith Mad Cab Sauvi BT","g":"","cf":"Low","sc":0.59},{"c":"200092420","s":"RW RW TERRAZAS DE LOS ANDES CABERNET SAUVIGNON BT 750ML/EA","b":"Terra Andes Cabernet BT","g":"","cf":"High","sc":0.8},{"c":"200088162","s":"RW RW THE PRISONER RED BLEND NAPA VALLEY 2019 BT 1.5L/EA","b":"Prisoner 1.5l BT","g":"","cf":"Medium","sc":0.77},{"c":"200105251","s":"RW RW VILLA DOMIZIANO CHIANTI DOC ITALY BT 750ML/EA","b":"Villa dom C BT","g":"","cf":"Medium","sc":0.65},{"c":"200620860","s":"RW RW YARDEN CABERNET SAUVIGNON GOLAN HEIGHTS EA 750ML/EA","b":"Yarden Chard BT | Yarden Cabernet BT","g":"","cf":"Low","sc":0.52},{"c":"200104484","s":"RW SANTENAY ROUSSEAU 2018 FR BT 750ML/EA","b":"Roux Santenay BT","g":"","cf":"Low","sc":0.47},{"c":"200100150","s":"RW SAPERAVI QVEVRI DRY 2017 KARTVELI WINES BT 750ML/EA","b":"Kartveli Saperavi BT","g":"","cf":"Medium","sc":0.8},{"c":"","s":"RW SENA ACONCAGUA VALLEY 2018 750ML/EA","b":"Sena '18 BT | Eduardo Chadwick Sena BT","g":"","cf":"Medium","sc":0.65},{"c":"200084647","s":"RW SERESIN PINOT NOIR LEAH MARLBOROUGH NEW ZEALAND 2023 750ML/EA","b":"Seresin Pinot Noir BT","g":"","cf":"Medium","sc":0.78},{"c":"200120395","s":"RW TENUTA SAN GUIDO SASSICAIA BOLGHERI 2021 750ML/EA","b":"Sassicaia 2021 BT","g":"","cf":"High","sc":0.83},{"c":"200111200","s":"RW TERRUNYO CARMENERE CACHAPOAL VALLEY 2020 750ML/EA","b":"Carmenere Terrun BT","g":"","cf":"Medium","sc":0.76},{"c":"200099967","s":"RW THE FLIGHT SCREAMING EAGLE NAPA VALLEY 2015 750ML/EA","b":"Second Flight BT","g":"","cf":"Medium","sc":0.65},{"c":"200100069","s":"RW THE PRISONER RED BLEND CALIFORNIA 2021 750ML/EA","b":"The Prisoner BT","g":"","cf":"Medium","sc":0.74},{"c":"200099749","s":"RW THELEMA CABERNET SAUVIGNON STELLENBOSCH SOUTH AFRICA 2021 750ML/EA","b":"Thelema Cabernet BT","g":"","cf":"Medium","sc":0.79},{"c":"200099505","s":"RW TORRES GRAN CORONAS PENEDES DO SPAIN BT 750ML/EA","b":"Torres Gran Coronas Penedes BT","g":"","cf":"High","sc":0.92},{"c":"200112255","s":"RW VARA Y PULGAR TINTILLIA 2020 ESP BT 750ML/EA","b":"Vara Y Pulgar BT","g":"","cf":"High","sc":0.87},{"c":"200118773","s":"RW VEGA SICILIA UNICO RIBERA DEL DUERO 2014 750ML/EA","b":"Vega Sicilia Unico 2023 BT | Unico 2014 BT","g":"","cf":"Medium","sc":0.77},{"c":"200120033","s":"RW VERNUS MORGON GRAND CRAS 2020 FRA EA 750ML/EA","b":"Vernus Morgon Grand Cras 20 BT","g":"","cf":"Medium","sc":0.8},{"c":"200115871","s":"RW VIETTI LA CRENA BARBERA D ASTI 2020 750ML/EA","b":"Vietti Barbera Crena BT","g":"","cf":"High","sc":0.92},{"c":"200125098","s":"RW VIEUX TELEGRAPHE TELEGRAMME D TELEGRAPHE 2022 FRA E 750ML/EA","b":"Vieux Telegraphe Telegramme De Telegraphe BT","g":"","cf":"High","sc":0.89},{"c":"200114728","s":"RW VILAFONTE SERIOUSLY OLD DIRT CABERNET SAUVIGNON WESTERN CAPE 2021 750ML/EA","b":"Vilafonte Seriously Old Dirt Red BT","g":"","cf":"Medium","sc":0.73},{"c":"200092425","s":"RW VILLARD PINOT NOIR CASABLANCA VALLEY 2022 750ML/EA","b":"Villard Pinot BT","g":"","cf":"Medium","sc":0.79},{"c":"200104549","s":"RW VIRGINIE DE VALANDRAUD SAINT EMILION GRAND CRU 2012 750ML/EA","b":"Virginie Vld BT","g":"","cf":"Medium","sc":0.65},{"c":"200100670","s":"SAKE DASSAI 23 JUNMAI DAIGINJO YAMAGUCHI 300ML/EA","b":"Dassai 23 Junmai Daiginjo 30CL BT | Dessai 23 BT","g":"","cf":"Medium","sc":0.8},{"c":"200211209","s":"SAKE DASSAI 39 JUNMAI DAIGINJO YAMAGUCHI 720ML/EA","b":"Dassai 39 BT","g":"","cf":"Medium","sc":0.81},{"c":"200101614","s":"SAKE FAKUCHO SEASIDE JUNMAI SPARKLING HIROSHIMA 500ML/EA","b":"Imada Spark Junmai BT","g":"","cf":"Medium","sc":0.87},{"c":"200100669","s":"SAKE HEAVENSAKE JUNMAI 12 HYOGO 720ML/EA","b":"Heavensake Junmai 12 BT","g":"","cf":"Medium","sc":0.9},{"c":"200118755","s":"SAKE HEAVENSAKE JUNMAI DAIGINJO YAMAGATA 720ML/EA","b":"Heavensake Junmai Daiginjo BT","g":"","cf":"Medium","sc":0.89},{"c":"","s":"SAKE HEAVENSAKE JUNMAI GINJO MIYAGI 720ML/EA","b":"Heavensake Junmai Ginjo BT","g":"","cf":"Medium","sc":0.89},{"c":"200100668","s":"SAKE NANBU BIJIN GINJO IWATE 720ML/EA","b":"Nanbu Bijin Ginjo BT","g":"","cf":"Medium","sc":0.91},{"c":"200101042","s":"SAKE RIHAKU DREAMY CLOUDS JUNMAI NIGORI SHIMANE 720ML/EA","b":"Junmai Dreamy Clouds BT","g":"","cf":"Medium","sc":0.88},{"c":"200100667","s":"SAKE SAKE TAKASHIMIZU WACHO DAIGINJO AKITA SHURUI BT 720ML/EA","b":"Akita Shurui Taka BT","g":"","cf":"Medium","sc":0.95},{"c":"200211215","s":"SAKE TAKATENJIN SOUL OF THE SENSEI JUNMAI DAIGINJO SHIZUOKA 720ML/EA","b":"Junmai Daiginjo Soul BT","g":"","cf":"Medium","sc":0.94},{"c":"200100672","s":"SAKE TAKATENJIN SWORD OF THE SUN HONJOZO SHIZUOKA 300ML/EA","b":"Sword Of The Sun BT","g":"","cf":"Medium","sc":0.86},{"c":"200099812","s":"SAKE TOSATSURU AZURE GINJO KOCHI 720ML/EA","b":"Azure BT","g":"","cf":"Medium","sc":0.74},{"c":"200211322","s":"SPK FERRARI BRUT TRENTO ITALY 750ML/EA","b":"Ferrari Brut 750ML BT","g":"","cf":"High","sc":0.85},{"c":"","s":"SPK GRAHAM BECK BRUT ROSE WESTERN CAPE SOUTH AFRICA 2018 750ML/EA","b":"Graham Beck Rose BT","g":"","cf":"High","sc":0.8},{"c":"","s":"SPK L EXTRA PAR LANGLOIS BRUT CREMANT DE LOIRE FRANCE 750ML/EA","b":"Cremant Loire Langlois BT","g":"","cf":"High","sc":0.83},{"c":"","s":"SPK RAVENTOS I BLANC CAVA DE NIT EXTRA BRUT ROSE SPAIN 2023 750ML/EA","b":"Raventos de Nit Rose BT","g":"","cf":"Medium","sc":0.79},{"c":"","s":"SPK SOFFIO PROSECCO EXTRA DRY ITALY 2024 750ML/EA","b":"Soffio Prosecco Extra Dry BT","g":"SM Soffio Prosecco GL","cf":"Low","sc":0.52},{"c":"","s":"WINE WILD IDOL GERMANY 2023 750ML/EA","b":"Wild House BT | Wild Idol Non Alcoholic Wht BT | Wild Idol Non Alcoholic Rsw BT | Wild Idol Non Alcoholic Rsw BT | Wild Idol Non Alcoholic Wht BT","g":"","cf":"Low","sc":0.48},{"c":"200111344","s":"WINE WINE NON ALCOHOLIC FRENCH BLOOM LE BLANC FRA EA 750ML/EA","b":"French Bloom Blanc BT | French Bloom Rose BT","g":"","cf":"Medium","sc":0.67},{"c":"200120052","s":"WW ALZINGER GRUNER VELTLINER FEDERSPIEL HOCHSTRASSER WACHAU 2023 750ML/EA","b":"Alzinger Hochstrasser BT","g":"","cf":"Medium","sc":0.77},{"c":"200119761","s":"WW ANTINORI CERVARO 2022 ITA EA 750ML/EA","b":"Antinori Cervaro 22 BT","g":"","cf":"Medium","sc":0.68},{"c":"200120941","s":"WW BENJAMIN LEROUX BOURGOGNE 2020 750ML/EA","b":"Benjamin Leroux Bourgogne Blanc BT","g":"","cf":"High","sc":0.89},{"c":"200112048","s":"WW BODEGAS CHACRA CHARDONNAY PATAGONIA ARGENTINA 2021 750ML/EA","b":"WW Chacra 2021 BT","g":"","cf":"High","sc":0.85},{"c":"200350864","s":"WW BOUCHARD MEURSAULT LE CLOUS 2021 FRA EA 750ML/EA","b":"Meursault Bouchard BT","g":"","cf":"High","sc":0.85},{"c":"200098489","s":"WW BOUZERON LES FIAS 2019 ROUX PERE ET FILS FRANCE BT 750ML/EA","b":"Roux Bouzeron Flas BT","g":"","cf":"Low","sc":0.54},{"c":"200361120","s":"WW CAKEBREAD CHARDONNAY NAPA VALLEY 2022 750ML/EA","b":"Chard Cake BT","g":"","cf":"Medium","sc":0.74},{"c":"200098604","s":"WW CAPENSIS CHARDONNAY WESTERN CAPE SOUTH AFRICA 2016 750ML/EA","b":"Capensis Chard BT","g":"","cf":"High","sc":0.83},{"c":"200120544","s":"WW CASTELLO DI ALBOLA POGGIO ALLE FATE CHARDONNAY TUSCANY 2022 750ML/EA","b":"Poggio Alle Fatte BT","g":"","cf":"Low","sc":0.53},{"c":"200097050","s":"WW CATENA ZAPATA CHARDONNAY WHITE BONES ARGENTINA 2020 750ML/EA","b":"Zapata Wh Bones Chard BT | Catena Zapata White Stones BT","g":"","cf":"Medium","sc":0.63},{"c":"200111197","s":"WW CH ST MICHELE EROICA RIESLI USA BT 750ML/EA","b":"St.Michelle Ries BT | Eroica 22 BT","g":"","cf":"Medium","sc":0.65},{"c":"200107740","s":"WW CHAPOUTIER SCHIEFERKOPF RIESLING BADEN 2023 750ML/EA","b":"Schieferkopf Riesling BT | Domaine Schieferkopf Riesling BT","g":"","cf":"Medium","sc":0.67},{"c":"200098496","s":"WW CHATEAU OLIVIER PESSAC LEOGNAN 2018 750ML/EA","b":"Chateau Olivier Blanc BT","g":"","cf":"Medium","sc":0.64},{"c":"200100236","s":"WW CHATEAU SMITH HAUT LAFITE PESSAC LEOGNAN 2011 750ML/EA","b":"Smith-Haut Lafite BT","g":"","cf":"High","sc":0.84},{"c":"200111718","s":"WW CHATEAU VILLA BEL AIR GRAVES 2023 750ML/EA","b":"Villa Bel Air Blanc BT | Villa Bel Air BT","g":"","cf":"Medium","sc":0.79},{"c":"200104461","s":"WW CLOS WINDSBUHL 2020 FR BT 750ML/EA","b":"Clos Windsbuhl BT","g":"","cf":"High","sc":0.93},{"c":"200104642","s":"WW CONDRIEU CHAILLETS 2021 FR BT 750ML/EA","b":"Chaillets Condrie BT","g":"","cf":"High","sc":0.83},{"c":"200092135","s":"WW CRAGGY RANGE SAUVIGNON BLANC MARTINBOROUGH NEW ZEALAND 2023 750ML/EA","b":"Craggy Range, SB BT","g":"","cf":"High","sc":0.84},{"c":"200120060","s":"WW DAVID MORET CORTON CHARLEMAGNE GRAND CRU 2021 750ML/EA","b":"Denis Moret Corton-Charlemagne GC 21 BT","g":"","cf":"Medium","sc":0.71},{"c":"200099908","s":"WW DE LADOUCETTE BARON DE L POUILLY FUME 2022 750ML/EA","b":"Baron de L BT","g":"","cf":"Medium","sc":0.78},{"c":"200119766","s":"WW DEVIL S CORNER RIESLING TASMANIA AUSTRALIA 2023 750ML/EA","b":"Devils Corner Riesling BT","g":"","cf":"Medium","sc":0.79},{"c":"200101116","s":"WW DOMAINE CORDIER PERE FILS POUILLY FUISSE VIEILLES VIGNES 2023 750ML/EA","b":"Cordier Pouily Fuisse BT","g":"","cf":"Medium","sc":0.72},{"c":"200104675","s":"WW DOMAINE DE LA GARENNE MACON AZE 2020 750ML/EA","b":"De LA Garenne Macon Aze BT","g":"","cf":"High","sc":0.95},{"c":"200104754","s":"WW DOMAINE HUET LE HAUT LIEU DEMI SEC VOUVRAY 2016 750ML/EA","b":"Huet Vouvray Pied BT | Domaine Huet Le Haut Lieu BT","g":"","cf":"Low","sc":0.51},{"c":"200110734","s":"WW DOMAINE JACQUES PRIEUR MONTRACHET GRAND CRU 2018 750ML/EA","b":"Prieur Mont GC BT","g":"","cf":"High","sc":0.83},{"c":"200100247","s":"WW DOMAINE LAROCHE CHABLIS 1ER CRU LES VAUDEVEY 2022 750ML/EA","b":"Laroche Vaudevey BT","g":"","cf":"Medium","sc":0.79},{"c":"200120632","s":"WW DOMAINE LONG DEPAQUIT CHABLIS GRAND CRU VAUDESIR 2020 750ML/EA","b":"Domaine Long Depaquit BT","g":"","cf":"High","sc":0.81},{"c":"200121244","s":"WW DOMAINE TRIMBACH GEWURZTRAMINER 2020 750ML/EA","b":"Gewurz Trimach BT","g":"","cf":"Medium","sc":0.72},{"c":"200098559","s":"WW DOMAINE VINCENT PINARD FLORES SANCERRE 2024 750ML/EA","b":"Pinard Flores BT","g":"","cf":"High","sc":0.82},{"c":"200210940","s":"WW DOMAINE WEINBACH RIESLING SCHLOSSBERG GRAND CRU 2022 750ML/EA","b":"Schlossberg Weinb BT","g":"","cf":"Medium","sc":0.73},{"c":"200099909","s":"WW DONNHOFF OBERHAUSER LEISTENBERG KABINETT RIESLING NAHE 2023 750ML/EA","b":"Oberhauser Donnhoff BT","g":"","cf":"Medium","sc":0.78},{"c":"200122433","s":"WW DOURTHE N 1 SAUVIGNON BLANC BORDEAUX 2024 750ML/EA","b":"Dourthe Numero 1 SB BT","g":"","cf":"Medium","sc":0.64},{"c":"200112032","s":"WW FLOWERS CHARDONNAY SONOMA COAST CALIFORNIA 2021 750ML/EA","b":"Flowers Chardonnay BT","g":"","cf":"Medium","sc":0.78},{"c":"200098095","s":"WW GAJA ROSSJ BASS LANGHE PIEDMONT 2023 750ML/EA","b":"Rossj-Bass BT","g":"","cf":"High","sc":0.81},{"c":"200119285","s":"WW GROSSET POLISH HILL RIESLING CLARE VALLEY AUSTRALIA 2023 750ML/EA","b":"Grosset Polish Hill BT","g":"","cf":"High","sc":0.85},{"c":"200210978","s":"WW HAMILTON RUSSELL CHARDONNAY WALKER BAY SOUTH AFRICA 2023 750ML/EA","b":"Hamilton Chard BT","g":"","cf":"Medium","sc":0.75},{"c":"200098578","s":"WW IDDA ETNA BIANCO SICILY 2023 750ML/EA","b":"Gaja Idda Bianco BT","g":"","cf":"Medium","sc":0.63},{"c":"200106119","s":"WW J MOREAU FILS CHABLIS GLOIRE DE CHABLIS 2023 750ML/EA","b":"Moreau Chablis BT","g":"Moreau Chablis GL","cf":"Medium","sc":0.79},{"c":"2000706400","s":"WW JCV RAMATO VILLARD 2018 EA 750ML/EA","b":"Villard PG JCV BT","g":"","cf":"Medium","sc":0.61},{"c":"200116459","s":"WW JERMANN WHERE DREAMS HAVE NO END ITA EA 750ML/EA","b":"Jermann Where Dreams Have No End BT","g":"","cf":"High","sc":0.97},{"c":"200110363","s":"WW JEUNE CHATEAU MUSAR EA 750ML/EA","b":"Jeune Blanc BT","g":"","cf":"Low","sc":0.57},{"c":"200100246","s":"WW JULIAN HAART RIESLING KABINETT OLD VINES MOSEL 2023 750ML/EA","b":"Haart Riesling BT","g":"","cf":"Medium","sc":0.74},{"c":"200088115","s":"WW KENDALL JACKSON CHARDONNAY CALIFORNIA 2024 750ML/EA","b":"Kendall Jackson Chardon BT","g":"","cf":"High","sc":0.85},{"c":"200098601","s":"WW KLEIN CONSTANTIA METIS SAUVIGNON BLANC SOUTH AFRICA 2020 750ML/EA","b":"Klein Sb Metis BT","g":"","cf":"High","sc":0.85},{"c":"200210944","s":"WW LA CHABLISIENNE BOURGOGNE EMOTIONS MINERALES 2023 750ML/EA","b":"La Chablisienne Bourgogne BT","g":"","cf":"High","sc":0.81},{"c":"200350820","s":"WW LA SCOLCA GAVI DI GAVI BLACK LABEL PIEDMONT 2023 1.5L/EA","b":"","g":"La Scolca Gavi Di Gavi Magnum GL","cf":"Low","sc":0.47},{"c":"","s":"WW LA SCOLCA GAVI DI GAVI BLACK LABEL PIEDMONT ITALY 2022 750ML/EA","b":"Scolca Gavi BT | La Scolca, Gavi BT","g":"","cf":"Medium","sc":0.8},{"c":"","s":"WW LA SPINETTA MOSCATO D ASTI PIEDMONT ITALY 2024 750ML/EA","b":"La Spinetta Moscato d'Asti BT","g":"","cf":"Low","sc":0.59},{"c":"200361107","s":"WW LEEUWIN ESTATE ART SERIES CHARDONNAY MARGARET RIVER 2021 750ML/EA","b":"Leeuwin Chardonnay BT","g":"","cf":"Medium","sc":0.73},{"c":"200098584","s":"WW LOIMER GRUNER VELTLINER KAMPTAL AUSTRIA 2023 750ML/EA","b":"Loimer Gruner Vetliner BT","g":"","cf":"Medium","sc":0.78},{"c":"200085466","s":"WW MARC BREDIF VOUVRAY 2024 750ML/EA","b":"Bredof Vouvray BT","g":"","cf":"Medium","sc":0.65},{"c":"200085181","s":"WW MARCO FELLUGA PINOT GRIGIO COLLIO 2024 750ML/EA","b":"Felluga PG BT","g":"","cf":"High","sc":0.84},{"c":"200118675","s":"WW MONT CHAUVE CHASSAGNE MONTRACHET LES MACHERELLES 2020 750ML/EA","b":"Les Maccherelles BT","g":"","cf":"Medium","sc":0.63},{"c":"200119091","s":"WW MULLINEUX OLD VINES WHITE BLEND SWARTLAND SOUTH AFRICA 2023 750ML/EA","b":"Mullineux Old Vine BT","g":"","cf":"Medium","sc":0.74},{"c":"200092389","s":"WW OYSTER BAY SAUVIGNON BLANC MARLBOROUGH NEW ZEALAND 2024 750ML/EA","b":"Oyster Bay Sauvignon Blanc BT | Cloudy Bay SB BT","g":"Oyster Bay Sauvignon Blanc GL","cf":"Low","sc":0.54},{"c":"200330111","s":"WW PASCAL JOLIVET SANCERRE 2024 750ML/EA","b":"Jolivet Sancer BT","g":"","cf":"Medium","sc":0.78},{"c":"200115133","s":"WW PHILIPPE CHAVY BOURGOGNE 2021 750ML/EA","b":"Chavy Bourgogne BT","g":"","cf":"High","sc":0.87},{"c":"200116240","s":"WW PIO CESARE GAVI PIEDMONT 2023 750ML/EA","b":"Pio Cesare Gavi BT","g":"","cf":"High","sc":0.93},{"c":"200120421","s":"WW PYCM ST AUBIN 1C MARGUERITE 2020 FRA EA 750ML/EA","b":"PYCM Aubin Marguerite BT","g":"","cf":"High","sc":0.86},{"c":"200111199","s":"WW ROBERT MONDAVI FUME BLANC TE KALON VINEYARD NAPA VALLEY 2022 750ML/EA","b":"Te Kalon Fume BT","g":"","cf":"Medium","sc":0.79},{"c":"200112486","s":"WW SCHLOSS GOBELSBURG RIESLING GAISBERG KAMPTAL AUSTRIA 2022 750ML/EA","b":"Gobelsburg Gaisb BT","g":"","cf":"Medium","sc":0.7},{"c":"200084946","s":"WW SCHLOSS VOLLRADS RIESLING KABINETT RHEINGAU 2022 750ML/EA","b":"Vollards Riesling BT","g":"","cf":"Medium","sc":0.65},{"c":"200085173","s":"WW TERRA ALPINA ALOIS LAGEDER PINOT GRIGIO DOLOMITI 2024 750ML/EA","b":"Alois Lageder Estate Pinot Grigio BT","g":"Alois Lageder Estate Pinot Grigio GL","cf":"Medium","sc":0.71},{"c":"200361126","s":"WW TERRAZAS CHARDONNAY MENDOZA ARGENTINA 2023 750ML/EA","b":"Terrazas Chard BT","g":"","cf":"High","sc":1},{"c":"200211073","s":"WW TOLPUDDLE CHARDONNAY TASMANIA AUSTRALIA 2024 750ML/EA","b":"Tolpuddle Chard BT | Tolpuddle Pinot BT","g":"","cf":"Low","sc":0.57},{"c":"200099918","s":"WW TORRE PENELAS PAZO DE BRUXAS ALBARINO RIAS BAIXAS SPAIN 2024 750ML/EA","b":"Torres Pazo Bruxas BT | Albarino Pazo BT","g":"Torres Pazo Bruxas GL","cf":"Medium","sc":0.68},{"c":"200116307","s":"WW VINCENT GIRARDIN BOURGOGNE CUVEE SAINT VINCENT 2022 750ML/EA","b":"VGirardin St Vin BT | Vincent Girardin Cuvee St Vincent BT","g":"","cf":"Medium","sc":0.65},{"c":"200098603","s":"WW WARWICK WHITE LADY CHARDONNAY STELLENBOSCH SOUTH AFRICA 2022 750ML/EA","b":"Warwick White Lady BT","g":"","cf":"High","sc":0.83},{"c":"200620333","s":"WW WATERKLOOF CIRCLE OF LIFE STELLENBOSCH SOUTH AFRICA 2024 750ML/EA","b":"White Circle Of Life Blanc Waterkloof BT","g":"","cf":"Medium","sc":0.68},{"c":"200112061","s":"WW WW ADDAX CHARDONNAY 2021 USA BT 750ML/EA","b":"Addax Chard BT","g":"","cf":"High","sc":0.9},{"c":"200099857","s":"WW WW CH LOUVIERE BLANC 2014 CH LA LOUVIERE BT 750ML/EA","b":"Louviere Blanc BT","g":"","cf":"High","sc":0.92},{"c":"200112067","s":"WW WW CHABLIS 2021 FRA BT 750ML/EA","b":"Chablis Vaudon BT","g":"","cf":"Low","sc":0.55},{"c":"200111900","s":"WW WW FAILLA ESTATE CHARDONNAY USA BT 750ML/EA","b":"Failla Estate Chardonnay BT","g":"","cf":"High","sc":0.93},{"c":"200117922","s":"WW WW FRESCOBALDI CASTELLO DE POMINO BIANCO ITA EA 750ML/EA","b":"Frescobaldi Catello Di Pomino Bianco BT","g":"","cf":"High","sc":0.88},{"c":"200121410","s":"WW WW GABRIELSKLOOF BOTRIVIER SAUV BLANC ZAF EA 750ML/EA","b":"Gabrielskloof Sauvignon Blanc BT","g":"","cf":"High","sc":0.83},{"c":"200620853","s":"WW WW GAMLA SAUVIGNON BLANC GOLAN HEIGHTS EA 750ML/EA","b":"Gamla Sb BT","g":"","cf":"High","sc":0.84},{"c":"200110537","s":"WW WW HUGEL ET FILS GEWURZTRAMINER EA 750ML/EA","b":"Gewurz Hugel BT","g":"","cf":"High","sc":0.8},{"c":"200068116","s":"WW WW KOONUNGA HILL PENFOLDS CHARDONNAY BT 750ML/EA","b":"Penfolds Chard BT","g":"","cf":"High","sc":0.8},{"c":"200101316","s":"WW WW LOUIS LATOUR VIOGNIER D ARDECHE FRANCE BT 750ML/EA","b":"Latour Viognier BT","g":"","cf":"High","sc":0.83},{"c":"200104828","s":"WW WW LUIGI BAUDANA DRAGON LANGE BIANCO 2021 ITL BT 750ML/EA","b":"Baudana Dragon BT","g":"","cf":"Medium","sc":0.78},{"c":"200098574","s":"WW WW MONTE ROTONDO GAVI DEL COMUNE DEL GAVI DOCG BT 750ML/EA","b":"Monterotondo Gavi BT","g":"","cf":"Medium","sc":0.68},{"c":"200098519","s":"WW WW NEIL WHITE 2018 CLOS MOGADOR SPAIN BT 750ML/EA","b":"Clos Mogador '18 BT","g":"","cf":"Low","sc":0.55},{"c":"200097054","s":"WW WW PACO LOLA ALBARINO RIAS BAIXAS BT 750ML/EA","b":"Paco&Lola Albar BT","g":"","cf":"High","sc":0.8},{"c":"200092383","s":"WW WW PINOT GRIGIO JERMANN BT 750ML/EA","b":"Santa Margherita Pinot Grigio BT | Jermann PG BT | Gabbiano Promessa PG BT","g":"","cf":"Low","sc":0.46},{"c":"200098560","s":"WW WW POUILLY FUME CHATEAU DE TRACY FRANCE BT 750ML/EA","b":"Tracy Pouilly BT","g":"","cf":"High","sc":0.86},{"c":"200084649","s":"WW WW RIESLING DR L QBA DR LOOSEN MOSEL GERMANY EA 750ML/EA","b":"Dr Loosen Riesling BT","g":"Dr Loosen GL","cf":"Medium","sc":0.71},{"c":"200103448","s":"WW WW RITUAL CHARDONNAY SUPERTUGA BLOCK BT 750ML/EA","b":"Ritual Chard BT","g":"","cf":"High","sc":0.8},{"c":"200083046","s":"WW WW SANTA JULIA SAUVIGNON BLANC MENDOZA EA 750ML/EA","b":"Santa Julia Sauvignon Blanc BT","g":"Santa Julia Sauvignon Blanc GL | Santa Julia Sauvignon Blanc GL CNY","cf":"High","sc":0.92},{"c":"200092417","s":"WW WW SAUVIGNON BLANC OUTER LIMIT MONTES BT 750ML/EA","b":"Montes Outer Limits Sauvignon Blanc BT","g":"","cf":"High","sc":0.94},{"c":"200112229","s":"WW WW TERRAS GAUDA ALBARINO GAUDA ROSAL 2020 ESP BT 750ML/EA","b":"Terras Gauda Albarino O Rosal BT","g":"","cf":"Medium","sc":0.78},{"c":"200097047","s":"WW WW TYRRELLS SEMILLON VAT 1 HUNTER VALLEY BT 750ML/EA","b":"Tyrrell's Vat 1 BT","g":"","cf":"High","sc":0.83},{"c":"200085174","s":"WW WW VERMENTINO DI SARDEGNA TYRSOS CONTINI ITALY EA 750ML/EA","b":"Tyrsos BT","g":"","cf":"Medium","sc":0.74},{"c":"200119765","s":"WW WW VILLA ANTINORI BIANCO ITA EA 750ML/EA","b":"Villa Antinori Bianco BT","g":"","cf":"High","sc":0.93},{"c":"200116270","s":"WW WW VOUGERAIE TERRES D FAMILLE BOURG BLANC 2019 FRA EA 750ML/EA","b":"Vougeraie Terres D Famille Bourg Blanc 2019 BT | Vougeraie Bourgogne Rouge Terres D Fam BT","g":"","cf":"Low","sc":0.51},{"c":"200120725","s":"WW WW W FEVRE CHABLIS GC CLOS 2021 FRA EA 750ML/EA","b":"Fevre Chablis GC Clos 21 BT","g":"","cf":"Medium","sc":0.74},{"c":"200119236","s":"WW XAVIER MONNOT MEURSAULT LES CHEVALIERES 2022 750ML/EA","b":"Xavier Monnot Meursault Chavaliers BT","g":"","cf":"High","sc":0.88},{"c":"200119191","s":"WW XAVIER MONNOT PULIGNY MONTRACHET LES FOLATIERES 2022 750ML/EA","b":"Xavier Monnot PM Les Folatieres 2022 BT","g":"","cf":"High","sc":0.8},{"c":"200110528","s":"WW ZUCCARDI SERIE A TORRONTES MENDOZA ARGENTINA 2024 750ML/EA","b":"Zuccardi Torrontes BT","g":"Zuccardi Torrontes GL","cf":"High","sc":0.88},{"c":"","s":"","b":"","g":"Lapostolle Le Rose GL","cf":"","sc":0.44,"n":"RW RW MERLOT CUVEE ALEXANDRE LAPOSTOLLE BT 750ML/EA"},{"c":"","s":"","b":"","g":"Promis Gaja Magnum GL","cf":"","sc":0.55,"n":"RW GAJA CA MARCANDA PROMIS TUSCANY ITALY 2022 750ML/EA"},{"c":"","s":"","b":"Terre Nerre Etna Bianco BT","g":"","cf":"","sc":0.44,"n":"WW IDDA ETNA BIANCO SICILY 2023 750ML/EA"},{"c":"","s":"","b":"Vaillon Fevbre BT","g":"","cf":"","sc":0,"n":""},{"c":"","s":"","b":"Vougeraie Chapelle Chassagne 1er BT","g":"","cf":"","sc":0.43,"n":"WW DOMAINE DE LA VOUGERAIE CHASSAGNE MONTRACHET MORGEOT 2021 750ML/EA"},{"c":"","s":"","b":"Yalumba Y Series Riesling BT","g":"","cf":"","sc":0,"n":""},{"c":"","s":"","b":"SAKE BT","g":"","cf":"","sc":0,"n":""},{"c":"","s":"","b":"Godo Umeshu BT","g":"","cf":"","sc":0,"n":""},{"c":"","s":"","b":"Junmai Okuno BT","g":"","cf":"","sc":0,"n":""},{"c":"","s":"","b":"Junmai Tentaka BT","g":"","cf":"","sc":0,"n":""},{"c":"","s":"","b":"Kiku Masamune Kim BT","g":"","cf":"","sc":0,"n":""},{"c":"","s":"","b":"Kiku Masamune BT","g":"","cf":"","sc":0,"n":""},{"c":"","s":"","b":"S Car Sauv BT","g":"","cf":"","sc":0.31,"n":"CHAMPAGNE CHAMPAGNE NOWACK S A LA TUILLERIRE 2012 FRA750ML EA 750ML/EA"},{"c":"","s":"","b":"Sancerre GR Bourg BT","g":"","cf":"","sc":0.45,"n":"WW WW SANCERRE GRAND RESERVE LOIRE HENRI BOURGEOIS 1 5L EA 1.5L/EA"},{"c":"","s":"","b":"St.Martin Ch1.5L BT","g":"","cf":"","sc":0,"n":""},{"c":"","s":"","b":"MFelluga Mol1.5L BT","g":"","cf":"","sc":0.3,"n":"WW MARCO FELLUGA PINOT GRIGIO COLLIO 2024 750ML/EA"},{"c":"","s":"","b":"Montes Chardony BT","g":"","cf":"","sc":0.39,"n":"WW TERRAZAS CHARDONNAY MENDOZA ARGENTINA 2023 750ML/EA"},{"c":"","s":"","b":"Montille Bourgogne Blanc BT","g":"","cf":"","sc":0.41,"n":"WW WW VOUGERAIE TERRES D FAMILLE BOURG BLANC 2019 FRA EA 750ML/EA"},{"c":"","s":"","b":"Muller Wiltinger Sp '19 BT","g":"","cf":"","sc":0,"n":""},{"c":"","s":"","b":"O Leflaive Batard Montrachet Magnum BT","g":"","cf":"","sc":0,"n":""},{"c":"","s":"","b":"Laroch Res Obedi BT","g":"","cf":"","sc":0,"n":""},{"c":"","s":"","b":"Laroche Premier Cru Vaudevey MAG BT","g":"","cf":"","sc":0.71,"n":"WW DOMAINE LAROCHE CHABLIS 1ER CRU LES VAUDEVEY 2022 750ML/EA"},{"c":"","s":"","b":"Louis Jadot Chassagne-Montrachet 1Er Cru Gran BT","g":"","cf":"","sc":0.43,"n":"WW DOMAINE JACQUES PRIEUR MONTRACHET GRAND CRU 2018 750ML/EA"},{"c":"","s":"","b":"M3 Chard BT","g":"","cf":"","sc":0.33,"n":"WW TERRAZAS CHARDONNAY MENDOZA ARGENTINA 2023 750ML/EA"},{"c":"","s":"","b":"Marc Brocard Montmains BT","g":"","cf":"","sc":0.31,"n":"WW MARC BREDIF VOUVRAY 2024 750ML/EA"},{"c":"","s":"","b":"Marimar Torres Acero BT","g":"","cf":"","sc":0,"n":""},{"c":"","s":"","b":"Martin Codax Albarino BT","g":"","cf":"","sc":0,"n":""},{"c":"","s":"","b":"Meurs Roulot BT","g":"","cf":"","sc":0.33,"n":"WW BOUCHARD MEURSAULT LE CLOUS 2021 FRA EA 750ML/EA"},{"c":"","s":"","b":"Indigena Blanco BT","g":"","cf":"","sc":0.37,"n":"RW PARES BALTA INDIGENA GRENACHE PENEDES 2021 750ML/EA"},{"c":"","s":"","b":"JM Montmains 1er BT","g":"","cf":"","sc":0.34,"n":"RW LES LAVIERES PREMIER CRU CHANDON DE BRIAILLES BT 750ML/EA"},{"c":"","s":"","b":"K Crawford SB BT","g":"","cf":"","sc":0.32,"n":"WW WW SANTA JULIA SAUVIGNON BLANC MENDOZA EA 750ML/EA"},{"c":"","s":"","b":"Ken Forrester Petit BT","g":"","cf":"","sc":0,"n":""},{"c":"","s":"","b":"Kir Yanni Assyrtiko BT","g":"","cf":"","sc":0,"n":""},{"c":"","s":"","b":"Kung Fu Ries BT","g":"","cf":"","sc":0,"n":""},{"c":"","s":"","b":"La Crema Chard BT","g":"","cf":"","sc":0.41,"n":"SPK L EXTRA PAR LANGLOIS BRUT CREMANT DE LOIRE FRANCE 750ML/EA"},{"c":"","s":"","b":"Gaia&Rey Chard BT","g":"","cf":"","sc":0.66,"n":"WW GAJA GAIA REY LANGHE PIEDMONT 2023 1.5L/EA"},{"c":"","s":"","b":"Girardin Morgeot BT","g":"","cf":"","sc":0.43,"n":"WW DOMAINE DE LA VOUGERAIE CHASSAGNE MONTRACHET MORGEOT 2021 750ML/EA"},{"c":"","s":"","b":"Guy Amiot Meursault BT","g":"","cf":"","sc":0,"n":""},{"c":"","s":"","b":"Henri Alles Vignoble BT","g":"","cf":"","sc":0,"n":""},{"c":"","s":"","b":"Henri Bourgeois Sancerre BT","g":"","cf":"","sc":0.82,"n":"WW WW SANCERRE GRAND RESERVE LOIRE HENRI BOURGEOIS 1 5L EA 1.5L/EA"},{"c":"","s":"","b":"Domaine Mia Mercurey Les Caudroyes BT","g":"","cf":"","sc":0,"n":""},{"c":"","s":"","b":"Fattori Gregoris Pinot Grigio BT","g":"","cf":"","sc":0.45,"n":"WW WW PINOT GRIGIO JERMANN BT 750ML/EA"},{"c":"","s":"","b":"Chantegrive Caroline 17 BT","g":"","cf":"","sc":0.35,"n":"WW CHANTEGRIVE GRAVES 2016 FR BT 750ML/EA"},{"c":"","s":"","b":"Colonia Chard BT","g":"","cf":"","sc":0.33,"n":"WW TERRAZAS CHARDONNAY MENDOZA ARGENTINA 2023 750ML/EA"},{"c":"","s":"","b":"JC Chard Res BT","g":"","cf":"","sc":0,"n":""},{"c":"","s":"","b":"Albarino P d S BT","g":"","cf":"","sc":0.3,"n":"CHAMPAGNE CHAMPAGNE NOWACK S A LA TUILLERIRE 2012 FRA750ML EA 750ML/EA"},{"c":"","s":"","b":"Anakena Sauvignon Blc BT","g":"","cf":"","sc":0.42,"n":"WW WW SANTA JULIA SAUVIGNON BLANC MENDOZA EA 750ML/EA"},{"c":"","s":"","b":"Batard Bleroux 18 BT","g":"","cf":"","sc":0,"n":""},{"c":"","s":"","b":"Bramito Chardonnay BT","g":"","cf":"","sc":0.33,"n":"WW TERRAZAS CHARDONNAY MENDOZA ARGENTINA 2023 750ML/EA"},{"c":"","s":"","b":"Brocard Bougros BT","g":"","cf":"","sc":0,"n":""},{"c":"","s":"","b":"Verite Desir 1.5 BT","g":"","cf":"","sc":0,"n":""},{"c":"","s":"","b":"Vietti Perbacco Nebbiolo BT","g":"","cf":"","sc":0,"n":""},{"c":"","s":"","b":"Yon Figeac BT","g":"","cf":"","sc":0,"n":""},{"c":"","s":"","b":"Zenato Ripasso BT","g":"","cf":"","sc":0,"n":""},{"c":"","s":"","b":"Zuccardi Jose Malbec BT","g":"","cf":"","sc":0.34,"n":"WW ZUCCARDI SERIE A TORRONTES MENDOZA ARGENTINA 2024 750ML/EA"},{"c":"","s":"","b":"Whispering Angel 1.5l BT","g":"","cf":"","sc":0,"n":""},{"c":"","s":"","b":"Alie Ammiriglia Rose BT","g":"","cf":"","sc":0,"n":""},{"c":"","s":"","b":"Dassai 45 360ml BT","g":"","cf":"","sc":0.34,"n":"SAKE DASSAI 23 JUNMAI DAIGINJO YAMAGUCHI 300ML/EA"},{"c":"","s":"","b":"Ivy Rose BT","g":"","cf":"","sc":0,"n":""},{"c":"","s":"","b":"Miraval 1.5 BT","g":"","cf":"","sc":0.37,"n":"RSW MIRAVAL COTES DE PROVENCE FRANCE 2023 750ML/EA"},{"c":"","s":"","b":"Mongeard-Mugneret Bourgogn Rose BT","g":"","cf":"","sc":0,"n":""},{"c":"","s":"","b":"Whispering AngelBT","g":"","cf":"","sc":0,"n":""},{"c":"","s":"","b":"Hidalgo 30 Cuadrado BT","g":"","cf":"","sc":0,"n":""},{"c":"","s":"","b":"SQN Dirt Vernacular BT","g":"","cf":"","sc":0,"n":""},{"c":"","s":"","b":"Ten Minutes Pn BT","g":"","cf":"","sc":0.39,"n":"RW RW ERATH PINOT NOIR EA 750ML/EA"},{"c":"","s":"","b":"Tertio Montrose BT","g":"","cf":"","sc":0.31,"n":"WW MONT CHAUVE CHASSAGNE MONTRACHET LES MACHERELLES 2020 750ML/EA"},{"c":"","s":"","b":"Turriga BT","g":"","cf":"","sc":0,"n":""},{"c":"","s":"","b":"Valbuena Magnum BT","g":"","cf":"","sc":0,"n":""},{"c":"","s":"","b":"Rosso Di Val BT","g":"","cf":"","sc":0.36,"n":"RW RW LE MACCHIOLE BOLGHERI ROSSO 2022 ITA EA 750ML/EA"},{"c":"","s":"","b":"Ruth Hill Merlot, Napa BT","g":"","cf":"","sc":0.33,"n":"RW RW CHALKBOARD MERLOT CHALKBOARD BT 750ML/EA"},{"c":"","s":"","b":"Rw Valbuena 2018 BT","g":"","cf":"","sc":0,"n":""},{"c":"","s":"","b":"Shafer Hill Stags Leap Dist BT","g":"","cf":"","sc":0,"n":""},{"c":"","s":"","b":"Shiraz Woodcut BT","g":"","cf":"","sc":0.36,"n":"RW PENFOLDS ST HENRI SHIRAZ SOUTH AUSTRALIA 2018 750ML/EA"},{"c":"","s":"","b":"Perrin Gigondas Tourelles BT","g":"","cf":"","sc":0,"n":""},{"c":"","s":"","b":"Petrus 2013 BT","g":"","cf":"","sc":0,"n":""},{"c":"","s":"","b":"PM Charmes BT","g":"","cf":"","sc":0.33,"n":"CHAMPAGNE CHAMPAGNE CHAR TAILLET ST ANNE FRA BT 750ML/EA"},{"c":"","s":"","b":"Prieur Feguine BT","g":"","cf":"","sc":0.37,"n":"WW DOMAINE JACQUES PRIEUR MONTRACHET GRAND CRU 2018 750ML/EA"},{"c":"","s":"","b":"Prunotto Barbar 19 BT","g":"","cf":"","sc":0.34,"n":"RW PRUNOTTO SECONDINE 2018 ITL BT 750ML/EA"},{"c":"","s":"","b":"Prunotto Bussia BT","g":"","cf":"","sc":0.44,"n":"RW PRUNOTTO SECONDINE 2018 ITL BT 750ML/EA"},{"c":"","s":"","b":"Radici Taurasi BT","g":"","cf":"","sc":0,"n":""},{"c":"","s":"","b":"Ridge Monte Bello BT","g":"","cf":"","sc":0,"n":""},{"c":"","s":"","b":"Muga Crianza BT","g":"","cf":"","sc":0.43,"n":"RW RW RIOJA CRIANZA CUNE EA 750ML/EA"},{"c":"","s":"","b":"Murrieta Ygay 2009 BT","g":"","cf":"","sc":0,"n":""},{"c":"","s":"","b":"Ogier Cdr BT","g":"","cf":"","sc":0,"n":""},{"c":"","s":"","b":"Opus One 1.5 BT","g":"","cf":"","sc":0.56,"n":"RW OPUS ONE NAPA VALLEY 2018 750ML/EA"},{"c":"","s":"","b":"Ovilos Red BT","g":"","cf":"","sc":0.37,"n":"RW THE PRISONER RED BLEND CALIFORNIA 2021 750ML/EA"},{"c":"","s":"","b":"Dezzani Barbaresco BT","g":"","cf":"","sc":0.38,"n":"RW MARCHESI DI GRESY MARTINENGA BARBARESCO 2018 750ML/EA"},{"c":"","s":"","b":"Domaine de la Vougeraie, Gevrey-Chambertin BT","g":"","cf":"","sc":0.36,"n":"WW DOMAINE DE LA VOUGERAIE CHASSAGNE MONTRACHET MORGEOT 2021 750ML/EA"},{"c":"","s":"","b":"Esporao Reserva BT","g":"","cf":"","sc":0.45,"n":"RW PE TINTO ALENTEJO ESPORAO PRT BT 750ML/EA"},{"c":"","s":"","b":"Fiore Di No BT","g":"","cf":"","sc":0.32,"n":"CHAMPAGNE LAURENT PERRIER BRUT GRAND SIECLE ITERATION NO 27 750ML/EA"},{"c":"","s":"","b":"Gaja Promis 1.5L BT","g":"","cf":"","sc":0.67,"n":"RW GAJA CA MARCANDA PROMIS TUSCANY ITALY 2022 750ML/EA"},{"c":"","s":"","b":"Haras de Pirque Hussonet BT","g":"","cf":"","sc":0,"n":""},{"c":"","s":"","b":"Hend Bl 7&22 Zinf BT","g":"","cf":"","sc":0,"n":""},{"c":"","s":"","b":"Katsaros Xinomavro BT","g":"","cf":"","sc":0,"n":""},{"c":"","s":"","b":"Lapostolle Apalta BT","g":"","cf":"","sc":0.36,"n":"RW RW MERLOT CUVEE ALEXANDRE LAPOSTOLLE BT 750ML/EA"},{"c":"","s":"","b":"L'Arlot Chapeau '17 BT","g":"","cf":"","sc":0,"n":""},{"c":"","s":"","b":"MM Aux Gravains BT","g":"","cf":"","sc":0,"n":""},{"c":"","s":"","b":"Montille Clos du Roi BT","g":"","cf":"","sc":0,"n":""},{"c":"","s":"","b":"Cosetti Barbera d'Asti BT","g":"","cf":"","sc":0,"n":""},{"c":"","s":"","b":"Cosred 2020 BT","g":"","cf":"","sc":0,"n":""},{"c":"","s":"","b":"Chamirey Mercury BT","g":"","cf":"","sc":0,"n":""},{"c":"","s":"","b":"Chateau Lalande Borie BT","g":"","cf":"","sc":0,"n":""},{"c":"","s":"","b":"Castello di Brolio 2015 BT","g":"","cf":"","sc":0.32,"n":"RW RW CASTELLO DI ALBOLA CHIANTI CLASSICO ITA EA 750ML/EA"},{"c":"","s":"","b":"2016 Fattoria Poggio di Sotto Brunello BT","g":"","cf":"","sc":0,"n":""},{"c":"","s":"","b":"Amelia Pinot BT","g":"","cf":"","sc":0.3,"n":"RW RW PINOTAGE KANONKOP EA 750ML/EA"},{"c":"","s":"","b":"Antinori Tignanelo BT","g":"","cf":"","sc":0.4,"n":"RW ANTINORI SOLAIA 2011 750ML/EA"},{"c":"","s":"","b":"Araujo Altagracia '16 BT","g":"","cf":"","sc":0,"n":""},{"c":"","s":"","b":"Bodegas Caro, Caro , Mendoza BT","g":"","cf":"","sc":0,"n":""},{"c":"","s":"","b":"Kit'S Coty BT","g":"","cf":"","sc":0,"n":""},{"c":"","s":"","b":"Mas Candi Brut BT","g":"","cf":"","sc":0.32,"n":"DW MAURY DOUX EXPRESSION MAS LAVAIL FRANCE BT 750ML/EA"},{"c":"","s":"","b":"Moet & Chandon Brut 12L BT","g":"","cf":"","sc":0.9,"n":"CHAMPAGNE MOET CHANDON BRUT IMPERIAL FRANCE 750ML/EA"},{"c":"","s":"","b":"Moet & Chandon Brut 9L BT","g":"","cf":"","sc":0.9,"n":"CHAMPAGNE MOET CHANDON BRUT IMPERIAL FRANCE 750ML/EA"},{"c":"","s":"","b":"Nino Franco Prosecco 750ML BT","g":"","cf":"","sc":0,"n":""},{"c":"","s":"","b":"Roederer Quarter BT","g":"","cf":"","sc":0.34,"n":"CHAMPAGNE LOUIS ROEDERER BRUT CRISTAL 2016 750ML/EA"},{"c":"","s":"","b":"Rustico Prosecco BT","g":"","cf":"","sc":0.39,"n":"SPK SOFFIO PROSECCO EXTRA DRY ITALY 2024 750ML/EA"},{"c":"","s":"","b":"Taillet Chemin BT","g":"","cf":"","sc":0.38,"n":"CHAMPAGNE CHAMPAGNE CHAR TAILLET ST ANNE FRA BT 750ML/EA"},{"c":"","s":"","b":"Veuve CliquotRose 1.5L BT","g":"","cf":"","sc":0.34,"n":"CHAMPAGNE VEUVE CLIQUOT BRUT ROSE 750ML/EA"},{"c":"","s":"","b":"Veuve Yellow Magnum Champagne BT","g":"","cf":"","sc":0.57,"n":"CHAMPAGNE VEUVE CLIQUOT BRUT YELLOW LABEL 750ML/EA"},{"c":"","s":"","b":"Dom Perignon Luminous 3L BT","g":"","cf":"","sc":0.66,"n":"CHAMPAGNE DOM PERIGNON BRUT 2015 750ML/EA"},{"c":"","s":"","b":"Domaine Cameros, Brut Rose, Cuvee De La Pompadour, Los Camero BT","g":"","cf":"","sc":0,"n":""},{"c":"","s":"","b":"Gramona LII Lustros BT","g":"","cf":"","sc":0,"n":""},{"c":"","s":"","b":"Dom Luminos BT","g":"","cf":"","sc":0.41,"n":"CHAMPAGNE CARBON BRUT LUMINOUS 1.5L/EA"},{"c":"","s":"","b":"Banfi Rosa Regale BT","g":"","cf":"","sc":0,"n":""},{"c":"","s":"","b":"Bisol Prosecco BT","g":"","cf":"","sc":0.39,"n":"SPK SOFFIO PROSECCO EXTRA DRY ITALY 2024 750ML/EA"},{"c":"","s":"","b":"Bollinger Brut 1.5L BT","g":"","cf":"","sc":0.68,"n":"CHAMPAGNE BOLLINGER BRUT ROSE 750ML/EA"}];
+function mmKey(s){return foldS(String(s||'')).replace(/\s+/g,' ').trim();}
+function mmInit(c){
+  if(c.mm&&c.mm.rows)return c.mm;
+  var byCode={}, bySheet={};
+  c.inv.forEach(function(it){if(it.code)byCode[String(it.code)]=it; if(it.sheet)bySheet[mmKey(it.sheet)]=it;});
+  var rows=(todoOwner(c)==='sofia'?MMSEED:[]).map(function(x){
+    var it=(x.c&&byCode[x.c])||(x.s&&bySheet[mmKey(x.s)])||null;
+    return {id:uid(),bt:x.b||'',gl:x.g||'',sid:it?it.id:'',conf:it?(x.cf||'Manual'):'',sc:x.sc||0,near:x.n||''};
+  });
+  c.mm={rows:rows}; return c.mm;
+}
+/* ---------- producer guard: a Micros name may only link to a stock wine of the same producer ---------- */
+var MMGEN={}; "1er africa al alcoholic amarone and aoc aperitif argentina argentino australia bar barbaresco barolo bianco blanc blancs bodega bodegas bordeaux bourgogne brut bt burgundy by cab cabernet cantina cellar cellars ch champagne chard chardonnay chateau chianti chile cl classic classica classico cm cny collection cru cuvee de dei del della delle demi des di doc docg dom domaine domaines doux du ea edition el esp espana estate estates et extra family fra france germany gewurztraminer gl glass gran grand grande grands grenache grigio gris igp igt ital italia italy la las le les limited los lt lumino luminous maison malbec mendoza merlot mga ml mv napa nebbiolo new noir noirs non nv nz of old per piedmont pinot premier red reg reserva reserve ries riesling riserva ros rosato rose rosso rouge rw sake sangiovese sauv sauvignon sec selection shiraz single sonoma south sp spain sparkling special sup superior superiore syrah tempranillo tenuta the toscana tuscany usa valley vd vieilles vigne vin vines vineyard vineyards vino vins vintage white wine winery wines ww zealand".split(' ').forEach(function(w){MMGEN[w]=1;});
+function mmDist(s){return (foldS(s).match(/[a-z0-9]+/g)||[]).filter(function(w){return w.length>=3&&!/\d/.test(w)&&!MMGEN[w];});}
+function mmTokEq(a,b){if(a===b)return true; if(a.length>=4&&b.length>=4&&(a.indexOf(b)===0||b.indexOf(a)===0))return true; var n=Math.max(a.length,b.length); if(n<5)return false; return lev(a,b)<=(n>=8?2:1);}
+function mmProducerOk(micros,stock){
+  var A=mmDist(micros), B=mmDist(stock); if(!A.length||!B.length)return true; var j=B.join('');
+  return A.some(function(a){return (a.length>=5&&j.indexOf(a)>=0)||B.some(function(b){return mmTokEq(a,b);});});
+}
+function mmSc(q,n,W){var v=scoreName(q,n,W); return mmProducerOk(q,n)?v:Math.min(v,0.25);}
+function mmNames(r){return String((r.bt||'')+' | '+(r.gl||'')).split(/\s\|\s/).map(function(x){return x.trim();}).filter(Boolean);}
+function mmWrong(c){
+  var out=[]; ((c.mm&&c.mm.rows)||[]).forEach(function(r){var it=mmItem(c,r.sid); if(!it||r.conf==='Manual')return; var st=it.sheet||it.name; mmNames(r).forEach(function(n){if(!mmProducerOk(n,st))out.push({row:r,name:n,it:it});});});
+  return out;
+}
+function mmUnlinkName(c,w){
+  var r=w.row, strip=function(v){return String(v||'').split(/\s\|\s/).map(function(x){return x.trim();}).filter(function(x){return x&&x!==w.name;}).join(' | ');};
+  var isGl=mmNames({bt:'',gl:r.gl}).indexOf(w.name)>=0&&mmNames({bt:r.bt,gl:''}).indexOf(w.name)<0;
+  r.bt=strip(r.bt); r.gl=strip(r.gl);
+  c.mm.rows.push({id:uid(),bt:isGl?'':w.name,gl:isGl?w.name:'',sid:'',conf:'',sc:0,near:w.it.sheet||w.it.name||'',mn:''});
+}
+function mmItem(c,sid){return sid?(c.inv.filter(function(i){return i.id===sid;})[0]||null):null;}
+function mmFind(c,raw){
+  if(!c.mm||!c.mm.rows)return null; var k=mmKey(raw); if(!k)return null;
+  var r=c.mm.rows.filter(function(x){return x.sid&&(mmKey(x.bt)===k||mmKey(x.gl)===k);})[0];
+  return r?mmItem(c,r.sid):null;
+}
+function mmStats(c){
+  var m=mmInit(c), used={}, ok=0, todo=0;
+  m.rows.forEach(function(r){var it=mmItem(c,r.sid); if(it){ok++; used[it.id]=1;} else todo++;});
+  var nom=c.inv.filter(function(i){return !used[i.id];}).length;
+  return {ok:ok,todo:todo,nom:nom,used:used};
+}
+function mmList(c){
+  var m=mmInit(c), st=mmStats(c), out=[];
+  m.rows.forEach(function(r){var it=mmItem(c,r.sid); out.push({key:r.id,row:r,it:it,st:it?((r.conf==='High'||r.conf==='Manual')?'ok':'check'):'nostock'});});
+  c.inv.forEach(function(it){if(!st.used[it.id])out.push({key:'v'+it.id,row:null,it:it,st:'nomicros'});});
+  return out;
+}
+var MMF='all';
+function mmLabel(st){return {ok:['High','ok'],check:['Check','md'],nostock:['No stock','no'],nomicros:['No Micros','no']}[st];}
+function mmCard(box,x,id){
+  var d=el('button','mmr'); d.type='button';
+  var l=mmLabel(x.st); d.appendChild(el('span','mmst '+l[1],x.st==='ok'&&x.row&&x.row.conf==='Manual'?'Set':l[0]));
+  function ln(k,v,empty){var r=el('div','mml'); r.appendChild(el('span','mmk',k)); r.appendChild(el('span',v?'mmv':'mmv mme',v||empty)); d.appendChild(r);}
+  var bt=x.row?[x.row.bt,x.row.gl].filter(Boolean).join('  ·  '):'';
+  ln('MICROS',bt,'tap to choose');
+  ln('STOCK',x.it?(x.it.sheet||'(no stock name)'):'',x.row&&x.row.near?'closest: '+x.row.near:'tap to choose');
+  ln('MENU',x.it?x.it.name:(x.row&&x.row.mn||''),'—');
+  d.addEventListener('click',function(){modGo('match',x.key);});
+  box.appendChild(d);
+}
+/* ---------- Reminders / order lists (every manager with stock) ---------- */
+function modOK(k,id){var m=MODS[k]; return !!m&&(m.who===id||(m.all&&byId[id]&&stkUI(byId[id])));}
+function todoOwner(c){var r=''; Object.keys(S.chats).forEach(function(i){if(S.chats[i]===c)r=i;}); return r;}
+function todoOpenN(c){return (c.todo||[]).filter(function(l){return l.items.some(function(x){return !x.d;});}).length;}
+function todoNew(c,title,names,remind){
+  var items=names.map(function(t){return {id:uid(),t:String(t).trim(),d:0};}).filter(function(x){return x.t;}); if(!items.length)return null;
+  c.todo=c.todo||[]; var l={id:uid(),title:(title||'Order list').trim()||'Order list',ts:Date.now(),remind:remind!==false,last:'',items:items}; c.todo.unshift(l); return l;
+}
+function remStart(t){
+  var tt=String(t), d=tdy();
+  if(/\b(tomorrow|yar[ıi]n)\b/i.test(tt))return addDays(d,1);
+  if(/\b(before|until|till|by)\s+\d/i.test(tt))return '';
+  var x=null; try{x=parseDateAny(tt,true);}catch(e){x=null;} return (x&&x>d)?x:'';
+}
+function remBlocks(txt){ /* blank line = new reminder */
+  var out=[], cur=[]; String(txt||'').split('\n').forEach(function(l){ if(!l.trim()){if(cur.length)out.push(cur.join('\n')); cur=[];} else cur.push(l.trim()); }); if(cur.length)out.push(cur.join('\n')); return out;
+}
+function remAdd(c,text){var r={id:uid(),text:text,ts:Date.now(),start:remStart(text),last:'',state:'open',done:0}; if(!r.start)r.last=tdy(); c.rem=c.rem||[]; c.rem.push(r); return r;}
+function remBubbles(id){
+  var c=S.chats[id]; if(!c||!c.rem)return 0; var t=tdy(), due=c.rem.filter(function(r){return r.state==='open'&&(r.start||'')<=t&&r.last!==t;}); if(!due.length)return 0;
+  due.forEach(function(r,k){push(id,{from:'bot',who:id,text:'Reminder '+(k+1)+' of '+due.length+'\n'+r.text,rem:r.id}); r.last=t;}); return due.length;
+}
+function todoPoke(){
+  var t=tdy(), any=false;
+  Object.keys(S.chats).forEach(function(id){
+    var c=S.chats[id], a=byId[id]; if(!c||!a)return;
+    if(remBubbles(id))any=true;
+    if(!c.todo||!c.todo.length)return;
+    var due=c.todo.filter(function(l){return l.remind&&l.last!==t&&l.items.some(function(x){return !x.d;});}); if(!due.length)return;
+    due.forEach(function(l){
+      var left=l.items.filter(function(x){return !x.d;}), names=left.slice(0,6).map(function(x){return x.t;}).join(', ')+(left.length>6?' and '+(left.length-6)+' more':'');
+      push(id,{from:'bot',who:id,text:'Atakan, reminder: '+left.length+' of '+l.items.length+' still not ordered on “'+l.title+'”: '+names+'. Tap the list when you have ordered them.',sug:[{label:'Open reminders',text:'open reminders'}]});
+      l.last=t; any=true;
+    });
+  });
+  if(any){save(); try{if(cur&&cur!=='team')refreshChat(cur); else if(!cur)renderList();}catch(e){}}
+}
+/* ---------- chat matching: "matching" + product names, one card each ---------- */
+function mcLookup(c,q){
+  var W=idfWeights(c.inv), qq=microsClean(q), out=[], seen={};
+  function add(it,sc,how){if(!it||seen[it.id])return; seen[it.id]=1; out.push({it:it,sc:sc,how:how});}
+  var qs=String(q).trim();
+  c.inv.forEach(function(i){if(i.code&&String(i.code)===qs)add(i,1,'code');});
+  if(c.micros&&c.micros[qs])add(mmItem(c,c.micros[qs]),1,'micros');
+  var rows=(c.mm&&c.mm.rows)||[];
+  rows.forEach(function(r){if(!r.sid)return; var k=mmKey(q); if(k&&(mmKey(r.bt)===k||mmKey(r.gl)===k))add(mmItem(c,r.sid),1,'name');});
+  var rk=[];
+  c.inv.forEach(function(x){var a=x.sheet?mmSc(qq,microsClean(x.sheet),W):0, b=mmSc(qq,microsClean(x.name),W); rows.forEach(function(r){if(r.sid===x.id){a=Math.max(a,r.bt?mmSc(qq,microsClean(r.bt),W):0,r.gl?mmSc(qq,microsClean(r.gl),W):0);}}); var sc=Math.max(a,b); if(sc>=0.3)rk.push({it:x,sc:sc});});
+  rk.sort(function(a,b){return b.sc-a.sc;}).slice(0,5).forEach(function(x){add(x.it,x.sc,'near');});
+  return out.slice(0,5);
+}
+function mcMake(c,q){
+  var cs=mcLookup(c,q), best=cs[0], st=!best?'none':(best.sc>=0.9?'found':(best.sc>=0.5?'maybe':'none'));
+  return {q:q,st:st,sid:(st==='none'||!best)?'':best.it.id,c:cs.map(function(x){return x.it.id;}),near:(st==='none'&&best)?(best.it.sheet||best.it.name):''};
+}
+function handleMatchCmd(a,c,id,text,lines){
+  var m=(lines[0]||'').trim().match(/^match(?:ing)?\b\s*(:)?\s*(.*)$/i); if(!m)return null;
+  var items=[]; lines.slice(1).forEach(function(x){x=x.replace(/^[\-•*\d.)\s]+/,'').trim(); if(x)items.push(x);});
+  if(!items.length&&m[2]){ if(/^(wines?|a wine|this|these|that|food|dish|dishes|pairing|with|for|to|the|my)\b/i.test(m[2])&&!m[1])return null; m[2].split(/\s*;\s*/).forEach(function(x){if(x.trim())items.push(x.trim());});}
+  else if(m[2]&&items.length)items.unshift(m[2].trim());
+  if(!items.length)return [{text:'Write the product after \u201cmatching\u201d, for example:\nmatching Don Julio Blanco\n\nOr several, one per line.'}]; mmInit(c);
+  var out=[{text:'I looked at '+items.length+' product'+(items.length===1?'':'s')+'. Check each card. Tap “Right” to keep it, or Edit to change a name.'}];
+  items.slice(0,30).forEach(function(q,k){out.push({text:(k+1)+' of '+Math.min(items.length,30)+' · '+q,mc:mcMake(c,q)});});
+  return out;
+}
+function mcUI(d,m){
+  var id=cur, c=S.chats[id], x=m.mc; if(!c||!x)return; var m2=mmInit(c), it=mmItem(c,x.sid);
+  var rows=it?m2.rows.filter(function(r){return r.sid===it.id;}):[], bt=rows.map(function(r){return r.bt;}).filter(Boolean), gl=rows.map(function(r){return r.gl;}).filter(Boolean);
+  var codes=[]; if(it&&c.micros)Object.keys(c.micros).forEach(function(k){if(c.micros[k]===it.id)codes.push(k);});
+  var tag=el('span','mctag '+(x.st==='found'||x.st==='done'?'g':x.st==='maybe'?'y':'r'),{found:'Found',maybe:'Did you mean this?',none:'Not found',done:'✓ Kept',skip:'Skipped'}[x.st]||''); d.insertBefore(tag,d.firstChild);
+  var box=el('div','mcb');
+  function ln(k,v){var r=el('div','mcl'); r.appendChild(el('span','mck',k)); r.appendChild(el('span','mcv',v)); box.appendChild(r);}
+  if(it){ln('MICROS BT',bt.join(', ')||'–'); ln('MICROS GL',gl.join(', ')||'–'); if(codes.length)ln('MICROS CODE',codes.join(', ')); ln('STOCK',(it.sheet||'(no stock name)')+(it.code?' · '+it.code:'')); ln('MENU',it.name||'–'); if(gl.length)box.appendChild(el('div','sd','Bottle and glass both come off this stock.'));}
+  else if(x.near)ln('CLOSEST','Not sure: '+x.near);
+  d.appendChild(box);
+  var b=el('div','btns'); function ref(){save(); refreshChat(id);}
+  if(x.st==='done'||x.st==='skip'){}
+  else{
+    if(it)b.appendChild(mkBtn('✓ Right','',function(){CHGSRC='Chat matching'; if(!rows.length)m2.rows.push({id:uid(),bt:x.q,gl:'',sid:it.id,conf:'Manual',sc:0,near:'',mn:''}); x.st='done'; save(); CHGSRC=''; refreshChat(id);}));
+    if(it)b.appendChild(mkBtn('Edit','ghost sm',function(){location.hash=id+'-match-'+(rows[0]?rows[0].id:'v'+it.id);}));
+    if(x.c.length>(it?1:0))b.appendChild(mkBtn('Other','ghost sm',function(){x.open=!x.open; ref();}));
+    if(!it)b.appendChild(mkBtn('Add as new wine','ghost sm',function(){var r={id:uid(),bt:x.q,gl:'',sid:'',conf:'',sc:0,near:'',mn:x.q}; CHGSRC='Chat matching'; m2.rows.push(r); x.st='skip'; save(); CHGSRC=''; location.hash=id+'-match-'+r.id;}));
+    b.appendChild(mkBtn('Skip','ghost sm',function(){x.st='skip'; ref();}));
+  }
+  d.appendChild(b);
+  if(x.open&&x.st!=='done'){var o=el('div','btns'); x.c.forEach(function(sid){var i2=mmItem(c,sid); if(!i2||i2===it)return; o.appendChild(mkBtn((i2.sheet||i2.name),'ghost sm',function(){x.sid=sid; x.st='maybe'; x.open=false; ref();}));}); d.appendChild(o);}
+}
+function remBubbleUI(d,m){
+  var c=S.chats[cur], r=c&&(c.rem||[]).filter(function(x){return x.id===m.rem;})[0]; if(!r)return;
+  var lastM=null; c.msgs.forEach(function(x){if(x.rem===m.rem)lastM=x;});
+  var row=el('div','btns');
+  if(r.state==='done'){d.style.opacity='.6'; row.appendChild(el('span','cdn','✓ Done '+fmtTime(r.done)));}
+  else if(r.state==='stop')row.appendChild(el('span','cdn','Reminder stopped'));
+  else if(lastM!==m)row.appendChild(el('span','cdn','Earlier reminder'));
+  else if(r.snoozed===tdy())row.appendChild(el('span','cdn','Tomorrow: I will remind you again.'));
+  else{
+    var ref=function(){save(); refreshChat(cur); renderList();};
+    row.appendChild(mkBtn('✓ Done','',function(){r.state='done'; r.done=Date.now(); ref();}));
+    var tm=mkBtn('Tomorrow','ghost sm',function(){r.last=tdy(); r.snoozed=tdy(); ref();}); row.appendChild(tm);
+    row.appendChild(mkBtn('Stop','ghost sm',function(){r.state='stop'; ref();}));
+  }
+  d.appendChild(row);
+}
+function remCreate(id,blocks,who){
+  var c=S.chats[id]; blocks.forEach(function(b){remAdd(c,b);}); save(); return blocks.length;
+}
+function remParse(text){ /* returns {blocks, who:[{name,blocks}]} */
+  var lines=String(text).split('\n'), f=lines[0].trim(), m=f.match(/^(?:remind me(?: to)?|reminders?|hatırlat)\b[\s:,\-]*(.*)$/i); if(!m)return null;
+  var rest=[m[1]].concat(lines.slice(1)).join('\n'); return {body:rest};
+}
+function teamRemind(text){
+  var p=remParse(text); if(!p)return null; var curw=null, groups={}, order=[], bad=[];
+  remBlocks(p.body).forEach(function(b){
+    var mm=b.match(/^@([A-Za-zÀ-ſ]+)\s*([\s\S]*)$/);
+    if(mm){var nm=mm[1].toLowerCase(), a=A.filter(function(x){return x.name.toLowerCase()===nm||x.id===nm;})[0]; if(!a){bad.push(mm[1]); curw=null; return;} curw=a.id; b=mm[2].trim(); if(!b)return;}
+    if(!curw)return; if(!groups[curw]){groups[curw]=[]; order.push(curw);} groups[curw].push(b);
+  });
+  var out=[];
+  order.forEach(function(id){var n=remCreate(id,groups[id]); out.push({who:id,text:'Got it, Atakan. '+n+' reminder'+(n===1?'':'s')+' for me. I will remind you in my chat every day until you tick '+(n===1?'it':'them')+'.'});});
+  if(bad.length)out.push({who:'elena',text:'I do not know '+bad.map(function(x){return '@'+x;}).join(', ')+'. Use @Sofia, @Marco, @James, @Elena or @Omar.'});
+  if(!out.length)out.push({who:'elena',text:'Write who should remind you, for example:\nremind me\n@James\nSend the supplier a mail\n\n@Marco\nCheck the truffle order'});
+  return out;
+}
+function handleTodoCmd(a,c,id,text,lines){
+  var f=(lines[0]||'').trim();
+  if(/^open (reminders?|order lists?|my lists?)\b/i.test(f)){location.hash=id+'-todo'; return [{text:'Opening your reminders.'}];}
+  var rp=remParse(text);
+  if(rp){var bl=remBlocks(rp.body); if(!bl.length)return [{text:'Tell me what to remind you about. A blank line starts a new reminder, for example:\nremind me\nSend the supplier a mail about the late delivery\n\nCount the champagne fridge before Friday'}];
+    var n=remCreate(id,bl); return [{text:'Done, Atakan. I made '+n+' reminder'+(n===1?'':'s')+'. I will remind you here every day until you tick '+(n===1?'it':'them')+'.',sug:[{label:'Open reminders',text:'open reminders'}]}];}
+  var m=f.match(/^(?:order\s*list|orders?|sipariş(?: listesi)?)\b[\s:,\-]*(.*)$/i); if(!m)return null;
+  var items=[], rest=m[1].trim(); if(rest)rest.split(/\s*[;,]\s*/).forEach(function(x){if(x.trim())items.push(x.trim());});
+  lines.slice(1).forEach(function(x){x=x.replace(/^[\-•*\d.)\s]+/,'').trim(); if(x)items.push(x);});
+  if(!items.length)return [{text:'Tell me the items, one per line, for example:\norder list\nAce of Spades Gold\nRuinart Blanc de Blancs\n\nI will remind you every day until you tick them off.'}];
+  var l=todoNew(c,'Order list',items,true); save();
+  return [{text:'Done, Atakan. I made “'+l.title+'” with '+items.length+' item'+(items.length===1?'':'s')+'. I will remind you every day until you tick them all as ordered.',sug:[{label:'Open reminders',text:'open reminders'}]}];
+}
+var TODOED={};
+MODS.todo={all:1,title:'Reminders',render:function(id,sub,box){
+  var c=S.chats[id]; c.todo=c.todo||[];
+  (function(){
+    var nr=el('div','card'); nr.appendChild(el('h3',null,'New reminder'));
+    var rt=el('textarea','fi'); rt.rows=4; rt.placeholder='Write it here. Leave a blank line to start another reminder. Say \u201ctomorrow\u201d to start tomorrow.'; rt.setAttribute('aria-label','New reminder'); rt.style.padding='10px'; nr.appendChild(rt);
+    var rb=el('div','btns'); rb.appendChild(mkBtn('Add reminder','',function(){var bl=remBlocks(rt.value); if(!bl.length){toast('Write something first.'); return;} remCreate(id,bl); toast(bl.length+' reminder'+(bl.length===1?'':'s')+' added.'); renderMod();})); nr.appendChild(rb); box.appendChild(nr);
+  })();
+  (function(){
+    var rs=(c.rem||[]).slice().sort(function(x,y){return (x.state==='open'?0:1)-(y.state==='open'?0:1);});
+    if(!rs.length)return; var hh=el('div',null,'REMINDERS'); hh.style.cssText='margin:14px 16px 6px;font-weight:700;font-size:12px;letter-spacing:.06em;color:var(--muted)'; box.appendChild(hh);
+    rs.forEach(function(r){
+      var cd=el('div','card'), ed=!!TODOED[r.id]; cd.style.opacity=r.state==='open'?'1':'.65';
+      var tg=r.state==='done'?'Done '+fmtTime(r.done):r.state==='stop'?'Stopped':(r.start&&r.start>tdy()?'Starts '+dmyShort(r.start):'Every day until done');
+      cd.appendChild(el('div','sd',tg));
+      if(ed){var ta=el('textarea','fi'); ta.rows=3; ta.value=r.text; ta.style.cssText='margin-top:6px;padding:10px'; ta.setAttribute('aria-label','Reminder text'); ta.addEventListener('change',function(){var v=ta.value.trim(); if(v){r.text=v; save();} else ta.value=r.text;}); cd.appendChild(ta);}
+      else{var tx=el('div','tdt',r.text); tx.style.cssText='margin-top:6px;white-space:pre-line;line-height:1.4'+(r.state==='done'?';text-decoration:line-through':''); cd.appendChild(tx);}
+      var bb=el('div','btns'); bb.style.marginTop='10px';
+      if(r.state==='open')bb.appendChild(mkBtn('✓ Done','',function(){r.state='done'; r.done=Date.now(); save(); renderMod();}));
+      else bb.appendChild(mkBtn('Reopen','ghost sm',function(){r.state='open'; r.last=''; save(); renderMod();}));
+      bb.appendChild(mkBtn(ed?'Done editing':'Edit','ghost sm',function(){TODOED[r.id]=!ed; renderMod();}));
+      if(r.state==='open')bb.appendChild(mkBtn('Stop','ghost sm',function(){r.state='stop'; save(); renderMod();}));
+      bb.appendChild(mkBtn('Delete','ghost sm',function(){confirm3({title:'Delete reminder',steps:['Delete this reminder?','Are you sure?','Last question. Delete it?'],yes:'Delete'},function(){c.rem=c.rem.filter(function(y){return y!==r;}); save(); renderMod();});}));
+      cd.appendChild(bb); box.appendChild(cd);
+    });
+    var h2=el('div',null,'ORDER LISTS'); h2.style.cssText='margin:18px 16px 6px;font-weight:700;font-size:12px;letter-spacing:.06em;color:var(--muted)'; box.appendChild(h2);
+  })();
+  var nc=el('div','card'); nc.appendChild(el('h3',null,'New order list (ticks)'));
+  var ti=el('input','fi'); ti.type='text'; ti.placeholder='Name, for example Order wines'; ti.setAttribute('aria-label','List name'); ti.style.cssText='margin-bottom:8px'; nc.appendChild(ti);
+  var ta=el('textarea','fi'); ta.rows=4; ta.placeholder='One item per line'; ta.setAttribute('aria-label','Items, one per line'); ta.style.cssText='padding:10px'; nc.appendChild(ta);
+  var rl=el('label','tdrem'); var cb=el('input'); cb.type='checkbox'; cb.checked=true; rl.appendChild(cb); rl.appendChild(document.createTextNode(' Remind me every day until everything is ticked')); nc.appendChild(rl);
+  var ab=el('div','btns'); ab.appendChild(mkBtn('Add list','',function(){var l=todoNew(c,ti.value,ta.value.split('\n').map(function(x){return x.replace(/^[\-•*\d.)\s]+/,'');}),cb.checked); if(!l){toast('Write at least one item.'); return;} l.last=tdy(); save(); renderMod();})); nc.appendChild(ab); box.appendChild(nc);
+  var open=c.todo.filter(function(l){return l.items.some(function(x){return !x.d;});}), done=c.todo.filter(function(l){return open.indexOf(l)<0;});
+  function one(l){
+    var card=el('div','card tdl'), n=l.items.filter(function(x){return x.d;}).length, ed=!!TODOED[l.id];
+    var h=el('div','tdh'); h.appendChild(el('h3',null,l.title)); h.appendChild(el('span','chgp',n+'/'+l.items.length)); card.appendChild(h);
+    if(l.remind&&n<l.items.length)card.appendChild(el('div','sd','Reminder every day until done'));
+    var wrap=el('div','tdb');
+    l.items.forEach(function(x){
+      if(ed){var r=el('div','tder'), inp=el('input','fi'); inp.type='text'; inp.value=x.t; inp.setAttribute('aria-label','Item'); inp.addEventListener('change',function(){var v=inp.value.trim(); if(v){x.t=v; save();} else inp.value=x.t;}); r.appendChild(inp);
+        var rm=el('button','chgb','×'); rm.type='button'; rm.setAttribute('aria-label','Remove item'); rm.addEventListener('click',function(){confirm3({title:'Remove item',steps:['Remove “'+x.t+'” from this list?','Are you sure?','Last question. Remove it?'],yes:'Remove'},function(){l.items=l.items.filter(function(y){return y!==x;}); if(!l.items.length)c.todo=c.todo.filter(function(y){return y!==l;}); save(); renderMod();});}); r.appendChild(rm); wrap.appendChild(r);}
+      else{var b=el('button','tdi'+(x.d?' on':''),(x.d?'✓ ':'○ ')+x.t); b.type='button'; b.setAttribute('aria-pressed',x.d?'true':'false'); b.addEventListener('click',function(){x.d=x.d?0:Date.now(); save(); renderMod();}); wrap.appendChild(b);}
+    });
+    card.appendChild(wrap);
+    if(ed){var ai=el('input','fi'); ai.type='text'; ai.placeholder='Add an item'; ai.setAttribute('aria-label','Add an item'); ai.style.cssText='margin-top:8px'; ai.addEventListener('keydown',function(e){if(e.key==='Enter'){var v=ai.value.trim(); if(v){l.items.push({id:uid(),t:v,d:0}); save(); renderMod();}}}); card.appendChild(ai);}
+    var bb=el('div','btns'); bb.style.marginTop='10px';
+    bb.appendChild(mkBtn(ed?'Done editing':'Edit','ghost sm',function(){TODOED[l.id]=!ed; renderMod();}));
+    if(n<l.items.length)bb.appendChild(mkBtn('All ordered','ghost sm',function(){var t=Date.now(); l.items.forEach(function(x){if(!x.d)x.d=t;}); save(); renderMod();}));
+    bb.appendChild(mkBtn(l.remind?'Reminder: on':'Reminder: off','ghost sm',function(){l.remind=!l.remind; save(); renderMod();}));
+    bb.appendChild(mkBtn('Delete list','ghost sm',function(){confirm3({title:'Delete list',steps:['Delete “'+l.title+'” with '+l.items.length+' items?','Are you sure?','Last question. Delete it?'],yes:'Delete'},function(){c.todo=c.todo.filter(function(y){return y!==l;}); save(); renderMod();});}));
+    card.appendChild(bb); box.appendChild(card);
+  }
+  if(!c.todo.length)box.appendChild(el('div','sd','No lists yet. You can also write to me in the chat: “reminder” and then the items, one per line.')).style.margin='12px 16px';
+  open.forEach(one);
+  if(done.length){var dh=el('div',null,'DONE LISTS'); dh.style.cssText='margin:16px 16px 6px;font-weight:700;font-size:12px;letter-spacing:.06em;color:var(--muted)'; box.appendChild(dh); done.forEach(one);}
+}};
+function renderMatchProd(id,box){
+  var c=S.chats[id], wr=mmWrong(c), hd=el('div','card'); hd.appendChild(el('h3',null,'Wrong producer'));
+  hd.appendChild(el('div','mmv','These Micros names link to a stock wine from another producer. Unlinking moves the name to \\u201cTo do\\u201d. The stock wine is not touched. Nothing changes until you tap.')); box.appendChild(hd);
+  if(!wr.length){box.appendChild(el('div','mmempty','Nothing to check.')); return;}
+  var all=el('div','btns'); all.style.margin='0 12px 10px'; all.appendChild(mkBtn('Unlink all '+wr.length,'warn',function(){confirm3({title:'Unlink '+wr.length+' names',steps:['Unlink these '+wr.length+' Micros names from the wrong wines?','Are you sure? They go to To do. No stock changes.','Last question. Unlink now?'],yes:'Unlink'},function(){CHGSRC='Producer check'; wr.forEach(function(w){mmUnlinkName(c,w);}); save(); CHGSRC=''; toast(wr.length+' unlinked.'); location.hash=id+'-match';});})); box.appendChild(all);
+  wr.forEach(function(w){var cd=el('div','card'); cd.appendChild(el('b',null,w.name)); cd.appendChild(el('div','sd','is linked to')); cd.appendChild(el('div',null,w.it.sheet||w.it.name));
+    var b=el('div','btns'); b.style.marginTop='8px'; b.appendChild(mkBtn('Unlink','ghost sm',function(){CHGSRC='Producer check'; mmUnlinkName(c,w); save(); CHGSRC=''; renderMod();}));
+    b.appendChild(mkBtn('Keep (it is right)','ghost sm',function(){w.row.conf='Manual'; save(); renderMod();})); cd.appendChild(b); box.appendChild(cd);});
+}
+MODS.match={who:'sofia',all:1,title:'Matching',render:function(id,sub,box){
+  var c=S.chats[id]; mmInit(c);
+  if(sub==='import')return renderMatchImport(id,box);
+  if(sub==='prod')return renderMatchProd(id,box);
+  if(sub)return renderMatchOne(id,sub,box);
+  var st=mmStats(c);
+  var hd=el('div','card'); hd.appendChild(el('h3',null,'Matching'));
+  hd.appendChild(el('p',null,'Each card shows one wine with its Micros button name, stock name and menu name. Tap a card to change it.'));
+  (function(){var wr=mmWrong(c); if(!wr.length)return; var bn=el('div','mmwarn'); bn.appendChild(el('b',null,wr.length+' Micros name'+(wr.length===1?'':'s')+' linked to another producer\u2019s wine')); bn.appendChild(el('div','sd','For example \u201c'+wr[0].name+'\u201d on '+(wr[0].it.sheet||wr[0].it.name)+'. Buttons of the same wine with other prices are fine. These are not.')); var bb=el('div','btns'); bb.style.marginTop='8px'; bb.appendChild(mkBtn('Review','',function(){modGo('match','prod');})); bn.appendChild(bb); hd.appendChild(bn);})();
+  var si=el('input'); si.className='fi'; si.placeholder='Search a wine or a Micros button'; si.value=modQ; si.setAttribute('aria-label','Search matching'); hd.appendChild(si);
+  var ch=el('div','mmchips');
+  var all=mmList(c);
+  var defs=[['all','All '+all.length],['ok','Matched '+st.ok],['todo','To do '+st.todo],['nomicros','No Micros '+st.nom]];
+  defs.forEach(function(f){var b=el('button','mmchip'+(MMF===f[0]?' on':''),f[1]); b.type='button'; b.addEventListener('click',function(){MMF=f[0]; renderMod();}); ch.appendChild(b);});
+  hd.appendChild(ch);
+  var xb=el('div','btns'); xb.style.marginTop='10px'; var xf=el('input'); xf.type='file'; xf.accept='.xlsx,.xls'; xf.hidden=true; xb.appendChild(xf);
+  xb.appendChild(mkBtn('Import Excel','ghost sm',function(){xf.click();})); xb.appendChild(mkBtn('Export Excel','ghost sm',function(){mmExport(id);}));
+  xf.addEventListener('change',async function(){var f=xf.files&&xf.files[0]; xf.value=''; if(!f)return; try{toast('Reading the file…'); var rows=await mmReadFile(f); var d=mmDiff(c,rows); d.name=f.name; MMIMP=d; MMIF=d.items.some(function(i){return i.kind==='check';})?'check':(d.items.some(function(i){return i.kind==='none';})?'none':'auto'); location.hash=id+'-match-import';}catch(e){toast('I could not read this file. Use the file made by Export Excel, with the header row kept. Reading Excel needs an internet connection.');}});
+  hd.appendChild(xb); box.appendChild(hd);
+  var list=el('div','mmlist'); box.appendChild(list);
+  var shown=40;
+  function fill(){
+    list.textContent=''; var q=mmKey(si.value);
+    var rows=all.filter(function(x){
+      if(MMF==='ok'&&x.st!=='ok'&&x.st!=='check')return false; if(MMF==='todo'&&x.st!=='nostock'&&x.st!=='check')return false; if(MMF==='nomicros'&&x.st!=='nomicros')return false;
+      if(!q)return true; var hay=mmKey([x.row&&x.row.bt,x.row&&x.row.gl,x.it&&x.it.sheet,x.it&&x.it.name,x.it&&x.it.code,x.row&&x.row.near].join(' ')); return q.split(' ').every(function(w){return hay.indexOf(w)>=0;});
+    });
+    var ord={nostock:0,check:1,nomicros:2,ok:3}; if(MMF==='all'||MMF==='todo')rows.sort(function(a,b){return ord[a.st]-ord[b.st];});
+    if(!rows.length){list.appendChild(el('div','mmempty','Nothing here.')); return;}
+    rows.slice(0,shown).forEach(function(x){mmCard(list,x,id);});
+    if(rows.length>shown){var mb=mkBtn('Show more ('+(rows.length-shown)+')','ghost sm',function(){shown+=60; fill();}); mb.style.margin='10px 16px'; list.appendChild(mb);}
+  }
+  si.addEventListener('input',function(){modQ=si.value; shown=40; fill();});
+  fill();
+}};
+/* ---------- MATCHING: Excel export and import (three-way merge) ---------- */
+var MMIMP=null;
+function mmHash(o){return [o.bt,o.gl,o.code,o.sheet,o.menu].map(function(v){return String(v==null?'':v).replace(/\s+/g,' ').trim();}).join('\u0001');}
+function mmState(c,row,it){return {bt:row?row.bt:'',gl:row?row.gl:'',code:it?(it.code||''):'',sheet:it?(it.sheet||''):'',menu:it?it.name:(row&&row.mn||'')};}
+function mmExport(id){
+  var c=S.chats[id], m=mmInit(c), body=[], snap={};
+  mmList(c).forEach(function(x){
+    var ref=x.row?x.row.id:'V:'+x.it.id, s=mmState(c,x.row,x.it), l=mmLabel(x.st);
+    snap[ref]=mmHash(s);
+    body.push([x.st==='ok'&&x.row&&x.row.conf==='Manual'?'Set':l[0],s.bt,s.gl,s.code,s.sheet,s.menu,ref]);
+  });
+  m.snap=snap; save();
+  var T={head:['Status','Micros name (bottle)','Micros name (glass)','Stock code','Stock name','Menu name','Ref'],body:body,foot:[],notes:['How to use: change names in this file, then in the app open Matching and tap Import Excel. Do not change or delete the Ref column. To link a Micros name to a stock wine, type its Stock code (or the exact Stock name). New rows: leave Ref empty. The Status column is only information.'],widths:[11,44,26,13,58,48,14]};
+  var bytes=xlsxGrid('Matching · Micros, stock and menu names',[],T,'Matching');
+  return saveFile('Matching_'+tdy()+'.xlsx',new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
+}
+async function mmReadFile(f){
+  await loadLib(XLSXL);
+  var wb=window.XLSX.read(await f.arrayBuffer(),{type:'array'}), ws=wb.Sheets[wb.SheetNames[0]], g=window.XLSX.utils.sheet_to_json(ws,{header:1,defval:''}), hi=-1;
+  for(var i=0;i<g.length&&i<40;i++){var t=g[i].map(function(v){return String(v).toLowerCase();}).join('|'); if(/micros name/.test(t)&&/stock/.test(t)){hi=i; break;}}
+  if(hi<0)throw new Error('header');
+  var col={}; g[hi].forEach(function(h,i){var k=String(h).toLowerCase().trim();
+    if(k==='ref')col.ref=i; else if(/^micros name.*bottle|^micros name$/.test(k))col.bt=i; else if(/^micros name.*glass/.test(k))col.gl=i; else if(k==='stock code'||k==='code')col.code=i; else if(k==='stock name')col.sheet=i; else if(k==='menu name')col.menu=i;});
+  var rows=[]; for(var r=hi+1;r<g.length;r++){
+    var x=g[r], v=function(k){return col[k]==null?'':String(x[col[k]]==null?'':x[col[k]]).replace(/\s+/g,' ').trim();};
+    var o={bt:v('bt'),gl:v('gl'),code:v('code'),sheet:v('sheet'),menu:v('menu'),ref:v('ref')};
+    if(!(o.bt||o.gl||o.code||o.sheet||o.menu))continue; if(o.ref&&!/^(V:)?i[a-z0-9]+$/.test(o.ref))o.ref='';
+    if(!o.ref&&!o.bt&&!o.gl&&!o.code&&!o.sheet)continue; rows.push(o);
+  }
+  return rows;
+}
+function mmAsk(msg,okL,noL,cb){
+  var ov=el('div','mmov'), bx=el('div','mmbox'); bx.setAttribute('role','dialog'); bx.setAttribute('aria-modal','true');
+  String(msg).split('\n').forEach(function(l){bx.appendChild(el('div','mmbl',l));});
+  var bs=el('div','btns'); bs.style.marginTop='12px';
+  var ok=mkBtn(okL,'',function(){ov.remove(); cb();}), no=mkBtn(noL,'ghost sm',function(){ov.remove();});
+  bs.appendChild(ok); bs.appendChild(no); bx.appendChild(bs); ov.appendChild(bx); document.body.appendChild(ov); ok.focus();
+}
+var MMDIRTY=false, MMDH='';
+function mmDirty(on){MMDIRTY=!!on; MMDH=on?location.hash:'';}
+window.addEventListener('beforeunload',function(e){if(MMDIRTY){e.preventDefault(); e.returnValue='';}});
+function mmDiff(c,rows){
+  var m=mmInit(c), byRow={}, byBt={}, byCode={}, bySheet={}, snap=m.snap||{}, out={items:[],same:0};
+  m.rows.forEach(function(r){byRow[r.id]=r; if(r.bt)byBt[mmKey(r.bt)]=r; if(r.gl)byBt[mmKey(r.gl)]=r;});
+  c.inv.forEach(function(it){if(it.code)byCode[String(it.code)]=it; if(it.sheet)bySheet[mmKey(it.sheet)]=it;});
+  var st=mmStats(c), W=idfWeights(c.inv);
+  rows.forEach(function(x){
+    var row=null, it=null, ref=x.ref;
+    if(ref&&ref.indexOf('V:')===0){var vi=mmItem(c,ref.slice(2)); if(vi&&!st.used[vi.id])it=vi; else if(vi){row=m.rows.filter(function(r){return r.sid===vi.id;})[0]||null; it=vi;} else ref='';}
+    else if(ref){row=byRow[ref]||null; if(!row)ref='';}
+    if(!ref){row=(x.bt&&byBt[mmKey(x.bt)])||(x.gl&&byBt[mmKey(x.gl)])||null; if(row)ref=row.id;}
+    var cur=row?mmItem(c,row.sid):it, app=mmState(c,row,cur);
+    var tgt=null; if(x.code)tgt=byCode[x.code]||null; if(!tgt&&x.sheet)tgt=bySheet[mmKey(x.sheet)]||null;
+    if(!tgt&&!x.code&&!x.sheet&&cur&&(!x.menu||mmKey(cur.name)===mmKey(x.menu)))tgt=cur;
+    var lab=x.bt||x.gl||x.sheet||x.menu||'(row)';
+    if(!tgt){
+      if(!x.bt&&!x.gl&&!x.sheet&&!x.code&&!x.menu)return;
+      var q=microsClean(x.sheet||[x.bt,x.gl].filter(Boolean).join(' ')||x.menu), sug=[];
+      if(q)sug=c.inv.map(function(i){return {it:i,sc:Math.max(i.sheet?mmSc(q,microsClean(i.sheet),W):0,mmSc(q,microsClean(i.name),W))};}).filter(function(y){return y.sc>=0.3;}).sort(function(a,b){return b.sc-a.sc;}).slice(0,4);
+      var good=sug.length&&sug[0].sc>=0.55&&(x.sheet||x.code||x.bt||x.gl);
+      out.items.push({kind:good?'check':'none',ref:ref,row:row,cur:cur,tgt:good?sug[0].it:null,x:x,label:lab,sug:sug,act:null,parts:[(x.sheet||x.code)?'Stock in file: '+(x.sheet||x.code):'No stock wine given']});
+      return;
+    }
+    var xs={bt:x.bt,gl:x.gl,code:tgt.code||'',sheet:x.sheet||tgt.sheet||'',menu:x.menu||tgt.name};
+    var hx=mmHash(xs), ha=mmHash(app), hs=ref?snap[ref]:undefined;
+    if(hx===ha){out.same++; return;}
+    var parts=[]; function d(l,a,b){if(String(a||'')!==String(b||''))parts.push(l+': '+(a?a:'—')+' → '+(b?b:'—'));}
+    d('Micros bottle',app.bt,xs.bt); d('Micros glass',app.gl,xs.gl); d('Stock',app.sheet||app.code,xs.sheet||xs.code); d('Menu',app.menu,xs.menu);
+    var ch={kind:'auto',ref:ref,row:row,cur:cur,tgt:tgt,x:xs,label:lab,parts:parts,use:true};
+    if(hs!==undefined&&ha!==hs&&hx!==hs){ch.kind='conf'; ch.use=false;}
+    else if(hs!==undefined&&hx===hs){out.same++; return;}
+    out.items.push(ch);
+  });
+  return out;
+}
+function mmPending(imp){return imp.items.filter(function(i){return (i.kind==='check'||i.kind==='none')&&!i.act;}).length;}
+function mmApply(c,imp){
+  var m=mmInit(c), n=0;
+  imp.items.forEach(function(ch){
+    var row=ch.row||null, x=ch.x, tgt=null, mk=false;
+    if(ch.kind==='auto'||ch.kind==='conf'){if(!ch.use)return; tgt=ch.tgt; mk=true;}
+    else if(ch.act==='confirm'||ch.act==='pick'){tgt=ch.tgt; mk=true; x={bt:ch.x.bt,gl:ch.x.gl,code:tgt.code||'',sheet:ch.x.sheet||tgt.sheet||'',menu:ch.x.menu||tgt.name};}
+    else if(ch.act==='new'){mk=true; tgt=null;}
+    if(!mk)return;
+    if(!row){row={id:uid(),bt:'',gl:'',sid:'',conf:'',sc:0,near:'',mn:''}; m.rows.push(row);}
+    row.bt=x.bt; row.gl=x.gl;
+    if(tgt){ if(row.sid!==tgt.id){row.sid=tgt.id; row.conf='Manual';} if(x.sheet&&x.sheet!==tgt.sheet)tgt.sheet=x.sheet; if(x.menu&&x.menu!==tgt.name)tgt.name=x.menu; row.mn=''; }
+    else {row.sid=''; row.conf=''; row.mn=ch.x.menu||ch.x.sheet||row.mn||'';}
+    n++;
+  });
+  var snap={}; mmList(c).forEach(function(y){var ref=y.row?y.row.id:'V:'+y.it.id; snap[ref]=mmHash(mmState(c,y.row,y.it));}); m.snap=snap;
+  return n;
+}
+var MMIF='check';
+function renderMatchImport(id,box){
+  var c=S.chats[id], imp=MMIMP;
+  var cd=el('div','card'); cd.appendChild(el('h3',null,'Review'));
+  if(!imp){cd.appendChild(el('div','mmv','No file loaded. Go back and tap Import Excel.')); box.appendChild(cd); return;}
+  mmDirty(true);
+  var its=imp.items, pend=mmPending(imp), done=its.filter(function(i){return !((i.kind==='check'||i.kind==='none')&&!i.act);}).length;
+  cd.appendChild(el('div','mmv',imp.name+': '+its.length+' rows to review, '+imp.same+' unchanged. Nothing is saved until you approve at the bottom.'));
+  var bar=el('div','mmbar'), fill=el('i'); fill.style.width=(its.length?Math.round(100*done/its.length):100)+'%'; bar.appendChild(fill); cd.appendChild(bar);
+  cd.appendChild(el('div','mmv',done+' of '+its.length+' done'+(pend?' · '+pend+' still need you':'')));
+  var cnt={check:0,none:0,auto:0,conf:0}; its.forEach(function(i){cnt[i.kind]++;});
+  var ch=el('div','mmchips'); [['check','Check '+cnt.check],['none','Not found '+cnt.none],['auto','Changes '+cnt.auto],['conf','Conflicts '+cnt.conf]].forEach(function(f){var b=el('button','mmchip'+(MMIF===f[0]?' on':''),f[1]); b.type='button'; b.addEventListener('click',function(){MMIF=f[0]; renderMod();}); ch.appendChild(b);}); cd.appendChild(ch);
+  box.appendChild(cd);
+  var list=el('div','mmlist'); box.appendChild(list);
+  var vis=its.filter(function(i){return i.kind===MMIF;});
+  if(!vis.length)list.appendChild(el('div','mmempty','Nothing here.'));
+  vis.slice(0,60).forEach(function(it){
+    var b=el('div','mmr mmimp'); b.appendChild(el('b',null,it.label));
+    it.parts.forEach(function(p){b.appendChild(el('div','mmv',p));});
+    var tg=el('div','btns'); tg.style.flexWrap='wrap';
+    function refresh(){renderMod();}
+    if(it.kind==='auto'||it.kind==='conf'){
+      var a=mkBtn(it.use?'Using Excel':'Keeping the app','ghost sm',function(){it.use=!it.use; refresh();}); tg.appendChild(a);
+    } else {
+      if(it.kind==='check'&&it.tgt){b.appendChild(el('div','mmv','Closest in stock: '+(it.tgt.sheet||it.tgt.name)+' ('+fm2(it.sug[0].sc)+')'));
+        tg.appendChild(mkBtn(it.act==='confirm'?'✓ Confirmed':'✓ Confirm','ghost sm',function(){it.act='confirm'; refresh();}));}
+      var si=el('input'); si.className='fi'; si.placeholder='Search stock to link'; si.style.marginTop='8px'; b.appendChild(si); var sr=el('div','mmsug'); b.appendChild(sr);
+      si.addEventListener('input',function(){sr.textContent=''; var q=mmKey(si.value); if(q.length<2)return;
+        c.inv.filter(function(x){var hay=mmKey(x.sheet+' '+x.name+' '+x.code); return q.split(' ').every(function(w){return hay.indexOf(w)>=0;});}).slice(0,5).forEach(function(x){var sb=el('button','mmsb'); sb.type='button'; sb.appendChild(el('span',null,x.sheet||x.name)); sb.addEventListener('click',function(){it.tgt=x; it.act='pick'; refresh();}); sr.appendChild(sb);});});
+      if(it.act==='pick'&&it.tgt)b.appendChild(el('div','mmlink','Linked to: '+(it.tgt.sheet||it.tgt.name)));
+      tg.appendChild(mkBtn(it.act==='new'?'✓ Added as new':'Add as new wine','ghost sm',function(){it.act='new'; refresh();}));
+      tg.appendChild(mkBtn(it.act==='skip'?'✓ Skipped':'Skip','ghost sm',function(){it.act='skip'; refresh();}));
+    }
+    b.appendChild(tg); list.appendChild(b);
+  });
+  if(vis.length>60)list.appendChild(el('div','mmempty','…and '+(vis.length-60)+' more'));
+  var fb=el('div','card'), bs=el('div','btns');
+  fb.appendChild(el('div','mmv',pend?pend+' rows still need a decision (Check or Not found).':'All rows are done. Tap the button to save. This changes the matching list, and the stock and menu names you edited.'));
+  var ap=mkBtn('Approve and save','',function(){
+    if(pend){toast(pend+' rows still need a decision.'); return;}
+    var n=its.filter(function(i){return i.kind==='auto'||i.kind==='conf'?i.use:(i.act==='confirm'||i.act==='pick'||i.act==='new');}).length;
+    mmAsk('Save '+n+' rows to the matching list?\nStock and menu names you changed will change in the app too.','Save','Not yet',function(){CHGSRC='Excel import \u00b7 Matching'; var k=mmApply(c,imp); MMIMP=null; mmDirty(false); save(); CHGSRC=''; toast(k+' rows saved.'); location.hash=id+'-match';});
+  }); if(pend)ap.style.opacity='.5';
+  var cn=mkBtn('Cancel','ghost sm',function(){mmAsk('Leave without saving? Your choices in this review will be lost.','Leave','Stay',function(){MMIMP=null; mmDirty(false); location.hash=id+'-match';});});
+  bs.appendChild(ap); bs.appendChild(cn); fb.appendChild(bs); box.appendChild(fb);
+}
+
+function renderMatchOne(id,key,box){
+  var c=S.chats[id], m=mmInit(c), row=null, it=null, virt=key.charAt(0)==='v'&&key.length>1&&!m.rows.some(function(r){return r.id===key;});
+  if(virt){it=mmItem(c,key.slice(1));} else {row=m.rows.filter(function(r){return r.id===key;})[0]||null; if(row)it=mmItem(c,row.sid);}
+  if(!row&&!it){var nf=el('div','card'); nf.appendChild(el('p',null,'This item is not here any more.')); box.appendChild(nf); return;}
+  var work={bt:row?row.bt:'',gl:row?row.gl:'',sid:it?it.id:'',code:it?(it.code||''):'',sheet:it?(it.sheet||''):'',menu:it?it.name:(row?row.mn||'':'')};
+  var cd=el('div','card'); cd.appendChild(el('h3',null,'Edit match'));
+  function dirty(){mmDirty(true);}
+  function fld(lab,val,key2,note){
+    var w=el('div','mmf'); w.appendChild(el('label',null,lab)); var i=el('input'); i.className='fi'; i.value=val||''; i.setAttribute('aria-label',lab); i.addEventListener('input',function(){work[key2]=i.value; dirty();}); w.appendChild(i); if(note)w.appendChild(el('small',null,note)); cd.appendChild(w); return i;
+  }
+  fld('MICROS NAME (bottle)',work.bt,'bt'); fld('MICROS NAME (glass)',work.gl,'gl');
+  var cI=fld('STOCK CODE',work.code,'code'); var sI=fld('STOCK NAME',work.sheet,'sheet','You can change it. The app asks you to confirm before it changes the stock.'); var mI=fld('MENU NAME',work.menu,'menu');
+  function lock(){cI.disabled=sI.disabled=!work.sid; if(!work.sid){cI.placeholder=sI.placeholder='Link a stock wine first';}}
+  lock();
+  var sg=el('div','mmsug'); cd.appendChild(sg);
+  function link(x){work.sid=x.id; work.code=x.code||''; work.sheet=x.sheet||''; work.menu=x.name; cI.value=work.code; sI.value=work.sheet; mI.value=work.menu; lock(); stl.textContent='Linked to: '+(x.sheet||x.name); dirty(); sugg();}
+  function sugg(){
+    sg.textContent=''; var q=[work.bt,work.gl].filter(Boolean).join(' ').trim(); var W=idfWeights(c.inv);
+    var qq=microsClean(q||work.sheet||work.menu); if(!qq)return;
+    var rk=c.inv.map(function(x){var a=x.sheet?mmSc(qq,microsClean(x.sheet),W):0,b=mmSc(qq,microsClean(x.name),W); return {it:x,sc:Math.max(a,b)};}).filter(function(x){return x.sc>=0.3&&x.it.id!==work.sid;}).sort(function(a,b){return b.sc-a.sc;}).slice(0,5);
+    if(!rk.length)return; sg.appendChild(el('div','mmsh','CLOSEST STOCK WINES · tap to link'));
+    rk.forEach(function(x){var b=el('button','mmsb'); b.type='button'; b.appendChild(el('span',null,x.it.sheet||x.it.name)); b.appendChild(el('small',null,fm2(x.sc))); b.addEventListener('click',function(){link(x.it);}); sg.appendChild(b);});
+  }
+  var stl=el('div','mmlink',work.sid?'Linked to: '+(it.sheet||it.name):'Not linked to a stock wine yet. Tap one of the closest wines below, or search.'); cd.appendChild(stl);
+  var ps=el('input'); ps.className='fi'; ps.placeholder='Search a stock wine to link'; ps.style.marginTop='8px'; cd.appendChild(ps);
+  var pr=el('div','mmsug'); cd.appendChild(pr);
+  ps.addEventListener('input',function(){
+    pr.textContent=''; var q=mmKey(ps.value); if(q.length<2)return;
+    c.inv.filter(function(x){var hay=mmKey(x.sheet+' '+x.name+' '+x.code); return q.split(' ').every(function(w){return hay.indexOf(w)>=0;});}).slice(0,6).forEach(function(x){var b=el('button','mmsb'); b.type='button'; b.appendChild(el('span',null,x.sheet||x.name)); b.addEventListener('click',function(){ps.value=''; pr.textContent=''; link(x);}); pr.appendChild(b);});
+  });
+  function commit(){
+    var lk=mmItem(c,work.sid);
+    if(lk){var sh=work.sheet.trim(), cdn=work.code.trim(), mn=work.menu.trim(); lk.sheet=sh; lk.code=cdn; if(mn)lk.name=mn;}
+    var r=row; if(!r){r={id:uid(),bt:'',gl:'',sid:'',conf:'',sc:0,near:'',mn:''}; m.rows.push(r);}
+    var was=r.sid; r.bt=work.bt.trim(); r.gl=work.gl.trim(); r.sid=work.sid; if(work.sid&&work.sid!==was)r.conf='Manual'; if(!work.sid){r.conf=''; r.mn=work.menu.trim();} else r.mn='';
+    mmDirty(false); save(); toast('Saved.'); location.hash=id+'-match';
+  }
+  var bs=el('div','btns'); bs.style.marginTop='12px';
+  var sv=mkBtn('Save','',function(){
+    var lk=mmItem(c,work.sid), msg=[];
+    if(lk){ if(work.sheet.trim()!==(lk.sheet||''))msg.push('Stock name: '+(lk.sheet||'—')+' → '+(work.sheet.trim()||'—')); if(work.code.trim()!==(lk.code||''))msg.push('Stock code: '+(lk.code||'—')+' → '+(work.code.trim()||'—')); if(work.menu.trim()&&work.menu.trim()!==lk.name)msg.push('Menu name: '+lk.name+' → '+work.menu.trim()); }
+    if(msg.length)mmAsk('This changes the wine in the app:\n'+msg.join('\n'),'Save','Not yet',commit); else commit();
+  });
+  var ul=mkBtn('Unlink','ghost sm',function(){if(row){mmAsk('Unlink this Micros name from the stock wine?','Unlink','Not yet',function(){row.sid=''; row.conf=''; row.mn=work.menu.trim(); mmDirty(false); save(); toast('Unlinked.'); location.hash=id+'-match';});}});
+  var cn=mkBtn('Cancel','ghost sm',function(){function go(){mmDirty(false); location.hash=id+'-match';} if(MMDIRTY)mmAsk('You have changes that are not saved. Leave anyway?','Leave','Stay',go); else go();});
+  bs.appendChild(sv); if(row&&row.sid)bs.appendChild(ul); bs.appendChild(cn); cd.appendChild(bs);
+  box.appendChild(cd); sugg();
+}
+
 function route(){
-  var h=location.hash.replace('#',''), m=h.match(/^([a-z]+)-info$/), gm=h.match(/^([a-z]+)-glass$/), wm=h.match(/^([a-z]+)-wines$/), om=h.match(/^([a-z]+)-off$/), sm=h.match(/^([a-z]+)-stock$/), lm=h.match(/^([a-z]+)-lib$/), rm2=h.match(/^([a-z]+)-recipes$/), sg2=h.match(/^([a-z]+)-seating$/), rp2=h.match(/^([a-z]+)-reports$/), wr2=h.match(/^([a-z]+)-wrep$/), pr2=h.match(/^([a-z]+)-prep$/), cm2=h.match(/^([a-z]+)-cmpr$/), cr2=h.match(/^([a-z]+)-crep$/), md=h.match(/^([a-z]+)-(staff|events|guests|revenue|checklist)(?:-([a-z0-9]+))?$/);
+  if(MMDIRTY&&MMDH&&location.hash!==MMDH){var tgt=location.hash; location.hash=MMDH; mmAsk('You have changes that are not saved. Leave anyway?','Leave','Stay',function(){MMIMP=(/-match-import$/.test(MMDH)?null:MMIMP); mmDirty(false); location.hash=tgt;}); return;}
+  var h=location.hash.replace('#',''), m=h.match(/^([a-z]+)-info$/), gm=h.match(/^([a-z]+)-glass$/), wm=h.match(/^([a-z]+)-wines$/), om=h.match(/^([a-z]+)-off$/), sm=h.match(/^([a-z]+)-stock$/), lm=h.match(/^([a-z]+)-lib$/), rm2=h.match(/^([a-z]+)-recipes$/), sg2=h.match(/^([a-z]+)-seating$/), rp2=h.match(/^([a-z]+)-reports$/), wr2=h.match(/^([a-z]+)-wrep$/), pr2=h.match(/^([a-z]+)-prep$/), cm2=h.match(/^([a-z]+)-cmpr$/), cr2=h.match(/^([a-z]+)-crep$/), md=h.match(/^([a-z]+)-(staff|events|guests|revenue|checklist|match|todo)(?:-([a-z0-9]+))?$/);
   var dp=wm||gm||om||sm;
   if(draft&&!(dp&&dp[1]===draft.id)){var had=draft.dirty; discardDraft(true); if(had)toast('Unsaved changes were discarded.');}
   if(md&&byId[md[1]])openMod(md[1],md[2],md[3]||null);
@@ -8069,17 +8690,21 @@ $('micBtn').addEventListener('click',function(){
   $('text').focus();
   toast('Tap the microphone key on your keyboard and speak. Your words appear in the box, so you can fix them before sending.');
 });
-$('backBtn').addEventListener('click',function(){location.hash='';});
-$('infoBack').addEventListener('click',function(){location.hash=infoId||'';});
-$('glassBack').addEventListener('click',function(){location.hash=(glassId||'')+'-info';});
-$('wineBack').addEventListener('click',function(){location.hash=(wineId||'')+'-info';});
-$('offBack').addEventListener('click',function(){location.hash=(offId||'')+'-info';});
-$('stockBack').addEventListener('click',function(){location.hash=(stockId||'')+'-info';});
-$('modBack').addEventListener('click',function(){location.hash=modCtx.sub?modCtx.id+'-'+modCtx.kind:modCtx.id+'-info';});
-$('seatingBack').addEventListener('click',function(){location.hash=(seatId||'')+'-info';});
-$('reportsBack').addEventListener('click',function(){if(WR.on){WR.on=false; location.hash=rptId||'';} else location.hash=(rptId||'')+'-info';});
-$('recipesBack').addEventListener('click',function(){location.hash=(rcpId||'')+'-info';});
-$('libBack').addEventListener('click',function(){location.hash=(libId||'')+'-info';});
+/* back = the screen you came from; the fixed parent is used only when nothing came before */
+var HS=[location.hash||''];
+window.addEventListener('hashchange',function(){var h=location.hash||''; if(HS.length>1&&HS[HS.length-2]===h)HS.pop(); else if(HS[HS.length-1]!==h){HS.push(h); if(HS.length>60)HS.shift();}});
+function backGo(def){var cur=location.hash||''; if(HS[HS.length-1]!==cur)HS[HS.length-1]=cur; var pv=HS.length>1?HS[HS.length-2]:null; location.hash=(pv!==null&&pv!==cur)?pv:def;}
+$('backBtn').addEventListener('click',function(){backGo('');});
+$('infoBack').addEventListener('click',function(){backGo(infoId||'');});
+$('glassBack').addEventListener('click',function(){backGo((glassId||'')+'-info');});
+$('wineBack').addEventListener('click',function(){backGo((wineId||'')+'-info');});
+$('offBack').addEventListener('click',function(){backGo((offId||'')+'-info');});
+$('stockBack').addEventListener('click',function(){backGo((stockId||'')+'-info');});
+$('modBack').addEventListener('click',function(){backGo(modCtx.sub?modCtx.id+'-'+modCtx.kind:modCtx.id+'-info');});
+$('seatingBack').addEventListener('click',function(){backGo((seatId||'')+'-info');});
+$('reportsBack').addEventListener('click',function(){if(WR.on){WR.on=false; location.hash=rptId||'';} else backGo((rptId||'')+'-info');});
+$('recipesBack').addEventListener('click',function(){backGo((rcpId||'')+'-info');});
+$('libBack').addEventListener('click',function(){backGo((libId||'')+'-info');});
 $('refreshBtn').addEventListener('click',function(){closeMenu(); refreshData();});
 $('mainBtn').addEventListener('click',function(){try{localStorage.setItem('dutybuddy.main',isMain()?'0':'1');}catch(e){} mainLabel(); toast(isMain()?'This device is now the main computer. Its data is never overwritten by a refresh.':'This device is now a phone. Refresh replaces its data with the main computer’s.');});
 mainLabel();
@@ -8150,6 +8775,7 @@ function renderSettings(){
       ERRS.slice().reverse().forEach(function(e){var c=el('div','scard keep'); c.appendChild(el('h3',null,e.src+(e.n>1?' ×'+e.n:''))); c.appendChild(el('p',null,e.msg+(e.at?' ('+e.at+')':''))); c.appendChild(el('div','sd',fmtT(e.t))); body.appendChild(c);});
       sBtns([['Copy all',function(){var done=false; try{if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt); done=true;}}catch(x){} if(!done){var ta=el('textarea'); ta.value=txt; document.body.appendChild(ta); ta.select(); try{document.execCommand('copy');}catch(x){} ta.remove();} toast('Copied. Paste it to me.');}],['Clear',function(){ERRS=[]; try{localStorage.removeItem(ELKEY);}catch(x){} renderSettings();},'ghost']],body);
     }
+    chgRender(body,renderSettings);
   } else if(v.name==='online'){
     sCard('Status: '+os[0],[
       'Online uses your Google Gemini key (free from Google AI Studio). It gives the best answers and can read photos of lists and invoices. Your question and the matching passages from the books go to Google.',
@@ -8174,7 +8800,7 @@ function renderSettings(){
 
 /* ---- long explanations hide behind a small ? button (job description and About stay open) ---- */
 (function(){
-  var SKIP='.keep,.jd,.msg,.bub,#msgs,[aria-live],textarea,.sum,.prev,.c3,.mr';
+  var SKIP='.keep,.jd,.msg,.bub,#msgs,[aria-live],textarea,.sum,.prev,.c3,.mr,#menu,.wmk';
   function labelish(e){if(!e||e.nodeType!==1)return false; if(/^(BUTTON|INPUT|SELECT|TEXTAREA|P|UL|OL|IMG)$/.test(e.tagName))return false; if(e.querySelector('button,input,select,textarea'))return false; var t=(e.textContent||'').trim(); return t.length>0&&t.length<48;}
   function tip(p){
     if(p.hasAttribute('data-tip'))return; p.setAttribute('data-tip','0');
@@ -8301,6 +8927,7 @@ $('menuBtn').addEventListener('click',function(){openSettings();});
 $('menuBtn').__old=function(){var open=$('menu').hidden; if(open){syncLabel(); smartLabel(); $('menu').hidden=false; this.setAttribute('aria-expanded','true');} else closeMenu();};
 document.addEventListener('click',function(e){if(!$('menu').hidden&&!$('menu').contains(e.target)&&!$('menuBtn').contains(e.target))closeMenu();});
 window.addEventListener('hashchange',route);
+setTimeout(function(){try{todoPoke();}catch(e){}},2500); setInterval(function(){try{todoPoke();}catch(e){}},300000); document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')setTimeout(function(){try{todoPoke();}catch(e){}},800);});
 
 S=load(); sigInit(); syncLow(); route(); try{rsvCheck();}catch(e){} modTimers();
 syncStart();
