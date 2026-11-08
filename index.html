@@ -491,7 +491,7 @@ textarea:not(#text){min-height:44px!important;height:auto;resize:none!important;
 .mmbw{display:grid;grid-template-rows:0fr;transition:grid-template-rows .22s ease}.mmx.open .mmbw{grid-template-rows:1fr}.mmbi{overflow:hidden;min-height:0;padding:0 11px}.mmx:not(.open) .mmbi{visibility:hidden}.mmx.open .mmbi{padding:2px 11px 11px;border-top:1px dashed var(--line)}.mmx .mml{padding:5px 0}.mmx .mmk{width:78px}.mmv.mmc{font-family:ui-monospace,Menlo,Consolas,monospace;letter-spacing:.02em}
 @media (prefers-reduced-motion:reduce){.mmbw,.mmar::before{transition:none}}
 .mmimp{margin:0 0 8px}.mmimp b{display:block;font-size:13px;margin-bottom:3px}.mmov{position:fixed;inset:0;background:rgba(0,0,0,.45);display:grid;place-items:center;z-index:9999;padding:20px}.mmbox{background:var(--surface);color:var(--ink);border-radius:16px;padding:18px;max-width:340px;width:100%}.mmbl{font-size:14px;line-height:1.45;margin-bottom:4px}.mmbar{height:8px;border-radius:4px;background:var(--soft);overflow:hidden;margin:8px 0 4px}.mmbar i{display:block;height:100%;background:var(--focus)}.mmempty{padding:20px 4px;color:var(--muted);font-size:14px}.mmf{margin:10px 0 0}.mmf label{display:block;font-size:11px;font-weight:700;letter-spacing:.4px;color:var(--chip-ink);margin-bottom:3px}.mmf small{display:block;font-size:11.5px;color:var(--muted);margin-top:3px}
-.mmsug{margin-top:8px}.mmsh{font-size:10.5px;font-weight:700;letter-spacing:.4px;color:var(--chip-ink);margin:8px 0 4px}.mmsb{display:flex;justify-content:space-between;gap:8px;width:100%;text-align:left;border:1px solid var(--line);background:var(--soft);color:var(--ink);border-radius:10px;padding:8px 10px;margin-bottom:6px;font:inherit;font-size:12.5px}.mmsb small{flex:none;color:var(--muted)}.mmlink{margin-top:10px;font-size:12.5px;color:var(--chip-ink);font-weight:600}
+.mmsug{margin-top:8px}.mmsh{font-size:10.5px;font-weight:700;letter-spacing:.4px;color:var(--chip-ink);margin:8px 0 4px}.mmsb{display:flex;justify-content:space-between;gap:8px;width:100%;text-align:left;border:1px solid var(--line);background:var(--soft);color:var(--ink);border-radius:10px;padding:8px 10px;margin-bottom:6px;font:inherit;font-size:12.5px}.mmsb small{flex:none;color:var(--muted)}.mmf small.mmcode{color:var(--chip-ink);font-weight:600}.mmlink{margin-top:10px;font-size:12.5px;color:var(--chip-ink);font-weight:600}
 </style>
 
 <div id="app">
@@ -532,6 +532,7 @@ textarea:not(#text){min-height:44px!important;height:auto;resize:none!important;
     <nav id="tabBar" aria-label="Main">
       <button type="button" data-t="chats" class="on"><span class="tpill"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v11H9l-5 4z"/></svg></span>Chats</button>
       <button type="button" data-t="reports"><span class="tpill"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 20V11M12 20V4M19 20v-6"/></svg></span>Reports</button>
+      <button type="button" data-t="equip"><span class="tpill"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 3h5l-.5 5.5a2 2 0 0 1-4 0L9.5 3zM12 10.5V19M8.5 19h7M4 4v4a1.3 1.3 0 0 0 2.6 0V4M5.3 4v16M20 20V4c-1.6 1.2-2.3 3-2.3 5.5H20"/></svg></span>Equipment</button>
       <button type="button" data-t="lib"><span class="tpill"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h10a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3zM5 17a3 3 0 0 1 3-3h10"/></svg></span>Library</button>
       <button type="button" data-t="set"><span class="tpill"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/></svg></span>Settings</button>
     </nav>
@@ -4653,6 +4654,7 @@ $('tabBar').addEventListener('click',function(e){
   var b=e.target.closest('button'); if(!b)return; var k=b.getAttribute('data-t');
   if(k==='chats'){var ls=$('listScroll'); if(ls)ls.scrollTop=0;}
   else if(k==='reports')pickSheet('REPORTS',A.filter(stkUI),function(id){location.hash=id+'-reports';});
+  else if(k==='equip')eqSheet();
   else if(k==='lib')pickSheet('LIBRARY',A,function(id){location.hash=id+'-lib';});
   else if(k==='set')openSettings();
 });
@@ -5200,7 +5202,7 @@ try{setTimeout(function(){snapNow('Opened the app');},6000); document.addEventLi
   }
   window.addEventListener('resize',apply); window.addEventListener('orientationchange',function(){setTimeout(apply,60);}); apply();
 })();
-var APPVER='fec20ab3';
+var APPVER='0e03b99a';
 var KEYNAME='dutybuddy.apikey', inClaude=false;
 function storedKey(){try{return localStorage.getItem(KEYNAME)||'';}catch(e){return '';}}
 function keyOn(){try{return localStorage.getItem('dutybuddy.keyoff')!=='1';}catch(e){return true;}}
@@ -8631,15 +8633,35 @@ function renderMatchOne(id,key,box){
   var c=S.chats[id], m=mmInit(c), row=null, it=null, virt=key.charAt(0)==='v'&&key.length>1&&!m.rows.some(function(r){return r.id===key;});
   if(virt){it=mmItem(c,key.slice(1));} else {row=m.rows.filter(function(r){return r.id===key;})[0]||null; if(row)it=mmItem(c,row.sid);}
   if(!row&&!it){var nf=el('div','card'); nf.appendChild(el('p',null,'This item is not here any more.')); box.appendChild(nf); return;}
-  var work={bt:row?row.bt:'',gl:row?row.gl:'',sid:it?it.id:'',code:it?(it.code||''):'',sheet:it?(it.sheet||''):'',menu:it?it.name:(row?row.mn||'':'')};
+  var work={bt:row?row.bt:'',gl:row?row.gl:'',btc:row?(row.btc||''):'',glc:row?(row.glc||''):'',sid:it?it.id:'',code:it?(it.code||''):'',sheet:it?(it.sheet||''):'',menu:it?it.name:(row?row.mn||'':'')};
   var cd=el('div','card'); cd.appendChild(el('h3',null,'Edit match'));
   function dirty(){mmDirty(true);}
-  function fld(lab,val,key2,note){
-    var w=el('div','mmf'); w.appendChild(el('label',null,lab)); var i=el('input'); i.className='fi'; i.value=val||''; i.setAttribute('aria-label',lab); i.addEventListener('input',function(){work[key2]=i.value; dirty();}); w.appendChild(i); if(note)w.appendChild(el('small',null,note)); cd.appendChild(w); return i;
+  function fld(lab,val,key2,note,src,codeKey){
+    var w=el('div','mmf'); w.appendChild(el('label',null,lab)); var i=el('input'); i.className='fi'; i.value=val||''; i.setAttribute('aria-label',lab);
+    var cap=null, dd=null;
+    if(codeKey){cap=el('small',null,''); cap.className='mmcode';}
+    function showCode(){if(cap)cap.textContent=work[codeKey]?'Code: '+work[codeKey]:'Code: — (not set yet)';}
+    function find(){
+      dd.textContent=''; var q=mmKey(i.value); if(q.length<2)return; var ws=q.split(' '), seen={}, n=0;
+      src().forEach(function(x){
+        if(n>=6||!x.n)return; var k=mmKey(x.n+' '+(x.c||'')); if(seen[k])return;
+        if(!ws.every(function(w2){return k.indexOf(w2)>=0;}))return; seen[k]=1; n++;
+        var bt=el('button','mmsb'); bt.type='button'; bt.appendChild(el('span',null,x.n)); if(x.c)bt.appendChild(el('small',null,x.c));
+        bt.addEventListener('click',function(){dd.textContent=''; x.pick(i); showCode();}); dd.appendChild(bt);
+      });
+      if(!n)dd.appendChild(el('div','mmv','No match in this list.'));
+    }
+    i.addEventListener('input',function(){work[key2]=i.value; if(codeKey&&!i.value.trim())work[codeKey]=''; showCode(); dirty(); if(dd)find();});
+    w.appendChild(i); if(cap){w.appendChild(cap); showCode();}
+    if(src){dd=el('div','mmsug'); w.appendChild(dd);}
+    if(note)w.appendChild(el('small',null,note)); cd.appendChild(w); return i;
   }
-  fld('MICROS NAME (bottle)',work.bt,'bt'); fld('MICROS NAME (glass)',work.gl,'gl');
-  var cI=fld('STOCK CODE',work.code,'code'); var sI=fld('STOCK NAME',work.sheet,'sheet','You can change it. The app asks you to confirm before it changes the stock.'); var mI=fld('MENU NAME',work.menu,'menu');
-  function lock(){cI.disabled=sI.disabled=!work.sid; if(!work.sid){cI.placeholder=sI.placeholder='Link a stock wine first';}}
+  function rowsSrc(nk,ck){return function(){var o=[]; m.rows.forEach(function(r){if(r[nk])o.push({n:r[nk],c:r[ck]||'',pick:function(i){i.value=r[nk]; work[nk]=r[nk]; work[ck]=r[ck]||''; dirty();}});}); return o;};}
+  fld('MICROS NAME (bottle)',work.bt,'bt','Search the bottle names (BT).',rowsSrc('bt','btc'),'btc'); fld('MICROS NAME (glass)',work.gl,'gl','Search the glass names (GL).',rowsSrc('gl','glc'),'glc');
+  var cI=fld('STOCK CODE',work.code,'code');
+  var sI=fld('STOCK NAME',work.sheet,'sheet','Pick a stock wine to link it. If you edit the text, the app asks you to confirm before it changes the stock.',function(){return c.inv.map(function(x){return {n:x.sheet||x.name,c:x.code||'',pick:function(){link(x);}};});});
+  var mI=fld('MENU NAME',work.menu,'menu','Search the menu names.',function(){return c.inv.map(function(x){return {n:x.name,c:'',pick:function(i){i.value=x.name; work.menu=x.name; dirty();}};});});
+  function lock(){cI.disabled=!work.sid; if(!work.sid){cI.placeholder='Link a stock wine first'; sI.placeholder='Search to link a stock wine';}}
   lock();
   var sg=el('div','mmsug'); cd.appendChild(sg);
   function link(x){work.sid=x.id; work.code=x.code||''; work.sheet=x.sheet||''; work.menu=x.name; cI.value=work.code; sI.value=work.sheet; mI.value=work.menu; lock(); stl.textContent='Linked to: '+(x.sheet||x.name); dirty(); sugg();}
@@ -8660,8 +8682,8 @@ function renderMatchOne(id,key,box){
   function commit(){
     var lk=mmItem(c,work.sid);
     if(lk){var sh=work.sheet.trim(), cdn=work.code.trim(), mn=work.menu.trim(); lk.sheet=sh; lk.code=cdn; if(mn)lk.name=mn;}
-    var r=row; if(!r){r={id:uid(),bt:'',gl:'',sid:'',conf:'',sc:0,near:'',mn:''}; m.rows.push(r);}
-    var was=r.sid; r.bt=work.bt.trim(); r.gl=work.gl.trim(); r.sid=work.sid; if(work.sid&&work.sid!==was)r.conf='Manual'; if(!work.sid){r.conf=''; r.mn=work.menu.trim();} else r.mn='';
+    var r=row; if(!r){r={id:uid(),bt:'',gl:'',btc:'',glc:'',sid:'',conf:'',sc:0,near:'',mn:''}; m.rows.push(r);}
+    var was=r.sid; r.bt=work.bt.trim(); r.gl=work.gl.trim(); r.btc=work.btc||''; r.glc=work.glc||''; r.sid=work.sid; if(work.sid&&work.sid!==was)r.conf='Manual'; if(!work.sid){r.conf=''; r.mn=work.menu.trim();} else r.mn='';
     mmDirty(false); save(); toast('Saved.'); location.hash=id+'-match';
   }
   var bs=el('div','btns'); bs.style.marginTop='12px';
@@ -8764,7 +8786,7 @@ function sCard(title,paras,body){var c=el('div','scard'); c.appendChild(el('h3',
 function sBtns(list,body){var d=el('div','sbtns'); list.forEach(function(x){d.appendChild(mkBtn(x[0],x[2]||'',x[1]));}); body.appendChild(d);}
 function renderSettings(){
   var pg=$('setPg'); if(!pg)return; SETSIG=setSig(); pg.textContent='';
-  var v=SETVIEW||{name:'list'}, title={list:'Settings',problems:'Last problems',online:'Online (Google key)',smart:'Smart replies',local:'Offline (on this phone)',device:'This device',about:'About and privacy'}[v.name]||'Settings';
+  var v=SETVIEW||{name:'list'}, title={list:'Settings',currency:'Currency',problems:'Last problems',online:'Online (Google key)',smart:'Smart replies',local:'Offline (on this phone)',device:'This device',about:'About and privacy'}[v.name]||'Settings';
   var bar=el('div','sbar'), bk=el('button'); bk.innerHTML='<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5 8 12l7 7"/></svg>'; bk.type='button'; bk.setAttribute('aria-label','Back');
   bk.addEventListener('click',function(){if(v.name==='list')closeSettings(); else{SETVIEW={name:'list'}; renderSettings();}});
   bar.appendChild(bk); bar.appendChild(el('div',null,title)); pg.appendChild(bar);
@@ -8777,6 +8799,9 @@ function renderSettings(){
     sGrp('AI',[
       sRow('\u2726','g','Online','Google key. Best answers, reads photos. Needs internet',os,function(){SETVIEW={name:'online'}; renderSettings();}),
       sRow('\u25A3','p','Offline','Small AI on this phone. No internet, simpler answers',localOn()?['On','on']:['Off','mid'],function(){SETVIEW={name:'local'}; renderSettings();})],body);
+    sGrp('Region',[
+      sRow('\u00A4','g','Currency','Shown next to prices. No exchange rate is applied',[eqCur(),'on'],function(){SETVIEW={name:'currency'}; renderSettings();}),
+      sRow('\u00A4','gy','Language','English for now. More languages later',['English','mid'],function(){toast('More languages will come later.');})],body);
     sGrp('Help',[sRow('\u26A0','o','Last problems','What went wrong in the app, and when',ERRS.length?[String(ERRS.length),'off']:['None','on'],function(){SETVIEW={name:'problems'}; renderSettings();})],body);
     sGrp('Data',[
       sRow('\u27F3','o','Refresh data','Reload stock lists and chats from the other device',null,function(){closeSettings(); refreshData();})],body);
@@ -8806,6 +8831,13 @@ function renderSettings(){
   } else if(v.name==='local'){
     sCard('Status: '+(localOn()?'On':'Off'),['A small AI that runs on this phone. It downloads about 1 GB once (use Wi-Fi) and then answers simple text questions with no internet. It is much weaker than Gemini, cannot read photos, and may crash the page on some iPhones.','It is used when there is no internet, or when Online is off or has no key.'],body);
     sBtns([['Set up Offline AI',function(){keySheet(true);}]],body);
+  } else if(v.name==='currency'){
+    sCard('Currency',['This only changes the code written next to prices (for example AED or USD). Prices are not converted: if you change it, the numbers stay as they are.'],body);
+    (function(){var cur=eqCur(), opts=['AED','USD','EUR','GBP','SAR','QAR','KWD','TRY'];
+      function setC(c){try{localStorage.setItem('dutybuddy.cur',c);}catch(e){} toast('Currency: '+c); renderSettings();}
+      sGrp('Choose',opts.map(function(c){return sRow('\u00A4',c===cur?'g':'gy',c,'',c===cur?['Selected','on']:null,function(){setC(c);});}),body);
+      var cd=el('div','scard'); cd.appendChild(el('h3',null,'Other code')); var inp=el('input'); inp.className='fi'; inp.placeholder='For example CHF'; inp.maxLength=4; inp.setAttribute('aria-label','Other currency code'); inp.style.cssText='width:100%;box-sizing:border-box;text-transform:uppercase'; cd.appendChild(inp);
+      cd.appendChild(mkBtn('Use this code','ghost sm',function(){var c=inp.value.trim().toUpperCase().replace(/[^A-Z]/g,''); if(c.length<2){toast('Type 2 to 4 letters.');return;} setC(c);})); body.appendChild(cd);})();
   } else if(v.name==='device'){
     sCard('This device is: '+(isMain()?'the main computer':'a phone'),['The main computer is the one whose data is never overwritten by a refresh from another device. Keep this on one device only.'],body);
     sBtns([[isMain()?'Change to phone':'Change to main computer',function(){$('mainBtn').click(); renderSettings();}]],body);
@@ -8945,6 +8977,161 @@ $('menuBtn').__old=function(){var open=$('menu').hidden; if(open){syncLabel(); s
 document.addEventListener('click',function(e){if(!$('menu').hidden&&!$('menu').contains(e.target)&&!$('menuBtn').contains(e.target))closeMenu();});
 window.addEventListener('hashchange',route);
 setTimeout(function(){try{todoPoke();}catch(e){}},2500); setInterval(function(){try{todoPoke();}catch(e){}},300000); document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')setTimeout(function(){try{todoPoke();}catch(e){}},800);});
+
+/* ================= EQUIPMENT (OS&E / FF&E): one list per department, kept on this device ================= */
+var EQKEY='dutybuddy.equip', EQ=null, EQCUR='', EQQ='', EQOPEN={};
+var EQIC={
+ glass:'<path d="M8 3h8l-.5 6a3.5 3.5 0 0 1-7 0L8 3zM12 12.5V20M8.5 20h7"/>',
+ pan:'<circle cx="9" cy="14" r="6"/><path d="M15 11l6-6"/>',
+ shaker:'<path d="M8 9h8l-1 11H9L8 9zM9 5h6l1 4H8l1-4zM11 3h2v2h-2z"/>',
+ chair:'<path d="M8 3v9M8 12h10M8 12v9M18 12v9M8 7h4"/>',
+ bell:'<path d="M4 17a8 8 0 0 1 16 0H4zM2.5 20h19M12 9V7M10.5 7h3"/>',
+ cal:'<rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/>',
+ pc:'<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/>',
+ box:'<path d="M3 7.5 12 3l9 4.5v9L12 21l-9-4.5v-9zM3 7.5l9 4.5 9-4.5M12 12v9"/>'
+};
+var EQTAB='<path d="M9.5 3h5l-.5 5.5a2 2 0 0 1-4 0L9.5 3zM12 10.5V19M8.5 19h7M4 4v4a1.3 1.3 0 0 0 2.6 0V4M5.3 4v16M20 20V4c-1.6 1.2-2.3 3-2.3 5.5H20"/>';
+var EQ_START=[["Sommelier / Wine", [["Glassware", ["Bordeaux wine glass", "Burgundy wine glass", "Shiraz (Syrah) wine glass", "Universal red wine glass", "White wine glass", "Chardonnay wine glass", "Champagne flute", "Champagne tulip glass", "Dessert wine glass", "Port glass", "Sherry glass (copita)", "Tasting glass", "Water goblet"]], ["Opening and pouring", ["Waiter's friend corkscrew", "Durand cork extractor", "Ah-So cork puller", "Foil cutter", "Drip stop / pourer", "Champagne stopper", "Wine preservation system", "Decanting funnel", "Wine thermometer"]], ["Decanting", ["Decanter, standard", "Decanter, large (magnum)", "Aerator", "Decanting candle or light", "Decanter drying stand"]], ["Wine service", ["Wine basket (cradle)", "Metal bottle coaster", "Service cloth (wine napkin)", "Wine bucket", "Bucket stand", "Ice bucket", "Wine list holder"]], ["Storage and cellar", ["Wine fridge (cabinet)", "Under-counter wine cooler", "Wine rack", "Cellar shelving", "Cellar thermometer and hygrometer", "Wine crate / carrier"]]]], ["Kitchen", [["Knives and cutting", ["Chef knife", "Paring knife", "Boning knife", "Filleting knife", "Bread knife", "Slicing knife", "Cleaver", "Oyster knife", "Kitchen shears", "Mandoline", "Peeler", "Cutting board, HDPE", "Cutting board, wood", "Knife sharpening stone", "Honing steel", "Knife rack / magnetic strip"]], ["Cookware", ["Frying pan", "Non-stick pan", "Sauté pan", "Saucepan", "Sauce pot", "Stockpot", "Wok", "Cast iron pan", "Grill pan", "Roasting pan", "Braising pot", "Crepe pan", "Pasta pot with basket", "Bain-marie pot"]], ["Utensils", ["Tongs", "Spatula (turner)", "Fish spatula", "Rubber spatula", "Whisk", "Ladle", "Skimmer", "Slotted spoon", "Wooden spoon", "Basting brush", "Peeler (Y type)", "Melon baller", "Microplane / zester", "Box grater", "Potato masher", "Rolling pin", "Pastry brush", "Piping bags and nozzles", "Ring moulds", "Tweezers (plating)", "Squeeze bottles", "Spoons for plating"]], ["Containers and trays", ["Gastronorm pan 1/1", "Gastronorm pan 1/2", "Gastronorm pan 1/3", "Gastronorm lid", "Sheet pan", "Perforated tray", "Cooling rack", "Mixing bowl, stainless", "Colander", "Fine sieve (chinois)", "Storage container with lid", "Deli container", "Vacuum bag", "Cling film dispenser", "Foil dispenser", "Label gun / labels"]], ["Measuring and control", ["Digital scale", "Probe thermometer", "Infrared thermometer", "Timer", "Measuring jug", "Measuring spoons", "Fridge thermometer"]], ["Machines", ["Combi oven", "Convection oven", "Salamander / grill", "Induction hob", "Gas range", "Deep fryer", "Flat-top griddle", "Tilting pan", "Planetary mixer", "Food processor", "Blender", "Hand blender", "Meat slicer", "Vacuum packer", "Sous-vide circulator", "Blast chiller", "Rice cooker", "Pasta cooker", "Dishwasher (pot wash)", "Ice machine"]], ["Refrigeration and storage", ["Walk-in cold room", "Walk-in freezer", "Reach-in fridge", "Under-counter fridge", "Chest freezer", "Storage shelving", "Dry store racks", "Trolley", "Gastronorm trolley"]], ["Cleaning and safety", ["Fire blanket", "First aid kit", "Chef whites storage", "Anti-slip mats", "Waste bins", "Cleaning cloths", "Sanitiser dispenser", "Floor squeegee", "Gloves dispenser", "Colour-coded boards and knives"]]]], ["Bar", [["Glassware", ["Highball glass", "Collins glass", "Rocks (Old Fashioned) glass", "Double rocks glass", "Coupe glass", "Martini glass", "Nick & Nora glass", "Margarita glass", "Champagne flute", "Wine glass (bar)", "Brandy snifter", "Hurricane glass", "Shot glass", "Beer glass (pint)", "Pilsner glass", "Copper mug", "Tiki mug", "Irish coffee glass", "Water tumbler"]], ["Shaking and mixing", ["Boston shaker (tin and glass)", "Cobbler shaker", "Mixing glass", "Bar spoon", "Muddler", "Jigger, 30/60 ml", "Measuring jigger (Japanese style)", "Hawthorne strainer", "Julep strainer", "Fine strainer", "Cocktail smoker", "Whipped cream siphon", "Atomizer / spray bottle"]], ["Ice", ["Ice bucket", "Ice tongs", "Ice scoop", "Ice machine", "Lewis bag and mallet", "Ice mould (large cube)", "Ice mould (sphere)"]], ["Bar tools", ["Bottle opener", "Corkscrew", "Pour spouts (speed pourers)", "Bottle stoppers", "Citrus press (hand)", "Peeler", "Zester / channel knife", "Bar knife", "Cutting board", "Garnish tray", "Squeeze bottles", "Dasher bottles", "Syrup bottles", "Infusion jars", "Cocktail picks", "Straw holder", "Napkin holder", "Bar mats", "Bar towels", "Speed rail"]], ["Machines and cooling", ["Electric juicer", "Blender", "Milk frother", "Coffee machine", "Back-bar fridge", "Under-counter fridge", "Wine fridge", "Glass froster", "Glass washer", "Soda gun / dispenser", "Beer tap system"]], ["Service", ["Serving tray", "Drinks menu holder", "Bill presenter", "Coasters", "Table candle / light", "Champagne bucket and stand"]]]], ["Floor", [["Tableware", ["Dinner plate", "Starter / side plate", "Dessert plate", "Soup bowl", "Pasta bowl", "Rice bowl", "Share plate", "Charger plate", "Bread plate", "Tea cup and saucer", "Coffee cup and saucer", "Espresso cup and saucer", "Teapot", "Milk jug", "Sugar bowl", "Serving platter", "Serving bowl"]], ["Cutlery", ["Dinner knife", "Dinner fork", "Dessert fork", "Dessert spoon", "Soup spoon", "Teaspoon", "Fish knife", "Steak knife", "Chopsticks", "Chopstick rest", "Serving spoon", "Serving fork", "Serving tongs", "Fish slice", "Cake server", "Butter knife", "Cutlery tray / holder"]], ["Glassware (floor)", ["Water glass", "Wine glass, red", "Wine glass, white", "Champagne flute", "Juice glass", "Soft drink glass", "Beer glass", "Tea glass", "Carafe / water jug"]], ["Table setting", ["Tablecloth", "Table runner", "Napkin", "Placemat", "Table number stand", "Menu holder", "Candle / table lamp", "Salt and pepper set", "Sauce bottle holder", "Toothpick holder", "Bud vase", "Ashtray", "Bill presenter", "Condiment tray", "Chopstick holder", "Hot towel tray"]], ["Service equipment", ["Serving tray, round", "Serving tray, rectangular", "Tray stand", "Service trolley", "Gueridon (tableside trolley)", "Plate warmer", "Plate cart", "Bread basket", "Cloche (dish cover)", "Crumb scraper", "Wine bucket and stand", "Water pitcher", "Pepper mill", "Cheese board and knife", "Hot plate / chafing dish", "Table bell", "Order pad and pen", "Waiter's friend (corkscrew)", "Napkin folding tray", "Service cloth"]], ["Furniture and fixtures (FF&E)", ["Dining table, 2 seats", "Dining table, 4 seats", "Dining table, 6 seats", "Round table, 8 seats", "Banquette seating", "Dining chair", "Bar stool", "High chair (baby)", "Booster seat", "Service station", "Host stand", "Waiter station cabinet", "Wall mirror", "Cushions", "Planters", "Umbrella (terrace)", "Terrace heater", "Screen / divider"]], ["Technology and comms", ["POS terminal", "Handheld ordering device", "Printer (kitchen / bar)", "Table buzzer / call button", "Radio / earpiece", "Tablet (reservations)", "Menu tablet", "Speaker system", "Ambient lighting controller"]], ["Cleaning and safety", ["Crumb sweeper", "Cleaning trolley", "Disinfectant spray", "Floor sign (wet floor)", "First aid kit", "Fire extinguisher", "Spill kit", "Glass polishing cloth", "Steam polisher", "Waste bin, front of house"]]]], ["Reception", [["Front desk", ["Reception desk", "Host stand", "Reservation tablet", "Reservation book", "Computer / PC", "Monitor", "Keyboard and mouse", "Telephone", "Headset", "Label / receipt printer", "Card payment terminal", "Cash drawer", "Barcode / QR scanner", "Stamp and ink pad", "Stapler and punch", "Pens and pen holder"]], ["Guest welcome", ["Welcome mat", "Umbrella stand", "Umbrella (guest)", "Coat rack / cloakroom hangers", "Coat check tickets", "Luggage trolley", "Seating for waiting guests", "Side table", "Magazine / book display", "Business card holder", "Brochure holder", "Candle / diffuser", "Flower vase", "Guest book", "Guest WiFi card holder"]], ["Menus and printed items", ["Menu folder / cover", "Wine list cover", "Menu stand (entrance)", "Notice board", "Table reservation cards", "Gift voucher holder", "Printed gift vouchers", "Comment cards", "Signage (entrance)", "Lighted sign"]], ["Technology", ["Router / WiFi access point", "Network switch", "UPS (battery backup)", "Music / speaker system", "TV screen", "Door camera / CCTV", "Tablet charging station", "Phone charger"]], ["Safety and access", ["First aid kit", "Fire extinguisher", "Evacuation plan sign", "Door counter / sensor", "Key safe", "Lost property box", "Queue stanchions (rope posts)", "Velvet rope"]], ["Cleaning", ["Glass cleaner", "Cleaning cloths", "Dust pan and brush", "Waste bin", "Air freshener"]]]], ["Events", [["Banquet furniture", ["Banquet table, round (8 to 10 seats)", "Banquet table, rectangular", "Cocktail table (high)", "Chiavari chair", "Banquet chair", "Lounge sofa set", "Bar counter (portable)", "Buffet table", "Registration table", "Stage riser", "Podium / lectern", "Dance floor panels", "Chair covers", "Table skirting"]], ["Table linen and decor", ["Tablecloth, round", "Tablecloth, rectangular", "Napkins (banquet)", "Table runner", "Overlay / chair sash", "Centrepiece vase", "Candle holders", "Tea lights", "Charger plates (event)", "Table numbers", "Place card holders", "Menu cards (event)", "Backdrop frame", "Backdrop fabric", "Floral stands", "Balloon arch frame"]], ["Food and beverage service", ["Buffet chafing dish", "Buffet riser", "Food warmer (heat lamp)", "Beverage dispenser", "Coffee urn", "Ice sculpture tray", "Carving station", "Live cooking station", "Serving platter (large)", "Banquet tray", "Tray jack (stand)", "Glass rack (event)", "Plate rack", "Cutlery bins", "Wine buckets (event)", "Bar tools set (event)"]], ["Audio and visual", ["Microphone, wireless", "Microphone stand", "PA speaker", "Mixer / audio desk", "Projector", "Projection screen", "LED screen", "Laptop for events", "Clicker / presenter remote", "HDMI and adapter kit", "Extension cables and power strips", "Stage lights", "Uplighting", "Spotlight", "Fog / haze machine"]], ["Staging and logistics", ["Event trolley", "Flight cases", "Storage crates", "Folding table", "Cable ramps", "Gaffer tape and tools kit", "Ladder", "Signage stands", "Stanchions and ropes", "Red carpet runner", "Radio / walkie-talkie", "Event tent / marquee", "Fire safety kit", "Generator (backup)"]], ["Cleaning and safety", ["Cleaning trolley", "Stain remover", "Table crumber", "Wet floor signs", "First aid kit", "Fire extinguisher", "Waste bins (event)"]]]], ["HR / Office", [["Computers and devices", ["Desktop computer", "Laptop", "Monitor", "Keyboard and mouse", "Tablet", "Smartphone (company)", "Docking station", "Webcam", "Headset", "External hard drive", "USB drives"]], ["Printing and scanning", ["Printer, laser", "Printer, colour", "Scanner", "Photocopier", "Label printer", "Laminator", "Paper shredder", "Paper cutter", "Binder / binding machine"]], ["Network and security", ["Router", "Network switch", "WiFi access point", "UPS (battery backup)", "Server / NAS", "CCTV camera", "Door access reader", "Staff clocking terminal", "Fingerprint / face reader", "Safe"]], ["Furniture (FF&E)", ["Office desk", "Office chair", "Visitor chair", "Meeting table", "Meeting chairs", "Filing cabinet", "Lockable cabinet", "Bookshelf", "Whiteboard", "Notice board", "Staff lockers", "Staff room table and chairs", "Sofa (staff room)", "Wall clock"]], ["Stationery and documents", ["Paper, A4", "Paper, A3", "Folders and binders", "Filing boxes", "Pens and markers", "Stapler and punch", "Sticky notes", "Envelopes", "Staff ID card printer", "ID card holders and lanyards", "Company stamp", "Name badges", "Uniform tags and hangers", "Staff handbook copies"]], ["Staff welfare and uniform", ["Uniform rack", "Uniform hangers", "Iron and ironing board", "Washing machine (uniform)", "Staff fridge", "Staff microwave", "Water dispenser", "Kettle", "Coffee machine (staff)", "Staff first aid kit", "Defibrillator (AED)", "Fire extinguisher", "Evacuation chair"]], ["Training", ["Training screen / TV", "Projector", "Training tablets", "Flipchart and stand", "Training manuals", "Dummy bottles / glasses for training", "Whistle / bell", "Speaker"]], ["Cleaning", ["Waste bins", "Cleaning cloths", "Vacuum cleaner", "Hand sanitiser dispenser"]]]]];
+function eqE(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function eqSvg(p,s){return '<svg width="'+(s||22)+'" height="'+(s||22)+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+p+'</svg>';}
+function eqId(){return 'q'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
+function eqCur(){try{return localStorage.getItem('dutybuddy.cur')||'AED';}catch(e){return 'AED';}}
+function eqMoney(n){n=Math.round(n*100)/100; return eqCur()+' '+n.toLocaleString('en-US',{minimumFractionDigits:n%1?2:0,maximumFractionDigits:2});}
+function eqNum(v){if(v===''||v==null)return '';var n=parseFloat(String(v).replace(/[^0-9.\-]/g,''));return isFinite(n)?n:'';}
+function eqSeed(o){
+  if(o.seed3)return false; var ch=false;
+  o.items=o.items||[];
+  EQ_START.forEach(function(g){var d=o.depts.filter(function(x){return x.name.toLowerCase()===g[0].toLowerCase();})[0]; if(!d)return;
+    var have={}; o.items.forEach(function(i){if(i.d===d.id)have[i.n.toLowerCase()]=1;});
+    g[1].forEach(function(c){c[1].forEach(function(n){if(have[n.toLowerCase()])return; o.items.push({id:eqId(),d:d.id,cat:c[0],n:n,q:'',p:'',c:'',note:''}); have[n.toLowerCase()]=1; ch=true;});});});
+  o.seed3=1; return ch;
+}
+function eqLoad(){
+  try{var r=localStorage.getItem(EQKEY); if(r){var o=JSON.parse(r); if(o&&o.depts&&o.items){if(eqSeed(o))try{localStorage.setItem(EQKEY,JSON.stringify(o));}catch(e){} return o;}}}catch(e){}
+  var D=[['Sommelier / Wine','glass'],['Kitchen','pan'],['Bar','shaker'],['Floor','chair'],['Reception','bell'],['Events','cal'],['HR / Office','pc']];
+  var o={depts:D.map(function(d,i){return {id:'d'+(i+1),name:d[0],ic:d[1]};}),items:[]};
+  eqSeed(o); return o;
+}
+function eqSave(){try{localStorage.setItem(EQKEY,JSON.stringify(EQ));}catch(e){toast('Could not save Equipment on this phone (storage may be full).');}}
+function eqInit(){if(!EQ)EQ=eqLoad();}
+function eqDept(id){return EQ.depts.filter(function(d){return d.id===id;})[0];}
+function eqStats(did){var n=0,t=0;EQ.items.forEach(function(i){if(i.d===did){n++;if(i.q!==''&&i.p!=='')t+=i.q*i.p;}});return {n:n,t:t};}
+function eqOv(z){var s=document.createElement('div');s.style.cssText='position:fixed;inset:0;z-index:'+z+';background:rgba(0,0,0,.5);display:flex;align-items:flex-end;justify-content:center';s.addEventListener('click',function(e){if(e.target===s)s.remove();});document.body.appendChild(s);return s;}
+function eqSh(ov,cls,inner){var h=document.createElement('div');if(cls)h.className=cls;h.style.cssText='width:100%;max-width:480px;max-height:86%;overflow-y:auto;background:var(--surface);color:var(--ink);border-radius:24px 24px 0 0;padding:10px 16px calc(22px + var(--sab))';h.innerHTML='<div style="width:44px;height:5px;border-radius:3px;background:var(--line);margin:0 auto 14px"></div>'+inner;ov.appendChild(h);return h;}
+var EQB='border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:12px;padding:8px 12px;font:600 14px system-ui,sans-serif;width:auto;margin:0;display:inline-flex;gap:6px;cursor:pointer';
+var EQL='font-size:12.5px;font-weight:700;letter-spacing:.06em;color:var(--muted);margin:0 2px 10px';
+function eqSheet(){
+  eqInit();
+  var ov=eqOv(70), h='<div style="'+EQL+'">EQUIPMENT</div><div style="display:flex;gap:8px;margin:0 0 12px"><button type="button" id="eqImp" style="'+EQB+'">Import Excel</button><button type="button" id="eqExp" style="'+EQB+'">Export Excel</button></div>';
+  EQ.depts.forEach(function(d){var s=eqStats(d.id);
+    h+='<button type="button" data-d="'+d.id+'" class="eqdep"><span style="flex:none;width:40px;height:40px;border-radius:12px;background:var(--soft);color:var(--focus);display:grid;place-items:center">'+eqSvg(EQIC[d.ic]||EQIC.box)+'</span><div><b>'+eqE(d.name)+'</b><small>'+(s.n?s.n+(s.n===1?' item':' items')+(s.t?' · '+eqMoney(s.t):''):'No items yet')+'</small></div><span style="margin-left:auto;color:var(--muted)">'+eqSvg('<path d="M9 6l6 6-6 6"/>',20)+'</span></button>';});
+  h+='<button type="button" id="eqNewD" style="border:1.5px dashed var(--line);background:var(--surface);color:var(--focus);font-weight:700;justify-content:center">+ New department</button>';
+  var sh=eqSh(ov,'psheet',h);
+  sh.addEventListener('click',function(e){
+    var b=e.target.closest('button'); if(!b)return;
+    if(b.id==='eqImp'){ov.remove();eqImport();}
+    else if(b.id==='eqExp'){eqExport();}
+    else if(b.id==='eqNewD'){ov.remove();eqDeptForm(null);}
+    else if(b.getAttribute('data-d')){ov.remove();eqOpen(b.getAttribute('data-d'));}
+  });
+}
+function eqOpen(did){
+  eqInit(); EQCUR=did; EQQ=''; var d=eqDept(did); if(!d)return;
+  var old=document.getElementById('eqView'); if(old)old.remove();
+  var v=document.createElement('div'); v.id='eqView'; v.setAttribute('role','dialog'); v.setAttribute('aria-label','Equipment');
+  v.style.cssText='position:fixed;inset:0;z-index:60;background:var(--surface);color:var(--ink);display:flex;flex-direction:column;padding-top:var(--sat,0px)';
+  v.innerHTML='<div style="display:flex;align-items:center;gap:6px;padding:10px 8px;border-bottom:1px solid var(--line)"><div style="font-weight:700;font-size:17px;flex:1;padding-left:58px" id="eqTt"></div><button id="eqDe" type="button" style="'+EQB+';border:0">Edit</button></div><div id="eqSc" style="overflow:auto;flex:1;padding:12px 14px calc(30px + var(--sab))"></div>';
+  document.body.appendChild(v);
+    document.getElementById('eqDe').onclick=function(){eqDeptForm(eqDept(EQCUR));};
+  eqDraw();
+}
+function eqDraw(){
+  var d=eqDept(EQCUR), sc=document.getElementById('eqSc'); if(!d||!sc)return;
+  document.getElementById('eqTt').textContent='Equipment · '+d.name;
+  var s=eqStats(EQCUR), q=EQQ.trim().toLowerCase(), cats={}, order=[];
+  EQ.items.forEach(function(i){if(i.d!==EQCUR)return; if(q&&(i.n+' '+i.cat+' '+i.c).toLowerCase().indexOf(q)<0)return; var k=i.cat||'Other'; if(!cats[k]){cats[k]=[];order.push(k);} cats[k].push(i);});
+  order.sort(function(a,b){return a.localeCompare(b);});
+  var h='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px"><div style="background:var(--soft);border-radius:14px;padding:10px 12px"><div style="font-size:22px;font-weight:700">'+s.n+'</div><div style="font-size:12px;color:var(--muted)">item types</div></div><div style="background:var(--soft);border-radius:14px;padding:10px 12px"><div style="font-size:22px;font-weight:700">'+(s.t?eqMoney(s.t):'–')+'</div><div style="font-size:12px;color:var(--muted)">total value</div></div></div>';
+  h+='<input class="fi" id="eqQ" type="search" placeholder="Search an item" aria-label="Search equipment" value="'+eqE(EQQ)+'" style="width:100%;box-sizing:border-box;margin-bottom:10px"><div style="display:flex;gap:8px;margin-bottom:6px;flex-wrap:wrap"><button type="button" id="eqAdd" style="'+EQB+'">Add item</button><button type="button" id="eqImp2" style="'+EQB+'">Import Excel</button><button type="button" id="eqExp2" style="'+EQB+'">Export Excel</button></div>';
+  if(!order.length)h+='<p style="color:var(--muted);margin:18px 2px">'+(q?'No item matches.':'No items yet. Tap Add item, or use Import Excel.')+'</p>';
+  order.forEach(function(k){h+='<div style="'+EQL.replace('margin:0 2px 10px','margin:16px 2px 6px')+'">'+eqE(k).toUpperCase()+'</div>';
+    cats[k].sort(function(a,b){return a.n.localeCompare(b.n);}).forEach(function(i){var open=EQOPEN[i.id], tot=(i.q!==''&&i.p!=='')?i.q*i.p:'';
+      h+='<div style="border:1px solid var(--line);border-radius:14px;margin-bottom:6px;background:var(--surface)"><div style="display:flex;align-items:center;gap:8px;padding:6px 6px 6px 14px;min-height:46px"><button type="button" data-n="'+i.id+'" style="flex:1;text-align:left;border:0;background:none;color:var(--ink);font:600 15px system-ui,sans-serif;padding:8px 0;cursor:pointer">'+eqE(i.n)+'</button><b style="font-size:15px">'+(i.q===''?'–':i.q)+'</b><button type="button" data-a="'+i.id+'" aria-expanded="'+(open?'true':'false')+'" aria-label="Show price and details" style="border:0;background:none;color:var(--muted);padding:8px;cursor:pointer;transition:transform .2s;transform:'+(open?'rotate(90deg)':'none')+'">'+eqSvg('<path d="M9 6l6 6-6 6"/>',20)+'</button></div>'
+       +(open?'<div style="padding:2px 14px 12px;border-top:1px dashed var(--line);font-size:14px"><div style="display:grid;grid-template-columns:1fr auto;gap:6px 10px;margin-top:10px"><span style="color:var(--muted)">Unit price</span><b>'+(i.p===''?'–':eqMoney(i.p))+'</b><span style="color:var(--muted)">Quantity</span><b>'+(i.q===''?'–':i.q)+'</b><span style="color:var(--muted)">Total value</span><b>'+(tot===''?'–':eqMoney(tot))+'</b><span style="color:var(--muted)">Stock / purchase code</span><b>'+(i.c?eqE(i.c):'–')+'</b>'+(i.note?'<span style="color:var(--muted)">Notes</span><b style="font-weight:500;text-align:right">'+eqE(i.note)+'</b>':'')+'</div><div style="color:var(--focus);font-weight:700;margin-top:10px">Tap the name to edit</div></div>':'')+'</div>';});});
+  var keep=document.activeElement&&document.activeElement.id==='eqQ', pos=sc.scrollTop;
+  sc.innerHTML=h; sc.scrollTop=pos;
+  var qi=document.getElementById('eqQ'); if(keep){qi.focus();var l=qi.value.length;try{qi.setSelectionRange(l,l);}catch(e){}}
+  qi.oninput=function(){EQQ=this.value;eqDraw();};
+  document.getElementById('eqAdd').onclick=function(){eqItemForm(null);};
+  document.getElementById('eqImp2').onclick=eqImport; document.getElementById('eqExp2').onclick=eqExport;
+  sc.onclick=function(e){var b=e.target.closest('button'); if(!b)return; var a=b.getAttribute('data-a'), n=b.getAttribute('data-n');
+    if(a){EQOPEN[a]=!EQOPEN[a];eqDraw();} else if(n){eqItemForm(EQ.items.filter(function(i){return i.id===n;})[0]);}};
+}
+function eqField(l,id,v,ex){return '<label for="'+id+'" style="display:block;font-size:12.5px;color:var(--muted);margin:10px 2px 4px">'+l+'</label><input class="fi" id="'+id+'" value="'+eqE(v)+'" style="width:100%;box-sizing:border-box" '+(ex||'')+'>';}
+function eqItemForm(it){
+  var ov=eqOv(80), isNew=!it; it=it||{id:eqId(),d:EQCUR,cat:'',n:'',q:'',p:'',c:'',note:''};
+  var cats={}; EQ.items.forEach(function(i){if(i.d===it.d&&i.cat)cats[i.cat]=1;});
+  var h='<div style="'+EQL.replace('margin:0 2px 10px','margin:0 2px 2px')+'">'+(isNew?'ADD ITEM':'EDIT ITEM')+'</div>'+eqField('Name','eqN',it.n)+'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div>'+eqField('Quantity','eqQy',it.q,'inputmode="decimal"')+'</div><div>'+eqField('Unit price ('+eqCur()+')','eqP',it.p,'inputmode="decimal"')+'</div></div>'+eqField('Stock / purchase code','eqC',it.c)+eqField('Category','eqCat',it.cat,'list="eqCats"')+'<datalist id="eqCats">'+Object.keys(cats).map(function(k){return '<option value="'+eqE(k)+'">';}).join('')+'</datalist>'+eqField('Notes','eqNo',it.note)
+   +'<div style="display:flex;gap:8px;margin-top:16px"><button type="button" id="eqSv" style="flex:1;justify-content:center;background:var(--mint,#0B6B5C);color:#fff;border:0;border-radius:12px;padding:12px;font:700 15px system-ui,sans-serif;cursor:pointer">Save</button>'+(isNew?'':'<button type="button" id="eqDl" style="border:1px solid var(--line);background:var(--surface);color:#b3261e;border-radius:12px;padding:12px 16px;font:700 15px system-ui,sans-serif;cursor:pointer">Delete</button>')+'</div>';
+  var sh=eqSh(ov,'',h), g=function(i){return document.getElementById(i).value.trim();};
+  document.getElementById('eqSv').onclick=function(){
+    var n=g('eqN'); if(!n){toast('Type a name first.');return;}
+    it.n=n; it.q=eqNum(g('eqQy')); it.p=eqNum(g('eqP')); it.c=g('eqC'); it.cat=g('eqCat'); it.note=g('eqNo');
+    if(isNew)EQ.items.push(it); eqSave(); ov.remove(); eqDraw();
+  };
+  var dl=document.getElementById('eqDl'); if(dl)dl.onclick=function(){mmAsk('Delete “'+it.n+'” from the list?','Delete','Keep',function(){EQ.items=EQ.items.filter(function(x){return x!==it;});eqSave();ov.remove();eqDraw();});};
+  document.getElementById('eqN').focus();
+}
+function eqDeptForm(d){
+  var ov=eqOv(80), isNew=!d, ic=d?d.ic:'box';
+  var h='<div style="'+EQL.replace('margin:0 2px 10px','margin:0 2px 2px')+'">'+(isNew?'NEW DEPARTMENT':'EDIT DEPARTMENT')+'</div>'+eqField('Name','eqDn',d?d.name:'')+'<div style="'+EQL.replace('margin:0 2px 10px','margin:14px 2px 6px')+'">ICON</div><div id="eqIcs" style="display:flex;flex-wrap:wrap;gap:8px"></div><div style="display:flex;gap:8px;margin-top:16px"><button type="button" id="eqDs" style="flex:1;justify-content:center;background:var(--mint,#0B6B5C);color:#fff;border:0;border-radius:12px;padding:12px;font:700 15px system-ui,sans-serif;cursor:pointer">Save</button>'+(isNew?'':'<button type="button" id="eqDx" style="border:1px solid var(--line);background:var(--surface);color:#b3261e;border-radius:12px;padding:12px 16px;font:700 15px system-ui,sans-serif;cursor:pointer">Delete</button>')+'</div>';
+  eqSh(ov,'',h);
+  function paint(){document.getElementById('eqIcs').innerHTML=Object.keys(EQIC).map(function(k){return '<button type="button" data-i="'+k+'" aria-label="'+k+'" style="width:44px;height:44px;border-radius:12px;display:grid;place-items:center;cursor:pointer;border:2px solid '+(k===ic?'var(--focus)':'var(--line)')+';background:'+(k===ic?'var(--soft)':'var(--surface)')+';color:var(--focus)">'+eqSvg(EQIC[k])+'</button>';}).join('');}
+  paint(); document.getElementById('eqIcs').onclick=function(e){var b=e.target.closest('button'); if(b){ic=b.getAttribute('data-i');paint();}};
+  document.getElementById('eqDs').onclick=function(){var n=document.getElementById('eqDn').value.trim(); if(!n){toast('Type a name first.');return;}
+    if(EQ.depts.some(function(x){return x!==d&&x.name.toLowerCase()===n.toLowerCase();})){toast('That department already exists.');return;}
+    if(isNew){d={id:'d'+Date.now().toString(36),name:n,ic:ic};EQ.depts.push(d);} else {d.name=n;d.ic=ic;}
+    eqSave(); ov.remove(); if(isNew)eqOpen(d.id); else eqDraw();};
+  var dx=document.getElementById('eqDx'); if(dx)dx.onclick=function(){var c=EQ.items.filter(function(i){return i.d===d.id;}).length;
+    mmAsk('Delete the department “'+d.name+'”'+(c?' and its '+c+' items':'')+'? This cannot be undone.','Delete','Keep',function(){EQ.items=EQ.items.filter(function(i){return i.d!==d.id;});EQ.depts=EQ.depts.filter(function(x){return x!==d;});eqSave();ov.remove();var v=document.getElementById('eqView');if(v)v.remove();eqSheet();});};
+  document.getElementById('eqDn').focus();
+}
+function eqExport(){
+  eqInit(); var body=[];
+  EQ.depts.forEach(function(d){EQ.items.filter(function(i){return i.d===d.id;}).sort(function(a,b){return (a.cat||'').localeCompare(b.cat||'')||a.n.localeCompare(b.n);}).forEach(function(i){
+    body.push([d.name,i.cat,i.n,i.q,i.p,(i.q!==''&&i.p!=='')?Math.round(i.q*i.p*100)/100:'',i.c,i.note]);});});
+  var T={head:['Department','Category','Item','Quantity','Unit price ('+eqCur()+')','Total ('+eqCur()+')','Stock / purchase code','Notes'],body:body,foot:[],widths:[18,22,40,10,16,14,22,34],
+    notes:['How to use: add or change rows, then in the app open Equipment and tap Import Excel. A new department name creates a new department. Items are matched by Department + Item name; matching rows are updated and nothing is ever deleted by an import. Total is calculated by the app, so you can leave it empty.']};
+  var bytes=xlsxGrid('Equipment · OS&E and FF&E by department',[],T,'Equipment');
+  return saveFile('Equipment_'+tdy()+'.xlsx',new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
+}
+function eqImport(){
+  var fi=document.createElement('input'); fi.type='file'; fi.accept='.xlsx,.xls,.csv'; fi.style.display='none'; document.body.appendChild(fi);
+  fi.addEventListener('change',async function(){var f=fi.files&&fi.files[0]; fi.remove(); if(!f)return;
+    try{
+      await loadLib(XLSXL);
+      var wb=window.XLSX.read(await f.arrayBuffer(),{type:'array'}), g=window.XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,defval:''}), hi=-1;
+      for(var i=0;i<g.length&&i<40;i++){var t=g[i].map(function(v){return String(v).toLowerCase();}).join('|'); if(/department/.test(t)&&/item|name/.test(t)){hi=i;break;}}
+      if(hi<0){toast('Could not find the header row (Department, Category, Item, Quantity, Unit price...).');return;}
+      var col={}; g[hi].forEach(function(h,i){var k=String(h).toLowerCase().trim();
+        if(k==='department'||k==='dept')col.d=i; else if(k==='category')col.cat=i; else if(k==='item'||k==='name'||k==='item name')col.n=i; else if(/^(quantity|qty)/.test(k))col.q=i; else if(/^(unit )?price/.test(k))col.p=i; else if(/code/.test(k))col.c=i; else if(/^notes?/.test(k))col.note=i;});
+      if(col.d==null||col.n==null){toast('The file needs Department and Item columns.');return;}
+      eqInit(); var add=0,upd=0,nd=0,seen={};
+      var plan=[]; for(var r=hi+1;r<g.length;r++){var x=g[r], v=function(k){return col[k]==null?'':String(x[col[k]]==null?'':x[col[k]]).replace(/\s+/g,' ').trim();};
+        var o={d:v('d'),n:v('n'),cat:v('cat'),q:eqNum(v('q')),p:eqNum(v('p')),c:v('c'),note:v('note'),hq:col.q!=null,hp:col.p!=null}; if(!o.d||!o.n)continue; plan.push(o);}
+      if(!plan.length){toast('No rows found to import.');return;}
+      plan.forEach(function(o){var d=EQ.depts.filter(function(y){return y.name.toLowerCase()===o.d.toLowerCase();})[0]; if(!d){if(!seen[o.d.toLowerCase()]){nd++;seen[o.d.toLowerCase()]=1;}}
+        var ex=d&&EQ.items.filter(function(i){return i.d===d.id&&i.n.toLowerCase()===o.n.toLowerCase();})[0]; if(ex)upd++; else add++;});
+      mmAsk('Import '+plan.length+' rows from “'+f.name+'”?\n'+add+' new items, '+upd+' updated'+(nd?', '+nd+' new '+(nd===1?'department':'departments'):'')+'.\nNothing is deleted.','Import','Cancel',function(){
+        plan.forEach(function(o){var d=EQ.depts.filter(function(y){return y.name.toLowerCase()===o.d.toLowerCase();})[0]; if(!d){d={id:'d'+Date.now().toString(36)+Math.random().toString(36).slice(2,4),name:o.d,ic:'box'};EQ.depts.push(d);}
+          var ex=EQ.items.filter(function(i){return i.d===d.id&&i.n.toLowerCase()===o.n.toLowerCase();})[0];
+          if(ex){if(o.cat)ex.cat=o.cat; if(o.q!=='')ex.q=o.q; if(o.p!=='')ex.p=o.p; if(o.c)ex.c=o.c; if(o.note)ex.note=o.note;}
+          else EQ.items.push({id:eqId(),d:d.id,cat:o.cat,n:o.n,q:o.q,p:o.p,c:o.c,note:o.note});});
+        eqSave(); toast('Imported. '+add+' new, '+upd+' updated.'); var v=document.getElementById('eqView'); if(v)eqDraw(); else eqSheet();});
+    }catch(e){toast('Could not read that file. Use the Excel exported from Equipment.');}
+  });
+  fi.click();
+}
 
 S=load(); sigInit(); syncLow(); route(); try{rsvCheck();}catch(e){} modTimers();
 syncStart();
