@@ -1,6 +1,6 @@
-const V='dutybuddy-ui13';
+const V='dutybuddy-ui14';
 const CORE=['./','./index.html','./manifest.webmanifest','./icon-192.png','./icon-512.png','./icon-180.png'];
-self.addEventListener('install',e=>{e.waitUntil(caches.open(V).then(c=>c.addAll(CORE)).then(()=>self.skipWaiting()));});
+self.addEventListener('install',e=>{e.waitUntil(caches.open(V).then(c=>Promise.all(CORE.map(u=>fetch(new Request(u,{cache:'reload'})).then(r=>{if(r.ok)return c.put(u,r);})))).then(()=>self.skipWaiting()));});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==V&&k!=='dutybuddy-ext'&&!/^webllm/i.test(k)).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));});
 self.addEventListener('fetch',e=>{
   const r=e.request; if(r.method!=='GET')return; const u=new URL(r.url);
@@ -8,7 +8,7 @@ self.addEventListener('fetch',e=>{
   if(u.origin===location.origin){
     // app files: open instantly from the phone, refresh quietly when online
     e.respondWith(caches.open(V).then(c=>c.match(r,{ignoreSearch:true}).then(hit=>{
-      const net=fetch(r).then(res=>{if(res.ok)c.put(r,res.clone()); return res;}).catch(()=>hit);
+      const net=fetch(r,{cache:'no-cache'}).then(res=>{if(res.ok)c.put(r,res.clone()); return res;}).catch(()=>hit);
       return hit||net;
     })));
     return;
