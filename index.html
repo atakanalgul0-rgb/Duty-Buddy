@@ -5515,7 +5515,7 @@ try{setTimeout(function(){snapNow('Opened the app');},6000); document.addEventLi
   }
   window.addEventListener('resize',apply); window.addEventListener('orientationchange',function(){setTimeout(apply,60);}); apply();
 })();
-var APPVER='0e03b99a';
+var APPVER='ui14';
 var KEYNAME='dutybuddy.apikey', inClaude=false;
 function storedKey(){try{return localStorage.getItem(KEYNAME)||'';}catch(e){return '';}}
 function keyOn(){try{return localStorage.getItem('dutybuddy.keyoff')!=='1';}catch(e){return true;}}
@@ -11530,7 +11530,13 @@ if(window.__DB_TEST__)window.__DB_TEST__({celInvTotals:celInvTotals,stkPdfRes:st
 </script>
 
 <script>
-if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});}
+if('serviceWorker' in navigator){
+  var swHad=!!navigator.serviceWorker.controller, swRel=false;
+  navigator.serviceWorker.addEventListener('controllerchange',function(){if(!swHad){swHad=true; return;} if(swRel)return; swRel=true; try{toast('New version. Reloading.');}catch(e){} setTimeout(function(){location.reload();},700);});
+  window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(function(reg){
+    function chk(){try{reg.update();}catch(e){}} chk(); document.addEventListener('visibilitychange',function(){if(!document.hidden)chk();});
+  }).catch(function(){});});
+}
 </script>
 </body>
 </html>
