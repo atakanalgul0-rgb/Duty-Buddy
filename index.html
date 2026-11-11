@@ -11,7 +11,8 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" type="image/png" href="icon-192.png">
-<style>html,body{margin:0;height:100%;background:#DCE3E0}</style>
+<style>html,body{margin:0;height:100%;background:#DCE3E0}.limcnt{font-size:15px;font-weight:600;color:var(--muted);margin-top:6px;font-variant-numeric:tabular-nums}.limbar{height:3px;border-radius:9px;background:rgba(128,128,128,.2);margin-top:6px;overflow:hidden}.limbar u{display:block;height:100%;background:#d4a017;transition:width 1s linear}
+</style>
 </head>
 <body>
 <title>Duty Buddy</title>
@@ -3057,7 +3058,7 @@ async function ocrPhotoFlow(id,file,note){
 function photoOrOcr(id,file,note){
   getSample().catch(function(){return null;}).then(async function(sm){
     var lim=null; if(sm){try{lim=await sm.limits();}catch(e){}}
-    if(sm&&lim&&lim.images&&(byId[id].pour>0||byId[id].stock))invoiceFlow(id,file,note); else ocrPhotoFlow(id,file,note);
+    if(sm&&lim&&lim.images&&(byId[id].pour>0||byId[id].stock))invQ(function(){return invoiceFlow(id,file,note);}); else ocrPhotoFlow(id,file,note);
   });
 }
 function sendPhotoQuiet(file){
@@ -5069,6 +5070,11 @@ function bubble0(m){
     });
     d.appendChild(lbx); var lb=el('div','btns'); lb.appendChild(mkBtn('Create PDF','',function(){lstPdf(L5.lines.filter(function(r){return r.w!=='85'||r.qty>0;}),L5.which);})); d.appendChild(lb);
   }
+  if(m.lim&&m.limUntil&&!m.limDone&&m.from==='bot'){
+    var lv=LIMACT.indexOf(m)>-1, lcn=el('div','limcnt'), lbr=el('div','limbar'), lu=el('u'); lbr.appendChild(lu);
+    var ltick=function(){var sc=Math.max(0,Math.ceil((m.limUntil-Date.now())/1000)); lcn.textContent=lv?(Math.floor(sc/60)+':'+('0'+sc%60).slice(-2)):'Stopped. Send the photo again.'; lu.style.width=lv?Math.max(0,Math.min(100,100-(m.limUntil-Date.now())/m.limTot*100))+'%':'0%';};
+    ltick(); d.appendChild(lcn); if(lv){d.appendChild(lbr); var liv=setInterval(function(){if(!lcn.isConnected){clearInterval(liv);return;} ltick();},1000);}
+  }
   if(m.top&&m.from==='bot'&&cur&&cur!=='team'){
     var TP=m.top, tbx=el('div','rows chg');
     TP.lines.forEach(function(x){var row=el('div','ri cgr'), left=el('div','pl'); left.appendChild(el('div','nm',x.name)); left.appendChild(el('div','s1','Bar has '+num(x.have)+' of '+x.par+' \u00b7 from '+x.from)); row.appendChild(left); row.appendChild(Object.assign(el('span','r cgq'),{textContent:'+'+x.qty})); tbx.appendChild(row);});
@@ -5541,7 +5547,7 @@ try{setTimeout(function(){snapNow('Opened the app');},6000); document.addEventLi
   }
   window.addEventListener('resize',apply); window.addEventListener('orientationchange',function(){setTimeout(apply,60);}); apply();
 })();
-var APPVER='ui18';
+var APPVER='Sidekick 21';
 var KEYNAME='dutybuddy.apikey', inClaude=false;
 function storedKey(){try{return localStorage.getItem(KEYNAME)||'';}catch(e){return '';}}
 function keyOn(){try{return localStorage.getItem('dutybuddy.keyoff')!=='1';}catch(e){return true;}}
@@ -5566,6 +5572,11 @@ function makeApiSample(key){
   fn.limits=async function(){return {images:{maxCount:5},modelTiers:['quick','default','complex']};};
   return fn;
 }
+var GQK='dutybuddy.gq', LIMACT=[];
+function gqLoad(){try{return JSON.parse(localStorage.getItem(GQK)||'[]').filter(function(t){return Date.now()-t<864e5;});}catch(e){return [];}}
+function gqAdd(){try{var a=gqLoad(); a.push(Date.now()); localStorage.setItem(GQK,JSON.stringify(a.slice(-2000)));}catch(e){}}
+function gqCount(){var a=gqLoad(), n=Date.now(); return {min:a.filter(function(t){return n-t<60000;}).length, day:a.length};}
+function gqReset(){try{var n=new Date(), p=new Intl.DateTimeFormat('en-US',{timeZone:'America/Los_Angeles',hour:'numeric',minute:'numeric',hour12:false}).formatToParts(n), h=(+p.filter(function(x){return x.type==='hour';})[0].value)%24, mi=+p.filter(function(x){return x.type==='minute';})[0].value; return new Date(n.getTime()+((24-h)*60-mi)*60000).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});}catch(e){return '';}}
 var GEMLIST=null, GEMKEY='';
 function geminiFound(key){
   if(GEMLIST&&GEMKEY===key)return GEMLIST; GEMKEY=key;
@@ -5599,9 +5610,12 @@ function makeGeminiSample(key){
       try{
         res=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+list[mi]+':generateContent',{method:'POST',signal:opts.signal,headers:{'content-type':'application/json','x-goog-api-key':key},body:JSON.stringify({contents:contents,generationConfig:{maxOutputTokens:8192}})});
       }catch(e){if(e&&e.name==='AbortError'){var er0=new Error('cancelled'); er0.code='cancelled'; throw er0;} lastErr=new Error('no connection to Google ('+((e&&e.message)||'network')+')'); lastErr.code='upstream_error'; lastErr.status=599; continue;}
-      if(res.status===404||res.status===429||res.status>=500){lastErr=new Error('gemini '+res.status+(res.status>=500?', Google is busy':res.status===429?', limit reached':', model not found')); lastErr.code=res.status===429?'rate_limited':'upstream_error'; lastErr.status=res.status; continue;}
+      if(res.status===404||res.status===429||res.status>=500){lastErr=new Error('gemini '+res.status+(res.status>=500?', Google is busy':res.status===429?', limit reached':', model not found')); lastErr.code=res.status===429?'rate_limited':'upstream_error'; lastErr.status=res.status;
+        if(res.status===429){try{var tx=JSON.stringify(await res.json()), rd=/"retryDelay"\s*:\s*"(\d+(?:\.\d+)?)s"/.exec(tx); lastErr.kind=/PerDay/i.test(tx)?'day':'min'; lastErr.wait=rd?Math.ceil(parseFloat(rd[1])):60;}catch(e3){lastErr.kind='min'; lastErr.wait=60;}} if(res.status===429&&(mi>=2||(lastErr.kind==='day'&&mi>=1)))throw lastErr;
+        continue;}
       if(!res.ok){var e2=new Error('gemini '+res.status); e2.message='gemini '+res.status; e2.code=(res.status===401||res.status===403)?'not_granted':res.status===429?'rate_limited':'upstream_error'; if(res.status===400){try{var jb=await res.json(), em=String((jb.error&&jb.error.message)||''); e2.message='gemini 400: '+em.slice(0,120); if(/api key (not valid|expired)|API_KEY_INVALID|expired/i.test(em))e2.code='not_granted';}catch(x){}} throw e2;}
       var j=await res.json(), cd=(j.candidates||[])[0]||{};
+      gqAdd();
       return {text:((cd.content&&cd.content.parts)||[]).map(function(x){return x.text||'';}).join(''),truncated:cd.finishReason==='MAX_TOKENS'};
     }
     throw lastErr||new Error('no model');
@@ -5891,10 +5905,10 @@ async function readInvoice(file,note){
   if(!lim||!lim.images)return {err:ERR.images_unavailable||'Pictures cannot be read in this view.'};
   var blob=await toJpeg(file), o={cache:false,images:[blob],effort:'high',note:String(note||'').slice(0,300)}; if((lim.modelTiers||[]).indexOf('complex')>-1)o.modelTier='complex';
   var passes=[], k=0, firstErr=null;
-  while(k<5){
+  while(k<3){
     try{ passes.push(await readInvoiceOnce(sample,o)); }catch(e){ if(!passes.length)throw e; firstErr=e; break; }
     if(k===0&&passes[0].type==='label')return {type:'label',lines:[],po:'',date:''};
-    k++; if(k>=2&&!invUnstable(passes))break;
+    k++; var cap=(passes[0].type==='sales'&&passes[0].lines.filter(function(l){return /^\d{8}$/.test(l.code);}).length>=5)?2:3; if(k>=cap||(k>=2&&!invUnstable(passes)))break;
   }
   return invMerge(passes,!!firstErr);
 }
@@ -6043,9 +6057,27 @@ async function labelFlow(id,file){
   }
   save(); refreshChat(id); renderList();
 }
-async function invoiceFlow(id,file,note){
+var IQ=Promise.resolve();
+var WLN=0, WLK=null;
+function wlGet(){try{if(WLN>0&&!WLK&&navigator.wakeLock&&document.visibilityState==='visible')navigator.wakeLock.request('screen').then(function(l){WLK=l; try{l.addEventListener('release',function(){if(WLK===l)WLK=null;});}catch(e){} if(!WLN){try{l.release();}catch(e){}}}).catch(function(){});}catch(e){}}
+function wlOff(){WLN=Math.max(0,WLN-1); if(!WLN&&WLK){var l=WLK; WLK=null; try{l.release();}catch(e){}}}
+document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')wlGet();});
+function invQ(f){WLN++; wlGet(); IQ=IQ.then(f).catch(function(){}).then(wlOff); return IQ;}
+async function limitWait(id,e,file,note,tries){
+  hideTyping(); tries=tries||0; var q=gqCount(), kind=e.kind||'min', wait=Math.min(Math.max(e.wait||60,5),120), info=q.min+' reads this minute, '+q.day+' in the last 24 hours (counted by this app).';
+  if(kind==='day'||tries>=2){
+    var rs=gqReset();
+    push(id,{from:'bot',lim:1,limDone:1,text:kind==='day'?'Google\u2019s free reading limit for today is used up. It opens again around '+(rs||'midnight')+' (midnight Pacific time). Until then you can type the lines, for example \u201cSold 3 Sancerre\u201d, or send the photo later. '+info:'Google is still busy. Send the photo again in a few minutes. '+info});
+    save(); refreshChat(id); return;
+  }
+  var m={from:'bot',lim:1,limUntil:Date.now()+wait*1000,limTot:wait*1000,text:'Google reading limit reached for now. Your photo is in line and I will continue by myself. '+info}; LIMACT.push(m); push(id,m); save(); refreshChat(id);
+  await new Promise(function(r){setTimeout(r,wait*1000);});
+  m.limDone=1; m.text='Limit passed. Reading your photo now.'; LIMACT.splice(LIMACT.indexOf(m),1); save(); refreshChat(id); showTyping();
+  await invoiceFlow(id,file,note,tries+1);
+}
+async function invoiceFlow(id,file,note,tries){
   var c=S.chats[id], r;
-  try{r=await readInvoice(file,note); var nk0=noteKind(note); if(r&&!r.err&&r.type!=='label'&&r.lines&&r.lines.length&&(nk0==='delivery'||nk0==='sales'||nk0==='count'))r.type=nk0;}catch(e){r={err:(e&&e.code&&ERR[e.code])||'I could not read that picture. Try a flatter, brighter photo.'};}
+  try{r=await readInvoice(file,note); var nk0=noteKind(note); if(r&&!r.err&&r.type!=='label'&&r.lines&&r.lines.length&&(nk0==='delivery'||nk0==='sales'||nk0==='count'))r.type=nk0;}catch(e){if(e&&e.code==='rate_limited'){await limitWait(id,e,file,note,tries); return;} r={err:(e&&e.code&&ERR[e.code])||'I could not read that picture. Try a flatter, brighter photo.'};}
   hideTyping();
   if(r.err)push(id,{from:'bot',text:r.err});
   else if(r.type==='label'){hideTyping(); await labelFlow(id,file); return;}
@@ -6694,7 +6726,7 @@ function toJpeg(f){
   return new Promise(function(res,rej){
     var url=URL.createObjectURL(f), im=new Image();
     im.onload=function(){
-      var w=im.naturalWidth, h=im.naturalHeight, k=Math.min(1,1800/Math.max(w,h)), cv=document.createElement('canvas');
+      var w=im.naturalWidth, h=im.naturalHeight, k=Math.min(1,1800/Math.max(w,h)), cv=document.createElement('canvas'); if(Math.min(w,h)<500&&Math.max(w,h)/Math.min(w,h)>3&&Math.max(w,h)<1800)k=Math.min(2.5,1800/Math.max(w,h));
       cv.width=Math.max(1,Math.round(w*k)); cv.height=Math.max(1,Math.round(h*k));
       var cx=cv.getContext('2d'); cx.fillStyle='#FFFFFF'; cx.fillRect(0,0,cv.width,cv.height); cx.drawImage(im,0,0,cv.width,cv.height);
       cv.toBlob(function(b){URL.revokeObjectURL(url); if(b)res(b); else rej(new Error('encode'));},'image/jpeg',0.88);
@@ -11555,7 +11587,7 @@ syncStart();
 A.forEach(function(x){kbLoad(x.id).then(function(){kbResumeAll(x.id); kbBarUpdate(); if((libId===x.id||libId==='lib')&&!$('libView').hidden)renderLib(libId);});});
 kbLoad('lib').then(function(){kbResumeAll('lib'); kbBarUpdate(); if(libId==='lib'&&!$('libView').hidden)renderLib('lib');});
 document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible'){A.forEach(function(x){kbResumeAll(x.id);}); kbWake(); kbBarUpdate();}});
-if(window.__DB_TEST__)window.__DB_TEST__({kbSlot:kbSlot,libAll:libAll,renderLib:renderLib,libPicker:libPicker,kbShare:kbShare,celInvTotals:celInvTotals,stkPdfRes:stkPdfRes,stkReportRes:stkReportRes,bkStatus:bkStatus,openBackup:openBackup,todoPoke:todoPoke,save:save,barPlan:barPlan,celSale:celSale,wineOpen:wineOpen,chgLoad:chgLoad,openSettings:openSettings,chgStore:chgStore,chgDiff:chgDiff,stkRows:stkRows,stkCounts:stkCounts,stkParse:stkParse,stkApplyImport:stkApplyImport,stkAccept:stkAccept,stkSheets:stkSheets,stkStore:stkStore,celParseCsv:celParseCsv,celStore:celStore,celParseRows:celParseRows,celParseCsv:celParseCsv,celApplyImport:celApplyImport,celRows:celRows,celXlsx:celXlsx,celCollect:celCollect,celApply:celApply,celSwap:celSwap,rtSeed:rtSeed,evMenuItems:evMenuItems,evFind:evFind,evAddDish:evAddDish,rtGridArr:rtGridArr,rtXlsx:rtXlsx,rtDiff:rtDiff,rtPages:rtPages,rtGrid:rtGrid,rtParseGrid:rtParseGrid,rtHandle:rtHandle,rtApplyImport:rtApplyImport,fpImportBuf:fpImportBuf,fpPut:fpPut,fpPlan:fpPlan,fpHandle:fpHandle,fpTablesOf:fpTablesOf,getS:function(){return S;},cmGet:cmGet,fileRoute:fileRoute,costRefresh:costRefresh,pbL:pbL,pbSearch:pbSearch,cmRecipeSheets:cmRecipeSheets,cmDishCost:cmDishCost,pcTeam:pcTeam,cxList:cxList,pbSet:pbSet,cmTouch:cmTouch,emMenu:emMenu,emPick:emPick,emCount:emCount,emPages:emPages,emDoc:emDoc,emOpenDiff:emOpenDiff,emApply:emApply,emTeam:emTeam,emCmd:emCmd,evIntentRx:evIntentRx,save:save,send:send,openChat:openChat,teamFlow:teamFlow,foreignGuard:foreignGuard,kbDetail:kbDetail,baseApply:baseApply,BASE:BASE,kbAdd:kbAdd,kbEnqueue:kbEnqueue,kbSearch:kbSearch,kbLoad:kbLoad,kbRemove:kbRemove,kbCloze:kbCloze,kbSlot:kbSlot,kbAnswer:kbAnswer,readAny:readAny,exportRows:exportRows,xlsxBuild:xlsxBuild,pdfBuild:pdfBuild,csvBuild:csvBuild,handleExport:handleExport,exportStock:exportStock,needsRules:needsRules,buildPrompt:buildPrompt,teamSpeakersFor:teamSpeakersFor,dataBlock:dataBlock,stockRows:stockRows,parseCount:parseCount,splitCount:splitCount,idfWeights:idfWeights,rankMatches:rankMatches,aliasSet:aliasSet,handleMatches:handleMatches,respond:respond,respondTeam:respondTeam,parseList:parseList,applyList:applyList,avatarSVG:avatarSVG,glassCard:glassCard,parseMenuText:parseMenuText,looksMenu:looksMenu,autoMatch:autoMatch,searchPool:searchPool,scoreName:scoreName,sendGlassEdit:sendGlassEdit,guessType:guessType,getS:function(){return S;},A:A});
+if(window.__DB_TEST__)window.__DB_TEST__({photoOrOcr:photoOrOcr,gqCount:gqCount,kbSlot:kbSlot,libAll:libAll,renderLib:renderLib,libPicker:libPicker,kbShare:kbShare,celInvTotals:celInvTotals,stkPdfRes:stkPdfRes,stkReportRes:stkReportRes,bkStatus:bkStatus,openBackup:openBackup,todoPoke:todoPoke,save:save,barPlan:barPlan,celSale:celSale,wineOpen:wineOpen,chgLoad:chgLoad,openSettings:openSettings,chgStore:chgStore,chgDiff:chgDiff,stkRows:stkRows,stkCounts:stkCounts,stkParse:stkParse,stkApplyImport:stkApplyImport,stkAccept:stkAccept,stkSheets:stkSheets,stkStore:stkStore,celParseCsv:celParseCsv,celStore:celStore,celParseRows:celParseRows,celParseCsv:celParseCsv,celApplyImport:celApplyImport,celRows:celRows,celXlsx:celXlsx,celCollect:celCollect,celApply:celApply,celSwap:celSwap,rtSeed:rtSeed,evMenuItems:evMenuItems,evFind:evFind,evAddDish:evAddDish,rtGridArr:rtGridArr,rtXlsx:rtXlsx,rtDiff:rtDiff,rtPages:rtPages,rtGrid:rtGrid,rtParseGrid:rtParseGrid,rtHandle:rtHandle,rtApplyImport:rtApplyImport,fpImportBuf:fpImportBuf,fpPut:fpPut,fpPlan:fpPlan,fpHandle:fpHandle,fpTablesOf:fpTablesOf,getS:function(){return S;},cmGet:cmGet,fileRoute:fileRoute,costRefresh:costRefresh,pbL:pbL,pbSearch:pbSearch,cmRecipeSheets:cmRecipeSheets,cmDishCost:cmDishCost,pcTeam:pcTeam,cxList:cxList,pbSet:pbSet,cmTouch:cmTouch,emMenu:emMenu,emPick:emPick,emCount:emCount,emPages:emPages,emDoc:emDoc,emOpenDiff:emOpenDiff,emApply:emApply,emTeam:emTeam,emCmd:emCmd,evIntentRx:evIntentRx,save:save,send:send,openChat:openChat,teamFlow:teamFlow,foreignGuard:foreignGuard,kbDetail:kbDetail,baseApply:baseApply,BASE:BASE,kbAdd:kbAdd,kbEnqueue:kbEnqueue,kbSearch:kbSearch,kbLoad:kbLoad,kbRemove:kbRemove,kbCloze:kbCloze,kbSlot:kbSlot,kbAnswer:kbAnswer,readAny:readAny,exportRows:exportRows,xlsxBuild:xlsxBuild,pdfBuild:pdfBuild,csvBuild:csvBuild,handleExport:handleExport,exportStock:exportStock,needsRules:needsRules,buildPrompt:buildPrompt,teamSpeakersFor:teamSpeakersFor,dataBlock:dataBlock,stockRows:stockRows,parseCount:parseCount,splitCount:splitCount,idfWeights:idfWeights,rankMatches:rankMatches,aliasSet:aliasSet,handleMatches:handleMatches,respond:respond,respondTeam:respondTeam,parseList:parseList,applyList:applyList,avatarSVG:avatarSVG,glassCard:glassCard,parseMenuText:parseMenuText,looksMenu:looksMenu,autoMatch:autoMatch,searchPool:searchPool,scoreName:scoreName,sendGlassEdit:sendGlassEdit,guessType:guessType,getS:function(){return S;},A:A});
 })();
 </script>
 
