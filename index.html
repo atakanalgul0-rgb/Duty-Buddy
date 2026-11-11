@@ -5547,7 +5547,7 @@ try{setTimeout(function(){snapNow('Opened the app');},6000); document.addEventLi
   }
   window.addEventListener('resize',apply); window.addEventListener('orientationchange',function(){setTimeout(apply,60);}); apply();
 })();
-var APPVER='Sidekick 21';
+var APPVER='Sidekick 22';
 var KEYNAME='dutybuddy.apikey', inClaude=false;
 function storedKey(){try{return localStorage.getItem(KEYNAME)||'';}catch(e){return '';}}
 function keyOn(){try{return localStorage.getItem('dutybuddy.keyoff')!=='1';}catch(e){return true;}}
@@ -5908,7 +5908,7 @@ async function readInvoice(file,note){
   while(k<3){
     try{ passes.push(await readInvoiceOnce(sample,o)); }catch(e){ if(!passes.length)throw e; firstErr=e; break; }
     if(k===0&&passes[0].type==='label')return {type:'label',lines:[],po:'',date:''};
-    k++; var cap=(passes[0].type==='sales'&&passes[0].lines.filter(function(l){return /^\d{8}$/.test(l.code);}).length>=5)?2:3; if(k>=cap||(k>=2&&!invUnstable(passes)))break;
+    k++; var cap=READPASSES; if(k>=cap||(k>=2&&!invUnstable(passes)))break;
   }
   return invMerge(passes,!!firstErr);
 }
@@ -5945,10 +5945,10 @@ function invMerge(passes,partial){
   var k=passes.length, cl=invCluster(passes), lines=[], sure=0, unsure=0;
   cl.forEach(function(c){
     var qt=invTop(c.ents.map(function(e){return e.qty;})), nm=invTop(c.ents.map(function(e){return e.raw;})), cd=invTop(c.ents.map(function(e){return e.code;}));
-    var present=c.ents.length, ok=!partial&&k>=2&&present>k/2&&qt.v!==''&&qt.n>k/2&&!qt.tie, note='';
+    var present=c.ents.length, ok=(k===1&&!partial)?qt.v!=='':(!partial&&k>=2&&present>k/2&&qt.v!==''&&qt.n>k/2&&!qt.tie), note='';
     if(!ok){
       var seen=Object.keys(c.ents.reduce(function(m,e){m[e.qty===''?'?':e.qty]=1; return m;},{}));
-      note=partial||k<2?'I could only read this once, please check the number.':present<=k/2?'Seen in '+present+' of '+k+' readings, please check it is on the paper.':'Readings differ ('+seen.join(' / ')+'), please check the number on the paper.';
+      note=(k===1&&!partial)?'I could not read the number, please check it on the paper.':partial||k<2?'I could only read this once, please check the number.':present<=k/2?'Seen in '+present+' of '+k+' readings, please check it is on the paper.':'Readings differ ('+seen.join(' / ')+'), please check the number on the paper.';
       unsure++;
     }else sure++;
     lines.push({code:cd.v||'',raw:nm.v,qty:ok?qt.v:'',note:note,order:c.ents[0].pi*1000+passes[c.ents[0].pi].lines.findIndex(function(x){return x.raw===c.ents[0].raw;})});
@@ -6057,6 +6057,7 @@ async function labelFlow(id,file){
   }
   save(); refreshChat(id); renderList();
 }
+var READPASSES=1; /* how many times one photo is read; 1 = read once and use it directly (set 2 or 3 to compare readings again) */
 var IQ=Promise.resolve();
 var WLN=0, WLK=null;
 function wlGet(){try{if(WLN>0&&!WLK&&navigator.wakeLock&&document.visibilityState==='visible')navigator.wakeLock.request('screen').then(function(l){WLK=l; try{l.addEventListener('release',function(){if(WLK===l)WLK=null;});}catch(e){} if(!WLN){try{l.release();}catch(e){}}}).catch(function(){});}catch(e){}}
@@ -6085,7 +6086,7 @@ async function invoiceFlow(id,file,note,tries){
   else if(r.type==='sales'&&looksMicros(microsRows(r.lines.map(function(l){return {mx:/^\d{8}$/.test(l.code)?l.code:'',name:l.raw,qty:l.qty};})))){
     var mr0=microsRows(r.lines.map(function(l){return {mx:/^\d{8}$/.test(l.code)?l.code:'',name:l.raw,qty:l.qty};})); var vt0=r.checked&&r.checked.unsure?'I am not sure about '+r.checked.unsure+' numbers in the picture, please compare them with the report. ':''; push(id,Object.assign({from:'bot'},microsCard(byId[id],c,mr0,vt0)));
   }else{
-    var plan=buildPlan(c,r), n=plan.lines.length, ck=r.checked, vt=ck?'I read the picture '+ck.passes+' times and compared every line: '+ck.sure+' agreed'+(ck.unsure?', '+ck.unsure+' I am not sure about (marked \u26a0, please check them against the paper). ':'. '):'';
+    var plan=buildPlan(c,r), n=plan.lines.length, ck=r.checked, vt=(ck&&ck.passes>1)?'I read the picture '+ck.passes+' times and compared every line: '+ck.sure+' agreed'+(ck.unsure?', '+ck.unsure+' I am not sure about (marked \u26a0, please check them against the paper). ':'. '):'';
     var tx=plan.kind==='count'?'I read '+n+' items from your stock count. Nothing is saved yet. Please check every line before I save it.':plan.kind==='add'?'This looks like a delivery'+(plan.po?' (PO '+plan.po+(plan.date?', '+dmy(plan.date):'')+')':'')+' with '+n+' lines. Should I add these to stock and save them under this PO? Check each wine and number, change what is wrong, then tap the button.':
       plan.kind==='sub'?'This looks like a sales report with '+n+' lines. Did we sell these today? Check each line, then tap the button and I will take them off stock.':
       'I found '+n+' lines but I am not sure if this is a delivery or a sales report. Check the lines, then tell me which it is.';
