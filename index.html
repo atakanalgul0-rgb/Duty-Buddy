@@ -2036,7 +2036,7 @@ function applyChg(id,m){
     jCommit(c,jb,jul); push(id,{from:'bot',text:'Order list for '+ds+' ('+ls.length+(ls.length===1?' line':' lines')+'):\n'+ls.map(function(l){return '• '+num(l.qty)+' × '+l.name+(l.code?' ('+l.code+')':'');}).join('\n')+'\n\nSaved as ordered. It now shows as waiting for delivery in Order lists. When the delivery arrives, tell me and I will take it off the waiting list.'}); save(); refreshChat(id); return;
   }
   ls.forEach(function(l){if(l.nw&&l.nwOk&&!l.id){var nw=l.nw, it0={id:uid(),code:nw.code||'',name:nw.name,sheet:nw.sheet||'',qty:0,open:0,pour:0,src:null,type:nw.type||guessType(nw.name),glass:false,menu:nw.where==='menu',size:nw.size||750,price:'',gprice:''}; c.inv.push(it0); l.id=it0.id; l.code=it0.code; l.name=it0.name;}});
-  if(cg.mode==='sub'){c.micros=c.micros||{}; ls.forEach(function(l){if(l.mx&&l.id)c.micros[l.mx]=l.id;});}
+  if(cg.mode==='sub'){c.micros=c.micros||{}; ls.forEach(function(l){if(l.mx&&l.id){c.micros[l.mx]=l.id; var it9=c.inv.filter(function(x){return x.id===l.id;})[0]; if(it9&&l.raw)try{mxLearn(c,l.mx,l.raw,it9);}catch(e){}}});}
   cg.done='ok'; var txt=(cg.mode==='sub'?(cg.why==='flat'?'Flat\n':cg.why==='waste'?'Wasted\n':cg.why==='used'?'Used\n':'Sold\n'):'Add in stock\n')+ls.map(function(l){return l.qty+' '+(l.code||String(l.name).replace(/,/g,' '))+(l.gl?' glasses':(cg.why==='flat'?' bottles':''));}).join('\n');
   JDEPTH++; var r; try{r=doChange(a,c,txt,cg.mode);}finally{JDEPTH--;} var shT='', topP=null; if(cg.mode==='sub'&&a.pour>0&&['sold','flat','waste','used'].indexOf(cg.why||'sold')>-1){var sm=[]; ls.forEach(function(l){var it1=c.inv.filter(function(x){return x.id===l.id;})[0]; if(!it1||!(l.qty>0))return; var gl1=!!l.gl; var rs=celSale(c,it1,l.qty,gl1,l.src); var tx=celSaleMsg(it1,rs,l.qty,gl1); if(tx)sm.push(tx);}); if(sm.length)shT='Shelves updated:\n'+sm.join('\n'); var pl=barPlan(c); if(pl.length)topP=pl;}
   jCommit(c,jb,jul); push(id,{from:'bot',text:r.text,rows:r.rows}); if(shT)push(id,{from:'bot',text:shT}); if(topP)push(id,{from:'bot',text:'Tonight the bar needs '+topP.reduce(function(a,b){return a+b.qty;},0)+' bottles to get back to its level (5 for each wine, 2 for reds). Moving them does not change the stock.',top:{lines:topP,done:0}}); if(cg.mode==='add'&&a.pour>0){var rvT=recvTrack(c,ls); if(rvT)push(id,{from:'bot',text:rvT});} if(cg.mode==='sub'&&cg.why==='sold'&&stkUI(a)&&ls.some(function(l){return l.mx;})){var sid={}; ls.forEach(function(l){if(l.id)sid[l.id]=1;}); push(id,Object.assign({from:'bot'},recoMsg(a,c,false,'',sid)));} save(); refreshChat(id); renderList();
@@ -5547,7 +5547,7 @@ try{setTimeout(function(){snapNow('Opened the app');},6000); document.addEventLi
   }
   window.addEventListener('resize',apply); window.addEventListener('orientationchange',function(){setTimeout(apply,60);}); apply();
 })();
-var APPVER='Sidekick 22';
+var APPVER='Sidekick 23';
 var KEYNAME='dutybuddy.apikey', inClaude=false;
 function storedKey(){try{return localStorage.getItem(KEYNAME)||'';}catch(e){return '';}}
 function keyOn(){try{return localStorage.getItem('dutybuddy.keyoff')!=='1';}catch(e){return true;}}
@@ -8947,6 +8947,7 @@ MODS.match={who:'sofia',all:1,title:'Matching',render:function(id,sub,box){
   var hd=el('div','card'); hd.appendChild(el('h3',null,'Matching'));
   hd.appendChild(el('p',null,'Each card shows one wine with its Micros button name, stock name and menu name. Tap a card to change it.'));
   (function(){var wr=mmWrong(c); if(!wr.length)return; var bn=el('div','mmwarn'); bn.appendChild(el('b',null,wr.length+' Micros name'+(wr.length===1?'':'s')+' linked to another producer\u2019s wine')); bn.appendChild(el('div','sd','For example \u201c'+wr[0].name+'\u201d on '+(wr[0].it.sheet||wr[0].it.name)+'. Buttons of the same wine with other prices are fine. These are not.')); var bb=el('div','btns'); bb.style.marginTop='8px'; bb.appendChild(mkBtn('Review','',function(){modGo('match','prod');})); bn.appendChild(bb); hd.appendChild(bn);})();
+  if(c.mm&&c.mm.free&&c.mm.free.length){var fp=el('p',null,c.mm.free.length+' Micros codes from your sales report photos have no wine yet. Open the wine, tap Micros codes and type them in: '+c.mm.free.map(function(q){return q[0]+' '+q[1];}).join(' · ')+'.'); fp.style.cssText='font-size:12px;color:var(--muted)'; hd.appendChild(fp);}
   var si=el('input'); si.className='fi'; si.placeholder='Search a wine or a Micros button'; si.value=modQ; si.setAttribute('aria-label','Search matching'); hd.appendChild(si);
   var ch=el('div','mmchips');
   var all=mmList(c);
@@ -11095,8 +11096,54 @@ var celBub=null;
 function celBubbleOff(){if(celBub){celBub.remove(); celBub=null; document.removeEventListener('pointerdown',celBubOut,true);}}
 function celBubOut(e){if(celBub&&!celBub.contains(e.target))celBubbleOff();}
 window.addEventListener('hashchange',celBubbleOff);
+/* ---------- Micros codes (8 digits) kept on the matching rows: btc = bottle, glc = glass ---------- */
+var MXSEED=[["37140459","Koonunga Hill BT"],["37140416","Serie A Tor BT"],["37113291","J Girardin Maranges BT"],["37111012","Centereno Amarone BT"],["37140249","Circle Of Life BT"],["37141129","GER W RIES Schie BT"],["37120195","Pearl Rose BT"],["37140457","K Jackson Chardon BT"],["38100061","Moet Brut GL"],["38150656","Moreau Chablis GL"],["38150234","Alois Lageder Estate Pinot Grigio GL"],["38150744","Oyster Bay Sauvignon Blanc GL"],["38130161","Pearl Rose 15 GL"],["38120320","Rufino Chianti GL"],["38120856","Mudhouse Pinot Noir GL"],["38150921","Santa Julia Sauvignon Blanc GL"],["37140063","Sancerre P J BT"],["37100239","Ruinart R De Ruiart BT"],["37120085","Miraval BT"],["37120034","Whispering Angel BT"],["37141122","Moreau Chablis BT"],["37111702","Cham Mus Belle 18 BT"],["37141064","Chass Mon Chauve 18 BT"]];
+function mxType(n){return /\bGL\b(\s*CNY)?\s*$/i.test(String(n||'').trim())?'gl':'bt';}
+function mxRowFor(c,it,type){
+  var m=mmInit(c), rs=m.rows.filter(function(r){return r.sid===it.id;}), r=rs.filter(function(x){return type==='gl'?!!x.gl:!!x.bt;})[0]||rs[0];
+  if(!r){r={id:uid(),bt:'',gl:'',sid:it.id,conf:'Manual',sc:0,near:'',mn:''}; m.rows.push(r);}
+  return r;
+}
+function mxOwner(c,code,except){var o=null; ((c.mm&&c.mm.rows)||[]).forEach(function(r){if(r!==except&&(r.btc===code||r.glc===code))o=mmItem(c,r.sid)||o||{name:'another wine'};}); return o;}
+function mxLearn(c,code,name,it){
+  code=String(code||'').trim(); if(!/^\d{8}$/.test(code)||!it)return false;
+  var t=mxType(name), r=mxRowFor(c,it,t), kc=t==='gl'?'glc':'btc', kn=t==='gl'?'gl':'bt';
+  if(r[kc]&&r[kc]!==code)return false; if(mxOwner(c,code,r))return false;
+  r[kc]=code; if(name){var k=mmKey(name); if(!r[kn])r[kn]=name; else if(!mmNames({bt:r[kn],gl:''}).some(function(x){return mmKey(x)===k;}))r[kn]+=' | '+name;}
+  return true;
+}
+function mxInit(c){
+  if(!c||c.mxv===1||todoOwner(c)!=='sofia'||!c.inv||!c.inv.length)return; c.mxv=1; var m=mmInit(c), W=idfWeights(c.inv), left=[];
+  MXSEED.forEach(function(q){
+    var raw=q[1], u=mxType(raw), it=mmFind(c,raw);
+    if(!it){var rk=microsRank(c,{raw:raw,unit:u,qty:1},W); if(rk.length&&rk[0].sc>=0.8&&(rk[0].eff-(rk[1]?rk[1].eff:0))>=0.1)it=rk[0].it;}
+    if(it&&mxLearn(c,q[0],raw,it))return;
+    var k0=mmKey(raw), r0=m.rows.filter(function(r){return mmNames(r).some(function(x){return mmKey(x)===k0;});})[0], kc=u==='gl'?'glc':'btc';
+    if(r0&&!r0[kc]&&!mxOwner(c,q[0],r0)){r0[kc]=q[0]; return;}
+    left.push(q);
+  });
+  Object.keys(c.micros||{}).forEach(function(k){
+    var it=mmItem(c,c.micros[k]); if(!it||!/^\d{8}$/.test(k))return; var rs=m.rows.filter(function(r){return r.sid===it.id;}); if(rs.some(function(r){return r.btc===k||r.glc===k;}))return;
+    var hb=rs.some(function(r){return r.bt;}), hg=rs.some(function(r){return r.gl;}); if(hb===hg)return;
+    var r=rs.filter(function(x){return hb?x.bt:x.gl;})[0], kc=hb?'btc':'glc'; if(!r[kc]&&!mxOwner(c,k,r))r[kc]=k;
+  });
+  m.free=left; try{save();}catch(e){}
+}
+function mxSheet(c,it,done){
+  var rb=mxRowFor(c,it,'bt'), rg=mxRowFor(c,it,'gl'), same=(rb===rg);
+  fpSheet('Micros · '+it.name,function(bx,close){
+    function fld(l,v,num){var w=el('div'); w.style.margin='8px 0'; w.appendChild(Object.assign(el('div',null,l),{style:'font-size:11px;font-weight:800;letter-spacing:.06em;color:var(--muted);text-transform:uppercase;margin-bottom:3px'})); var i=mkInput('',v,l,num?'numeric':''); i.style.cssText='width:100%;padding:12px;border-radius:12px;border:1px solid var(--line);font:inherit;background:var(--surface,#fff);color:inherit'; w.appendChild(i); bx.appendChild(w); return i;}
+    var bn=fld('Micros name, bottle',rb.bt||''), bc=fld('Micros code, bottle',rb.btc||'',1), gn=fld('Micros name, glass',rg.gl||''), gc=fld('Micros code, glass',rg.glc||'',1);
+    var sv=mkBtn('Save','',function(){
+      var a=bc.value.replace(/\s/g,''), b=gc.value.replace(/\s/g,'');
+      if((a&&!/^\d{6,10}$/.test(a))||(b&&!/^\d{6,10}$/.test(b))){toast('A Micros code is only digits, like 37140063.'); return;}
+      var oa=a&&mxOwner(c,a,rb), ob=b&&mxOwner(c,b,rg); if(oa&&oa.id!==it.id){toast('Code '+a+' is already used by '+oa.name+'.'); return;} if(ob&&ob.id!==it.id){toast('Code '+b+' is already used by '+ob.name+'.'); return;}
+      CHGSRC='Wine page'; rb.bt=bn.value.trim(); rb.btc=a; rg.gl=gn.value.trim(); rg.glc=b; if(!rb.conf)rb.conf='Manual'; if(!rg.conf)rg.conf='Manual'; save(); CHGSRC=''; close(); toast('Micros codes saved.'); done();
+    }); sv.style.cssText='width:100%;min-height:48px;margin-top:8px'; bx.appendChild(sv);
+  });
+}
 function celMicros(c,it){
-  var m=mmInit(c), rows=m.rows.filter(function(r){return r.sid===it.id;}), out={bt:[],gl:[],codes:[]};
+  mxInit(c); var m=mmInit(c), rows=m.rows.filter(function(r){return r.sid===it.id;}), out={bt:[],gl:[],codes:[]};
   rows.forEach(function(r){if(r.bt)out.bt.push([r.bt,r.btc||'']); if(r.gl)out.gl.push([r.gl,r.glc||'']);});
   if(c.micros)Object.keys(c.micros).forEach(function(k){if(c.micros[k]===it.id)out.codes.push(k);});
   return out;
@@ -11312,13 +11359,13 @@ function wineOpen(c,it,done){
     hd.style.paddingLeft='62px'; hd.appendChild(Object.assign(el('b',null,it.name),{style:'font-size:17px;line-height:1.25;flex:1'})); var bk=el('button',null,'Done'); bk.type='button'; bk.style.cssText='border:0;background:#e1f0ec;color:#0a4d42;font:inherit;font-weight:800;border-radius:99px;padding:8px 14px;cursor:pointer'; bk.addEventListener('click',function(){wineClose(); done&&done();}); hd.appendChild(bk); pg.appendChild(hd);
     var cd=el('div','card'); cd.style.cssText='padding:0;overflow:hidden;margin:12px 16px';
     function ln(k,v,last){if(v==null||v==='')return; var w=el('div'); w.style.cssText='display:flex;justify-content:space-between;gap:12px;padding:11px 14px;border-bottom:1px solid var(--line);font-size:14px'; w.appendChild(Object.assign(el('span',null,k),{style:'color:var(--muted)'})); w.appendChild(Object.assign(el('b',null,String(v)),{style:'text-align:right;max-width:62%;word-break:break-word'})); cd.appendChild(w);}
-    ln('Menu name',it.menu?it.name:'not on the wine list'); ln('Stock name / code',(it.sheet||'(no stock name)')+(it.code?' · '+it.code:''));
-    mx.bt.forEach(function(p){ln('Micros bottle',p[0]+(p[1]?' · '+p[1]:''));}); mx.gl.forEach(function(p){ln('Micros glass',p[0]+(p[1]?' · '+p[1]:''));}); if(!mx.bt.length&&!mx.gl.length)ln('Micros','not matched yet');
+    ln('Menu name',it.menu?it.name:'\u2014'); ln('Menu price, bottle',it.menu?winePrice(it):'\u2014'); if(it.glass)ln('Menu price, glass',it.menu&&pnum(it.gprice)>0?fm2(pnum(it.gprice))+' AED':'\u2014'); ln('Stock name',it.sheet||'(no stock name)'); ln('Stock code',it.code||'\u2014');
+    (mx.bt.length?mx.bt:[['\u2014','']]).forEach(function(p){ln('Micros name, bottle',p[0]); ln('Micros code, bottle',p[1]||'\u2014');}); (mx.gl.length?mx.gl:[['\u2014','']]).forEach(function(p){ln('Micros name, glass',p[0]); ln('Micros code, glass',p[1]||'\u2014');});
     var pr=[]; if(it.type)pr.push(it.type); pr.push((it.size||750)+' ml'); ln('Details',pr.join(' · '));
-    ln('Price',winePrice(it)+(it.glass?' · glass '+(it.gprice?fm2(pnum(it.gprice))+' AED':'yes'):'')); ln('Bottles',celStockN(it)+(it.open?' · '+it.open+' open':'')); pg.appendChild(cd);
+    if(!it.menu&&pnum(it.price)>0)ln('Price',winePrice(it)); ln('Bottles',celStockN(it)+(it.open?' · '+it.open+' open':'')); pg.appendChild(cd);
     function row(t,s,fn,ct){var b=el('button'); b.type='button'; b.style.cssText='display:flex;align-items:center;gap:12px;width:100%;text-align:left;border:0;border-top:1px solid var(--line);background:transparent;padding:13px 14px;font:inherit;color:inherit;cursor:pointer;min-height:56px'; var m=el('div'); m.style.flex='1'; m.appendChild(Object.assign(el('b',null,t),{style:'display:block;font-size:15px'})); if(s)m.appendChild(Object.assign(el('small',null,s),{style:'color:var(--muted);font-size:12px;display:block'})); b.appendChild(m); if(ct!=null){b.appendChild(Object.assign(el('span',null,String(ct)),{style:'background:#e1f0ec;color:#0a4d42;border-radius:99px;font-size:12px;font-weight:800;padding:3px 10px'}));} b.appendChild(Object.assign(el('span',null,'›'),{style:'color:#8a9a96;font-size:20px'})); b.addEventListener('click',fn); return b;}
     var locs=celLocs(r,it.id), ac=el('div','card'); ac.style.cssText='padding:0;overflow:hidden;margin:0 16px 12px';
-    ac.appendChild(row('Change price','',function(){winePriceSheet(c,it,draw);})).style.borderTop='0';
+    ac.appendChild(row('Micros codes','Add or change the Micros names and codes',function(){mxSheet(c,it,draw);})).style.borderTop='0'; ac.appendChild(row('Change price','',function(){winePriceSheet(c,it,draw);}));
     var wc=el('div','card'); wc.style.cssText='padding:0;overflow:hidden;margin:0 16px 12px';
     (function(){
       var wh=el('div',null,'WHERE IS IT?'); wh.style.cssText='font-size:11px;font-weight:800;letter-spacing:.07em;color:var(--accent,#0b6b5c);padding:12px 14px 2px'; wc.appendChild(wh);
@@ -11588,7 +11635,7 @@ syncStart();
 A.forEach(function(x){kbLoad(x.id).then(function(){kbResumeAll(x.id); kbBarUpdate(); if((libId===x.id||libId==='lib')&&!$('libView').hidden)renderLib(libId);});});
 kbLoad('lib').then(function(){kbResumeAll('lib'); kbBarUpdate(); if(libId==='lib'&&!$('libView').hidden)renderLib('lib');});
 document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible'){A.forEach(function(x){kbResumeAll(x.id);}); kbWake(); kbBarUpdate();}});
-if(window.__DB_TEST__)window.__DB_TEST__({photoOrOcr:photoOrOcr,gqCount:gqCount,kbSlot:kbSlot,libAll:libAll,renderLib:renderLib,libPicker:libPicker,kbShare:kbShare,celInvTotals:celInvTotals,stkPdfRes:stkPdfRes,stkReportRes:stkReportRes,bkStatus:bkStatus,openBackup:openBackup,todoPoke:todoPoke,save:save,barPlan:barPlan,celSale:celSale,wineOpen:wineOpen,chgLoad:chgLoad,openSettings:openSettings,chgStore:chgStore,chgDiff:chgDiff,stkRows:stkRows,stkCounts:stkCounts,stkParse:stkParse,stkApplyImport:stkApplyImport,stkAccept:stkAccept,stkSheets:stkSheets,stkStore:stkStore,celParseCsv:celParseCsv,celStore:celStore,celParseRows:celParseRows,celParseCsv:celParseCsv,celApplyImport:celApplyImport,celRows:celRows,celXlsx:celXlsx,celCollect:celCollect,celApply:celApply,celSwap:celSwap,rtSeed:rtSeed,evMenuItems:evMenuItems,evFind:evFind,evAddDish:evAddDish,rtGridArr:rtGridArr,rtXlsx:rtXlsx,rtDiff:rtDiff,rtPages:rtPages,rtGrid:rtGrid,rtParseGrid:rtParseGrid,rtHandle:rtHandle,rtApplyImport:rtApplyImport,fpImportBuf:fpImportBuf,fpPut:fpPut,fpPlan:fpPlan,fpHandle:fpHandle,fpTablesOf:fpTablesOf,getS:function(){return S;},cmGet:cmGet,fileRoute:fileRoute,costRefresh:costRefresh,pbL:pbL,pbSearch:pbSearch,cmRecipeSheets:cmRecipeSheets,cmDishCost:cmDishCost,pcTeam:pcTeam,cxList:cxList,pbSet:pbSet,cmTouch:cmTouch,emMenu:emMenu,emPick:emPick,emCount:emCount,emPages:emPages,emDoc:emDoc,emOpenDiff:emOpenDiff,emApply:emApply,emTeam:emTeam,emCmd:emCmd,evIntentRx:evIntentRx,save:save,send:send,openChat:openChat,teamFlow:teamFlow,foreignGuard:foreignGuard,kbDetail:kbDetail,baseApply:baseApply,BASE:BASE,kbAdd:kbAdd,kbEnqueue:kbEnqueue,kbSearch:kbSearch,kbLoad:kbLoad,kbRemove:kbRemove,kbCloze:kbCloze,kbSlot:kbSlot,kbAnswer:kbAnswer,readAny:readAny,exportRows:exportRows,xlsxBuild:xlsxBuild,pdfBuild:pdfBuild,csvBuild:csvBuild,handleExport:handleExport,exportStock:exportStock,needsRules:needsRules,buildPrompt:buildPrompt,teamSpeakersFor:teamSpeakersFor,dataBlock:dataBlock,stockRows:stockRows,parseCount:parseCount,splitCount:splitCount,idfWeights:idfWeights,rankMatches:rankMatches,aliasSet:aliasSet,handleMatches:handleMatches,respond:respond,respondTeam:respondTeam,parseList:parseList,applyList:applyList,avatarSVG:avatarSVG,glassCard:glassCard,parseMenuText:parseMenuText,looksMenu:looksMenu,autoMatch:autoMatch,searchPool:searchPool,scoreName:scoreName,sendGlassEdit:sendGlassEdit,guessType:guessType,getS:function(){return S;},A:A});
+if(window.__DB_TEST__)window.__DB_TEST__({mxInit:mxInit,mxLearn:mxLearn,wineOpen:wineOpen,photoOrOcr:photoOrOcr,gqCount:gqCount,kbSlot:kbSlot,libAll:libAll,renderLib:renderLib,libPicker:libPicker,kbShare:kbShare,celInvTotals:celInvTotals,stkPdfRes:stkPdfRes,stkReportRes:stkReportRes,bkStatus:bkStatus,openBackup:openBackup,todoPoke:todoPoke,save:save,barPlan:barPlan,celSale:celSale,wineOpen:wineOpen,chgLoad:chgLoad,openSettings:openSettings,chgStore:chgStore,chgDiff:chgDiff,stkRows:stkRows,stkCounts:stkCounts,stkParse:stkParse,stkApplyImport:stkApplyImport,stkAccept:stkAccept,stkSheets:stkSheets,stkStore:stkStore,celParseCsv:celParseCsv,celStore:celStore,celParseRows:celParseRows,celParseCsv:celParseCsv,celApplyImport:celApplyImport,celRows:celRows,celXlsx:celXlsx,celCollect:celCollect,celApply:celApply,celSwap:celSwap,rtSeed:rtSeed,evMenuItems:evMenuItems,evFind:evFind,evAddDish:evAddDish,rtGridArr:rtGridArr,rtXlsx:rtXlsx,rtDiff:rtDiff,rtPages:rtPages,rtGrid:rtGrid,rtParseGrid:rtParseGrid,rtHandle:rtHandle,rtApplyImport:rtApplyImport,fpImportBuf:fpImportBuf,fpPut:fpPut,fpPlan:fpPlan,fpHandle:fpHandle,fpTablesOf:fpTablesOf,getS:function(){return S;},cmGet:cmGet,fileRoute:fileRoute,costRefresh:costRefresh,pbL:pbL,pbSearch:pbSearch,cmRecipeSheets:cmRecipeSheets,cmDishCost:cmDishCost,pcTeam:pcTeam,cxList:cxList,pbSet:pbSet,cmTouch:cmTouch,emMenu:emMenu,emPick:emPick,emCount:emCount,emPages:emPages,emDoc:emDoc,emOpenDiff:emOpenDiff,emApply:emApply,emTeam:emTeam,emCmd:emCmd,evIntentRx:evIntentRx,save:save,send:send,openChat:openChat,teamFlow:teamFlow,foreignGuard:foreignGuard,kbDetail:kbDetail,baseApply:baseApply,BASE:BASE,kbAdd:kbAdd,kbEnqueue:kbEnqueue,kbSearch:kbSearch,kbLoad:kbLoad,kbRemove:kbRemove,kbCloze:kbCloze,kbSlot:kbSlot,kbAnswer:kbAnswer,readAny:readAny,exportRows:exportRows,xlsxBuild:xlsxBuild,pdfBuild:pdfBuild,csvBuild:csvBuild,handleExport:handleExport,exportStock:exportStock,needsRules:needsRules,buildPrompt:buildPrompt,teamSpeakersFor:teamSpeakersFor,dataBlock:dataBlock,stockRows:stockRows,parseCount:parseCount,splitCount:splitCount,idfWeights:idfWeights,rankMatches:rankMatches,aliasSet:aliasSet,handleMatches:handleMatches,respond:respond,respondTeam:respondTeam,parseList:parseList,applyList:applyList,avatarSVG:avatarSVG,glassCard:glassCard,parseMenuText:parseMenuText,looksMenu:looksMenu,autoMatch:autoMatch,searchPool:searchPool,scoreName:scoreName,sendGlassEdit:sendGlassEdit,guessType:guessType,getS:function(){return S;},A:A});
 })();
 </script>
 
