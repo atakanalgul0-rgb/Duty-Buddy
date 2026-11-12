@@ -5536,18 +5536,20 @@ try{setTimeout(function(){snapNow('Opened the app');},6000); document.addEventLi
 })();
 /* ---------- keep the app upright when the phone is turned sideways ---------- */
 (function(){
-  try{if(screen.orientation&&screen.orientation.lock)screen.orientation.lock('portrait').catch(function(){});}catch(e){}
+  function lockP(){try{if(screen.orientation&&screen.orientation.lock)screen.orientation.lock('portrait').catch(function(){});}catch(e){}}
+  lockP(); document.addEventListener('touchstart',lockP,{once:true,passive:true}); document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')lockP();});
   function angle(){var a=null; try{if(typeof window.orientation==='number')a=window.orientation; else if(screen.orientation&&typeof screen.orientation.angle==='number')a=-screen.orientation.angle;}catch(e){} return a;}
   function apply(){
     var h=document.documentElement, mn=Math.min(innerWidth,innerHeight), coarse=false; try{coarse=matchMedia('(pointer:coarse)').matches;}catch(e){}
     h.classList.remove('rot','rotL','rotR');
+    return; /* the app always stays upright in portrait; it never turns itself */
     if(innerWidth<=innerHeight||mn>520||!coarse)return;
     var a=angle(); if(a==null)return; a=((a%360)+360)%360; if(a!==90&&a!==270)return;
     h.classList.add('rot'); h.classList.add(a===270?'rotR':'rotL');
   }
   window.addEventListener('resize',apply); window.addEventListener('orientationchange',function(){setTimeout(apply,60);}); apply();
 })();
-var APPVER='Sidekick 23';
+var APPVER='Sidekick 24';
 var KEYNAME='dutybuddy.apikey', inClaude=false;
 function storedKey(){try{return localStorage.getItem(KEYNAME)||'';}catch(e){return '';}}
 function keyOn(){try{return localStorage.getItem('dutybuddy.keyoff')!=='1';}catch(e){return true;}}
@@ -6974,16 +6976,7 @@ function renderWines(id){
   var a=byId[id], c=S.chats[id], box=$('wines'), keep=box.scrollTop; box.textContent='';
   var st=stage[id]=stage[id]||[], saved=menuItems(c);
   var hd=el('div','card'); hd.appendChild(el('h3',null,'Wine list'));
-  hd.appendChild(el('p',null,saved.length?saved.length+(saved.length===1?' wine':' wines')+'. Stock, prices and by the glass all follow this list. Changes are kept only when you press Save at the bottom.':'No wine list yet. Add your menu as a file, a PDF or a photo, or type the wines below.'));
-  var fi=el('input'); fi.type='file'; fi.accept=FILEACC; fi.multiple=true; fi.hidden=true;
-  var rdr=readers[id]=readers[id]||makeReader({prompt:MENU_PROMPT,header:'name|year|price|glass_price|type|glass|size',onText:function(t,fl){winesIngest(id,t,fl);}});
-  fi.addEventListener('change',function(){var fs=Array.prototype.slice.call(fi.files||[]); fi.value=''; if(fs.length)rdr.many(fs);});
-  var hb=el('div','btns'); hb.appendChild(mkBtn('Add file','',function(){fi.click();}));
-  hd.appendChild(hb); hd.appendChild(navRow(id,'wines')); hd.appendChild(fi); hd.appendChild(rdr.el);
-  hd.appendChild(el('h4',null,'Type or paste wines'));
-  hd.appendChild(el('p',null,'One wine per line, with the price. Only the name, the year and the price are used.'));
-  var ta=el('textarea','ta'); ta.setAttribute('aria-label','Wines to add'); ta.placeholder='Moët & Chandon Brut Impérial France, 155\n2016 Louis Roederer Brut Cristal, 7410'; ta.spellcheck=false; hd.appendChild(ta);
-  var tb=el('div','btns'); tb.appendChild(mkBtn('Add to the list below','ghost',function(){if(!ta.value.trim()){toast('Type or paste a wine first.'); return;} winesIngest(id,ta.value,{layout:false});})); hd.appendChild(tb);
+  hd.appendChild(el('p',null,saved.length?saved.length+(saved.length===1?' wine':' wines')+'. Changes are kept only when you press Save at the bottom.':'No wine on the list yet. Tap Add a wine and choose it from your stock.'));
   box.appendChild(hd);
 
   if(st.length){
@@ -7032,8 +7025,11 @@ function renderWines(id){
   }
 
   var wq=foldS((WQ[id]||'').trim());
-  if(saved.length>6||wq){
-    var wsc=el('div','card'), wsr=el('div','wr'), wsi=mkInput('',WQ[id]||'','Search the wine list'); wsi.placeholder='Search the wine list (name, year or code)'; wsr.appendChild(wsi); wsc.appendChild(wsr); box.appendChild(wsc);
+  {
+    var wsc=el('div','card'), wsr=el('div','wr'), wsi=mkInput('',WQ[id]||'','Search the wine list'); wsi.placeholder='Search the wine list (name, year or code)'; wsr.appendChild(wsi); wsc.appendChild(wsr);
+    var wab=el('div','btns'); wab.appendChild(mkBtn('Add a wine','',function(){
+      stockPicker(c,'Add a wine to the wine list',function(i){return !i.menu;},function(it){it.menu=true; WQ[id]=it.name; dsave(); toast('Added to the wine list. Set the price, then press Save.'); renderWines(id);},'Every wine in stock is already on the wine list. A new wine goes to Stock first.'); }));
+    wsc.appendChild(wab); box.appendChild(wsc);
     wsi.addEventListener('input',function(){WQ[id]=wsi.value; var pos=wsi.selectionStart; renderWines(id); var n2=box.querySelector('input'); var all=box.querySelectorAll('input'); for(var z=0;z<all.length;z++){if(all[z].getAttribute('aria-label')==='Search the wine list'){all[z].focus(); try{all[z].setSelectionRange(pos,pos);}catch(e){} break;}}});
     if(wq){var tk=wq.split(/\s+/).filter(Boolean); saved=saved.filter(function(it){var hay=foldS(it.name+' '+(it.code||'')); return tk.every(function(w){return hay.indexOf(w)>-1;});}); var cn=el('p',null,saved.length+(saved.length===1?' wine matches':' wines match')); cn.style.cssText='margin:6px 2px;font-size:13px;color:var(--muted)'; wsc.appendChild(cn);}
   }
@@ -7043,48 +7039,22 @@ function renderWines(id){
     var cd=el('div','card'), th=el('div','th'); th.appendChild(el('span',null,t+' · '+g2[t].length)); th.appendChild(el('span','pl','Bottle')); th.appendChild(el('span','pl','Glass')); cd.appendChild(th);
     g2[t].forEach(function(it){
       var row=el('div','wr'), sw=el('div','sw'), ni=mkInput('',it.name,'Wine name');
-      sw.appendChild(ni); sw.appendChild(stockNameLine(it)); nameChev(c,it,sw,ni);
+      sw.appendChild(ni);
       attachSuggest(sw,ni,function(){return poolFor(c).filter(function(x){return nameKey(x.name)!==nameKey(it.name);});},function(p){it.name=p.name; if(p.price)it.price=p.price; if(p.gprice)it.gprice=p.gprice; if(p.type)it.type=p.type; dsave(); renderWines(id);});
       ni.addEventListener('change',function(){if(ni.value.trim()){it.name=cap(ni.value.trim()); dsave();} else ni.value=it.name;});
       var pi=mkInput('pi',it.price,'Bottle price of '+it.name,'decimal'); pi.placeholder='Bottle'; pi.addEventListener('change',function(){it.price=cleanPrice(pi.value); pi.value=it.price; dsave();});
       var gi=mkInput('pi',it.gprice,'Glass price of '+it.name,'decimal'); gi.placeholder='Glass';
       gi.addEventListener('change',function(){it.gprice=cleanPrice(gi.value); gi.value=it.gprice; if(it.gprice)it.glass=true; dsave();});
       row.appendChild(sw); row.appendChild(pi); row.appendChild(gi);
-      row.appendChild(mkRm('Remove '+it.name+' from the wine list',function(){
-        if(it.qty==null&&!it.code&&!(it.open>0)){c.inv.splice(c.inv.indexOf(it),1); toast('Removed. Press Save to keep this.');}
-        else{it.menu=false; it.glass=false; toast('Moved to Off menu, its stock is kept. Press Save to keep this.');}
-        dsave(); renderWines(id);
-      }));
       cd.appendChild(row);
       var sub=el('div','sub'); sub.appendChild(typeSel('Type of '+it.name,it.type,function(v){it.type=v; dsave(); renderWines(id);}));
       sub.appendChild(sizeSel('Bottle size of '+it.name,it.size||750,function(v){it.size=v; it.name=sizeName(it.name,v); dsave(); renderWines(id);}));
       cd.appendChild(sub);
+      var ob=el('div','btns'); ob.appendChild(mkBtn('To off menu','ghost sm',function(){it.menu=false; dsave(); toast('Moved to off menu. Prices and codes stay. Press Save to keep this.'); renderWines(id);})); cd.appendChild(ob);
     });
     box.appendChild(cd);
   });
 
-  var ac=el('div','card'); ac.appendChild(el('h3',null,'Add a wine'));
-  ac.appendChild(el('p',null,'Start typing a name. I suggest wines from the menus you gave me, with their price. Choose the category, then press Add.'));
-  var arow=el('div','wr'), asw=el('div','sw'), an=mkInput('','','Wine name');
-  an.placeholder='Wine name'; asw.appendChild(an);
-  var ap=mkInput('pi','','Bottle price','decimal'); ap.placeholder='Bottle';
-  var agi=mkInput('pi','','Glass price','decimal'); agi.placeholder='Glass';
-  var asel=typeSel('Category','Red',function(){}), azs=sizeSel('Bottle size',750,function(v){azs.dataset.v=v;}); azs.dataset.v='750';
-  attachSuggest(asw,an,function(){var have={}; menuItems(c).forEach(function(i){have[nameKey(i.name)]=1;}); return poolFor(c).filter(function(x){return !have[nameKey(x.name)];});},function(p){an.value=p.name; ap.value=p.price||''; agi.value=p.gprice||''; asel.value=p.type||guessType(p.name);});
-  an.addEventListener('change',function(){if(an.value.trim()&&!ap.value&&!agi.value)asel.value=guessType(an.value);});
-  arow.appendChild(asw); arow.appendChild(ap); ac.appendChild(arow);
-  var arow2=el('div','sub'); arow2.appendChild(el('span',null,'Category')); arow2.appendChild(asel); arow2.appendChild(azs); arow2.appendChild(el('span',null,'Glass')); arow2.appendChild(agi);
-  ac.appendChild(arow2);
-  var abt=el('div','btns');
-  abt.appendChild(mkBtn('Add','sm',function(){
-    var nmv=an.value.trim(); if(!nmv){toast('Type a wine name first.'); return;}
-    var szv=parseInt(azs.dataset.v||'750',10); nmv=sizeName(nmv,szv);
-    var pr=cleanPrice(ap.value), gp=cleanPrice(agi.value), f=findMatch(c,{name:nmv,code:''});
-    if(f){f.menu=true; f.type=asel.value; if(pr)f.price=pr; if(gp){f.gprice=gp; f.glass=true;} toast('That wine was already known. Updated. Press Save to keep it.');}
-    else{var nw0=newWine(cap(nmv),asel.value,true,pr,gp); nw0.size=szv; c.inv.push(nw0); toast('Added as '+asel.value+'. Press Save to keep it.');}
-    dsave(); renderWines(id);
-  }));
-  ac.appendChild(abt); box.appendChild(ac);
   box.appendChild(draftBar(id,renderWines));
   box.scrollTop=keep;
 }
@@ -7206,19 +7176,23 @@ async function renderLib(id,msg){
 var stockQ='', stockLogOpen=null;
 function renderStockPage(id){
   var a=byId[id], c=S.chats[id], box=$('stockPg'), keep=box.scrollTop; box.textContent='';
-  var W=c.noMenu?'items':'wines', hd=el('div','card'); hd.appendChild(el('h3',null,c.noMenu?'All items':'All wines'));
+  var W=c.noMenu?'items':'wines', hd=el('div','card'); hd.appendChild(el('h3',null,'Stock'));
   var cnt=c.inv.filter(function(i){return i.qty!=null;}).length;
   hd.appendChild(el('p',null,c.noMenu?c.inv.length+' items · '+num(total(c.inv))+' '+a.units+' in stock · '+cnt+' with a count.':c.inv.length+' wines · '+num(total(c.inv))+' unopened bottles · '+cnt+' with a count. Names follow your wine list. A plus sign shows glasses left in an open bottle.'));
   var sr=el('div','wr'), si=mkInput('',stockQ,'Search stock'); si.placeholder=c.noMenu?'Search an item':'Search a wine'; sr.appendChild(si); hd.appendChild(sr);
-  hd.appendChild(navRow(id,'stock')); box.appendChild(hd);
-  if(!c.noMenu)stkCard(id,c,box,function(){renderStockPage(id);});
-  var ex=el('div','card'); ex.appendChild(el('h4',null,'Save the stock count')); ex.appendChild(el('p',null,'All '+c.inv.length+' '+W+' in the layout of your paper sheet: code, description, count.'));
-  var eb=el('div','btns'); [['xlsx','Excel'],['pdf','PDF'],['jpg','JPG'],['csv','CSV']].forEach(function(f){eb.appendChild(mkBtn(f[1],'ghost sm',function(){exportStock(id,f[0]);}));}); ex.appendChild(eb); if(!(!c.noMenu&&stkOpen(c)))box.appendChild(ex);
-
+  var tb=el('div','btns');
+  if(!c.noMenu&&id==='sofia')tb.appendChild(mkBtn('Add new wine to stock','',function(){stockAddSheet(id,c,'',function(it){stockQ=it.name; renderStockPage(id);});}));
+  if(!c.noMenu){var ieb=mkBtn(stkIE?'Close import / export':'Import / Export','ghost',function(){stkIE=!stkIE; renderStockPage(id);}); ieb.setAttribute('aria-expanded',stkIE?'true':'false'); tb.appendChild(ieb);}
+  hd.appendChild(tb);
   var lgs=(c.log||[]).slice().sort(function(x,y){return x.date<y.date?1:(x.date>y.date?-1:y.ts-x.ts);});
-  if(lgs.length){
+  if(lgs.length){var lbt=el('div','btns'), lb2=mkBtn('Deliveries & sales saved · '+lgs.length,'ghost',function(){stkLogs=!stkLogs; renderStockPage(id);}); lb2.style.width='100%'; lb2.setAttribute('aria-expanded',stkLogs?'true':'false'); lbt.appendChild(lb2); hd.appendChild(lbt);}
+  box.appendChild(hd);
+  if(!c.noMenu&&(stkIE||stkOpen(c)))stkCard(id,c,box,function(){renderStockPage(id);});
+  var ex=el('div','card'); ex.appendChild(el('h4',null,'Save the stock count')); ex.appendChild(el('p',null,'All '+c.inv.length+' '+W+' in the layout of your paper sheet: code, description, count.'));
+  var eb=el('div','btns'); [['xlsx','Excel'],['pdf','PDF'],['jpg','JPG'],['csv','CSV']].forEach(function(f){eb.appendChild(mkBtn(f[1],'ghost sm',function(){exportStock(id,f[0]);}));}); ex.appendChild(eb); if(stkIE||c.noMenu)box.appendChild(ex);
+  if(lgs.length&&stkLogs){
     var lc=el('div','card'); lc.appendChild(el('h4',null,'Deliveries and sales saved · '+lgs.length));
-    lc.appendChild(el('p',null,'Kept as text from the photos you confirmed. Ask in chat, for example “what did we receive in October”.'));
+    lc.appendChild(el('p',null,'Kept as text from the photos you confirmed. Ask in chat, for example \u201cwhat did we receive in October\u201d.'));
     lgs.slice(0,30).forEach(function(e){
       var open=stockLogOpen===e.id, hb=el('button',null,(e.kind==='in'?'In · ':'Out · ')+(e.po?'PO '+e.po+' · ':'')+dmy(e.date)+' · '+e.lines.length+(e.lines.length===1?' line':' lines')); hb.type='button';
       hb.style.cssText='display:block;width:100%;text-align:left;background:none;border:0;border-top:1px solid var(--line);padding:10px 0;color:inherit;font:inherit;font-weight:600;cursor:pointer;min-height:44px'; hb.setAttribute('aria-expanded',open?'true':'false');
@@ -7233,20 +7207,12 @@ function renderStockPage(id){
     });
     box.appendChild(lc);
   }
-  var bc=el('div','card'); if(!c.noMenu&&!stkOpen(c))box.appendChild(bc); bc.appendChild(el('h4',null,'Stock sheet'));
-  bc.appendChild(el('p',null,'Counted '+BASE.date.split('-').reverse().join('/')+' · file dated '+BASE.file.split('-').reverse().join('/')+' · '+BASE.rows.length+' lines. '+(c.base?'Applied '+new Date(c.base.applied).toLocaleString()+': '+c.base.matched+' wines matched to the wine list, '+c.base.made+' more in Off menu'+(c.base.pend?', '+c.base.pend+' lines waiting for your answer':'')+'.':'Not applied yet.')));
-  var bb=el('div','btns'), ap=mkBtn(c.base?'Apply again':'Apply this sheet to stock','',function(){
-    if(!ap._armed){ap._armed=true; ap.textContent='Tap again: counts will be replaced'; setTimeout(function(){ap._armed=false; ap.textContent=c.base?'Apply again':'Apply this sheet to stock';},4000); return;}
-    var r=baseApply(id); save(); renderStockPage(id);
-    toast('Stock set from the sheet: '+r.matched+' wines updated'+(r.made?', '+r.made+' added to Off menu':'')+(r.pend?', '+r.pend+' lines need your answer (profile > Add stock list)':'')+(r.blank.length?', '+r.blank.length+' lines had no count':'')+(r.merged?'. '+r.merged+' wines got two sheet lines added together':'')+'.');
-  });
-  bb.appendChild(ap); bb.appendChild(mkBtn('Save the Excel file','ghost sm',function(){saveFile(BASE.name,baseXlsxBlob());})); bc.appendChild(bb);
   var list=el('div'); box.appendChild(list);
   function build(){
     list.textContent='';
     if(!c.noMenu&&stkOpen(c)){stkList(id,c,list,stockQ); return;}
     var q=stockQ.trim(), items=c.inv.filter(function(i){return !q||scoreName(q,i.name)>=0.5||i.name.toLowerCase().indexOf(q.toLowerCase())>-1;});
-    if(!items.length){var e=el('div','card'); e.appendChild(el('p',null,q?'No '+(c.noMenu?'item':'wine')+' matches “'+q+'”.':(c.noMenu?'No items yet. Tap '+a.name+'’s name, then Add stock list.':'No wines yet. Add your wine list first.'))); list.appendChild(e); return;}
+    if(!items.length){var e=el('div','card'); e.appendChild(el('p',null,q?'No '+(c.noMenu?'item':'wine')+' matches “'+q+'”.':(c.noMenu?'No items yet. Tap '+a.name+'’s name, then Add stock list.':'No wines yet. Add your wine list first.'))); if(q&&!c.noMenu&&id==='sofia'){var eb2=el('div','btns'); eb2.appendChild(mkBtn('Add \u201c'+q+'\u201d to stock','',function(){stockAddSheet(id,c,q,function(it){stockQ=it.name; renderStockPage(id);});})); e.appendChild(eb2);} list.appendChild(e); return;}
     function rowsCard(label,arr,tag){
       var cd=el('div','card'), th=el('div','th'); th.appendChild(el('span',null,label+' · '+arr.length)); th.appendChild(el('span','pl','Count')); cd.appendChild(th);
       arr.forEach(function(it){
@@ -7892,18 +7858,14 @@ function renderGlass(id){
   var hd=el('div','card'); hd.appendChild(el('h3',null,'Served by the glass'));
   hd.appendChild(el('p',null,gi.length?gi.length+(gi.length===1?' wine':' wines')+' · '+num(bt)+' bottles in stock. Press Save at the bottom to keep changes.':(menuItems(c).length?'Nothing here yet. Search a wine below to add it.':'Add your wine list first, then pick the wines you serve by the glass.')));
   var sr=el('div','wr'), sw=el('div','sw'), si=mkInput('','','Search a wine from your wine list'); si.placeholder='Search your wine list'; sw.appendChild(si);
-  attachSuggest(sw,si,function(){return menuItems(c).filter(function(i){return !i.glass;});},function(it){it.glass=true; dsave(); toast(it.name+' is now by the glass. Press Save to keep it.'); renderGlass(id);},true);
+  attachSuggest(sw,si,function(){return c.inv.filter(function(i){return !i.glass;});},function(it){it.glass=true; dsave(); toast(it.name+' is now by the glass. Press Save to keep it.'); renderGlass(id);},true);
   sr.appendChild(sw); hd.appendChild(sr);
-  var hb=el('div','btns'); hb.appendChild(mkBtn('Edit in chat','ghost sm',function(){pendingSend='Show by the glass'; location.hash=id;}));
-  hd.appendChild(hb); hd.appendChild(navRow(id,'glass')); box.appendChild(hd);
+  var hb=el('div','btns'); hb.appendChild(mkBtn('Add wine by the glass','',function(){stockPicker(c,'Add wine by the glass',function(i){return !i.glass;},function(it){it.glass=true; dsave(); toast(it.name+' is now by the glass. Set the price, then press Save.'); renderGlass(id);},'Every wine in stock is already by the glass. A new wine goes to Stock first.');}));
+  hd.appendChild(hb); box.appendChild(hd);
   var g=groupByType(gi);
   TYPES.forEach(function(t){
     if(!g[t].length)return;
     var cd=el('div','card'), th=el('div','th'); th.appendChild(el('span',null,t)); th.appendChild(el('span','pl','Price')); th.appendChild(el('span','pc','Btl')); cd.appendChild(th);
-    var sub=el('div','sub'); sub.appendChild(el('span',null,'Glass size'));
-    var mi=mkInput('mi',mlFor(c,t),'Glass size in ml for '+t,'numeric'); sub.appendChild(mi); sub.appendChild(el('span',null,'ml · '+fm2(750/mlFor(c,t))+' glasses per 750 ml bottle'));
-    mi.addEventListener('change',function(){var v=Math.round(parseFloat(mi.value)); if(v>=30&&v<=375){c.ml=c.ml||{}; c.ml[t]=v; dsave(); renderGlass(id);} else {mi.value=mlFor(c,t); toast('Use a size between 30 and 375 ml.');}});
-    cd.appendChild(sub);
     g[t].forEach(function(it){
       var row=el('div','wr'); row.appendChild(el('div','nmx',it.name));
       var pi=mkInput('pi',it.gprice,'Glass price of '+it.name,'decimal'); pi.placeholder='Price'; pi.addEventListener('change',function(){it.gprice=cleanPrice(pi.value); pi.value=it.gprice; dsave();});
@@ -11104,6 +11066,7 @@ function mxRowFor(c,it,type){
   if(!r){r={id:uid(),bt:'',gl:'',sid:it.id,conf:'Manual',sc:0,near:'',mn:''}; m.rows.push(r);}
   return r;
 }
+function mxFind(c,it,type){var rs=((c.mm&&c.mm.rows)||[]).filter(function(r){return r.sid===it.id;}); return rs.filter(function(x){return type==='gl'?!!x.gl:!!x.bt;})[0]||rs[0]||null;}
 function mxOwner(c,code,except){var o=null; ((c.mm&&c.mm.rows)||[]).forEach(function(r){if(r!==except&&(r.btc===code||r.glc===code))o=mmItem(c,r.sid)||o||{name:'another wine'};}); return o;}
 function mxLearn(c,code,name,it){
   code=String(code||'').trim(); if(!/^\d{8}$/.test(code)||!it)return false;
@@ -11139,6 +11102,67 @@ function mxSheet(c,it,done){
       if((a&&!/^\d{6,10}$/.test(a))||(b&&!/^\d{6,10}$/.test(b))){toast('A Micros code is only digits, like 37140063.'); return;}
       var oa=a&&mxOwner(c,a,rb), ob=b&&mxOwner(c,b,rg); if(oa&&oa.id!==it.id){toast('Code '+a+' is already used by '+oa.name+'.'); return;} if(ob&&ob.id!==it.id){toast('Code '+b+' is already used by '+ob.name+'.'); return;}
       CHGSRC='Wine page'; rb.bt=bn.value.trim(); rb.btc=a; rg.gl=gn.value.trim(); rg.glc=b; if(!rb.conf)rb.conf='Manual'; if(!rg.conf)rg.conf='Manual'; save(); CHGSRC=''; close(); toast('Micros codes saved.'); done();
+    }); sv.style.cssText='width:100%;min-height:48px;margin-top:8px'; bx.appendChild(sv);
+  });
+}
+
+/* ---------- wine pickers and forms (Sidekick 24) ---------- */
+function stockPicker(c,title,filter,onPick,emptyNote){
+  fpSheet(title,function(bx,close){
+    var q='', inp=el('input'); inp.type='search'; inp.placeholder='Search name, stock name or code'; inp.setAttribute('aria-label','Search stock'); inp.style.cssText='width:100%;padding:11px;border-radius:12px;border:1px solid var(--line);font:inherit;background:var(--surface,#fff);color:inherit;margin-bottom:8px'; bx.appendChild(inp);
+    var list=el('div'); bx.appendChild(list);
+    function draw(){
+      list.textContent=''; var tk=foldS(q.trim()).split(/\s+/).filter(Boolean);
+      var arr=c.inv.filter(function(it){if(filter&&!filter(it))return false; if(!tk.length)return true; var hay=foldS(it.name+' '+(it.sheet||'')+' '+(it.code||'')); return tk.every(function(w){return hay.indexOf(w)>-1;});}).sort(function(x,y){return x.name.localeCompare(y.name);});
+      arr.slice(0,60).forEach(function(it){
+        var b=el('button'); b.type='button'; b.style.cssText='display:block;width:100%;text-align:left;background:none;border:0;border-top:1px solid var(--line);padding:10px 2px;font:inherit;color:inherit;cursor:pointer;min-height:46px';
+        b.appendChild(Object.assign(el('div',null,it.name),{style:'font-weight:600;font-size:14px'})); b.appendChild(Object.assign(el('div',null,(it.code?it.code+' · ':'')+(it.type||'')+(it.qty!=null?' · '+num(it.qty)+' in stock':'')),{style:'font-size:12px;color:var(--muted)'}));
+        b.addEventListener('click',function(){close(); onPick(it);}); list.appendChild(b);
+      });
+      if(arr.length>60)list.appendChild(Object.assign(el('p',null,'Showing 60 of '+arr.length+'. Type more to narrow it down.'),{style:'font-size:12px;color:var(--muted)'}));
+      if(!arr.length)list.appendChild(Object.assign(el('p',null,emptyNote||'Nothing found.'),{style:'font-size:13px;color:var(--muted)'}));
+    }
+    inp.addEventListener('input',function(){q=inp.value; draw();}); draw();
+  });
+}
+function sheetFld(bx,l,v,mode){var w=el('div'); w.style.margin='8px 0'; w.appendChild(Object.assign(el('div',null,l),{style:'font-size:11px;font-weight:800;letter-spacing:.06em;color:var(--muted);text-transform:uppercase;margin-bottom:3px'})); var i=mkInput('',v,l,mode||''); i.style.cssText='width:100%;padding:12px;border-radius:12px;border:1px solid var(--line);font:inherit;background:var(--surface,#fff);color:inherit'; w.appendChild(i); bx.appendChild(w); return i;}
+function stockAddSheet(id,c,pre,done){
+  fpSheet('Add a new wine to stock',function(bx,close){
+    var nm=sheetFld(bx,'Wine name',pre||''), sn=sheetFld(bx,'Stock name',''), cd=sheetFld(bx,'Stock code','','numeric'), qy=sheetFld(bx,'Count (bottles)','','numeric');
+    var ty=typeSel('Type','Red',function(){}), sz=sizeSel('Bottle size',750,function(v){sz.dataset.v=v;}); sz.dataset.v='750';
+    var w1=el('div'); w1.style.cssText='display:flex;gap:8px;margin:8px 0'; ty.style.flex='1'; sz.style.flex='1'; w1.appendChild(ty); w1.appendChild(sz); bx.appendChild(w1);
+    nm.addEventListener('change',function(){if(nm.value.trim())ty.value=guessType(nm.value);});
+    var sv=mkBtn('Add to stock','',function(){
+      var n=cap(nm.value.trim()); if(!n){toast('Type the wine name first.'); return;}
+      var code=cd.value.replace(/\s/g,''); if(code&&c.inv.some(function(x){return x.code===code;})){toast('Stock code '+code+' is already used.'); return;}
+      var szv=parseInt(sz.dataset.v||'750',10), full=sizeName(n,szv); if(findMatch(c,{name:full,code:''})){toast('That wine is already in stock.'); return;}
+      var q=cd&&qy.value.trim()!==''?Math.max(0,parseFloat(qy.value.replace(',','.'))||0):0, it=newWine(full,ty.value,false,'','',q,0); it.size=szv; it.sheet=sn.value.trim(); it.code=code; CHGSRC='Stock'; c.inv.push(it); save(); CHGSRC='';
+      close(); toast('Added to stock. It shows under Off menu until you put it on the wine list.'); done(it);
+    }); sv.style.cssText='width:100%;min-height:48px;margin-top:8px'; bx.appendChild(sv);
+  });
+}
+function wineEditSheet(c,it,done){
+  var rb0=mxFind(c,it,'bt'), rg0=mxFind(c,it,'gl'), rb=rb0||{}, rg=rg0||{};
+  fpSheet('Edit · '+it.name,function(bx,close){
+    var mn=sheetFld(bx,'Menu name',it.name), pb=sheetFld(bx,'Menu price, bottle (AED)',it.price||'','decimal'), pg=sheetFld(bx,'Menu price, glass (AED)',it.gprice||'','decimal'),
+        sn=sheetFld(bx,'Stock name',it.sheet||''), sc=sheetFld(bx,'Stock code',it.code||'','numeric'),
+        bn=sheetFld(bx,'Micros name, bottle',rb.bt||''), bc=sheetFld(bx,'Micros code, bottle',rb.btc||'','numeric'), gn=sheetFld(bx,'Micros name, glass',rg.gl||''), gc=sheetFld(bx,'Micros code, glass',rg.glc||'','numeric');
+    var ty=typeSel('Type',it.type||'Other',function(){}), sz=sizeSel('Bottle size',it.size||750,function(v){sz.dataset.v=v;}); sz.dataset.v=String(it.size||750);
+    var w1=el('div'); w1.style.cssText='display:flex;gap:8px;margin:8px 0'; ty.style.flex='1'; sz.style.flex='1'; w1.appendChild(ty); w1.appendChild(sz); bx.appendChild(w1);
+    var sv=mkBtn('Save','',function(){
+      var nmv=cap(mn.value.trim()); if(!nmv){toast('The menu name cannot be empty.'); return;}
+      var code=sc.value.replace(/\s/g,''); if(code&&c.inv.some(function(x){return x!==it&&x.code===code;})){toast('Stock code '+code+' is already used by another wine.'); return;}
+      var a=bc.value.replace(/\s/g,''), b=gc.value.replace(/\s/g,'');
+      if((a&&!/^\d{6,10}$/.test(a))||(b&&!/^\d{6,10}$/.test(b))){toast('A Micros code is only digits, like 37140063.'); return;}
+      var oa=a&&mxOwner(c,a,rb0), ob=b&&mxOwner(c,b,rg0); if(oa&&oa.id!==it.id){toast('Code '+a+' is already used by '+oa.name+'.'); return;} if(ob&&ob.id!==it.id){toast('Code '+b+' is already used by '+ob.name+'.'); return;}
+      CHGSRC='Wine page';
+      var szv=parseInt(sz.dataset.v||String(it.size||750),10); if(szv!==(it.size||750)){it.size=szv; nmv=sizeName(nmv,szv);}
+      it.name=nmv; var pv=cleanPrice(pb.value), gv=cleanPrice(pg.value); if(pv)it.price=pv; else delete it.price; if(gv){it.gprice=gv; it.glass=true;} else delete it.gprice;
+      it.sheet=sn.value.trim(); it.code=code; it.type=ty.value;
+      var bv=bn.value.trim(), gv2=gn.value.trim();
+      if(bv||a||(rb0&&(rb0.bt||rb0.btc))){var r1=rb0||mxRowFor(c,it,'bt'); r1.bt=bv; r1.btc=a; if(!r1.conf)r1.conf='Manual';}
+      if(gv2||b||(rg0&&(rg0.gl||rg0.glc))){var r2=rg0||mxRowFor(c,it,'gl'); r2.gl=gv2; r2.glc=b; if(!r2.conf)r2.conf='Manual';}
+      save(); CHGSRC=''; close(); toast('Saved.'); done();
     }); sv.style.cssText='width:100%;min-height:48px;margin-top:8px'; bx.appendChild(sv);
   });
 }
@@ -11365,7 +11389,6 @@ function wineOpen(c,it,done){
     if(!it.menu&&pnum(it.price)>0)ln('Price',winePrice(it)); ln('Bottles',celStockN(it)+(it.open?' · '+it.open+' open':'')); pg.appendChild(cd);
     function row(t,s,fn,ct){var b=el('button'); b.type='button'; b.style.cssText='display:flex;align-items:center;gap:12px;width:100%;text-align:left;border:0;border-top:1px solid var(--line);background:transparent;padding:13px 14px;font:inherit;color:inherit;cursor:pointer;min-height:56px'; var m=el('div'); m.style.flex='1'; m.appendChild(Object.assign(el('b',null,t),{style:'display:block;font-size:15px'})); if(s)m.appendChild(Object.assign(el('small',null,s),{style:'color:var(--muted);font-size:12px;display:block'})); b.appendChild(m); if(ct!=null){b.appendChild(Object.assign(el('span',null,String(ct)),{style:'background:#e1f0ec;color:#0a4d42;border-radius:99px;font-size:12px;font-weight:800;padding:3px 10px'}));} b.appendChild(Object.assign(el('span',null,'›'),{style:'color:#8a9a96;font-size:20px'})); b.addEventListener('click',fn); return b;}
     var locs=celLocs(r,it.id), ac=el('div','card'); ac.style.cssText='padding:0;overflow:hidden;margin:0 16px 12px';
-    ac.appendChild(row('Micros codes','Add or change the Micros names and codes',function(){mxSheet(c,it,draw);})).style.borderTop='0'; ac.appendChild(row('Change price','',function(){winePriceSheet(c,it,draw);}));
     var wc=el('div','card'); wc.style.cssText='padding:0;overflow:hidden;margin:0 16px 12px';
     (function(){
       var wh=el('div',null,'WHERE IS IT?'); wh.style.cssText='font-size:11px;font-weight:800;letter-spacing:.07em;color:var(--accent,#0b6b5c);padding:12px 14px 2px'; wc.appendChild(wh);
@@ -11381,18 +11404,18 @@ function wineOpen(c,it,done){
         bb.appendChild(mkBtn('Moved to another place','',function(){var n0=mvN.n; mvN=null; celPlaceSheet(c,r,{id:uid(),wid:it.id,n:it.name,q:n0},draw,true);}));
         bb.appendChild(mkBtn('Sold','ghost sm',function(){mvN=null; draw();})); bn.appendChild(bb); bn.appendChild(Object.assign(el('div',null,'Sold: only the shelf goes down. The stock list goes down when you upload the sales report.'),{style:'font-size:11.5px;margin-top:6px'})); wc.appendChild(bn);}
     })();
-    ac.appendChild(row('Move bottles','Between shelves and places',function(){celMoveSheet(c,r,it,'move',draw);}));
-    ac.appendChild(row('Put on a shelf','',function(){celMoveSheet(c,r,it,'add',draw);}));
-    ac.appendChild(row('Add to order list','',function(){toast(celOrderAdd(c,it.name)?'Added to the order list.':'Already on the order list.');}));
+    ac.appendChild(row('Put on a shelf','',function(){celMoveSheet(c,r,it,'add',draw);})).style.borderTop='0';
     ac.appendChild(row('History','Last changes of this wine',function(){sub=sub==='hist'?'':'hist'; draw();}));
     if(sub==='hist'){var hl=el('div'); hl.style.cssText='background:var(--tile,#f4f7f6)'; var es=chgLoad().e.filter(function(e){return e[3]===it.id&&e[1]===id;}).slice(-30).reverse(); if(!es.length)hl.appendChild(Object.assign(el('div',null,'No changes recorded yet.'),{style:'padding:12px 14px;font-size:13px;color:var(--muted)'})); es.forEach(function(e){var b=el('div'); b.style.cssText='padding:10px 14px 10px 26px;border-top:1px solid var(--line);font-size:13px'; var w=chgWhy(e); b.appendChild(Object.assign(el('div',null,new Date(e[0]).toLocaleDateString(undefined,{day:'numeric',month:'short'})+' '+hm(e[0])+(e[10]?' · '+e[10]:'')),{style:'color:var(--muted);font-size:11.5px'})); b.appendChild(el('div',null,chgLine(e)+(w&&CHGWL[w]?' · '+CHGWL[w]:''))); hl.appendChild(b);}); ac.appendChild(hl);}
+    ac.appendChild(row('Edit','Names, prices, codes',function(){wineEditSheet(c,it,draw);}));
     pg.appendChild(wc); pg.appendChild(ac);
+    var mb=el('div'); mb.style.cssText='margin:0 16px 24px'; var mt=mkBtn(it.menu?'To off menu':'To wine list','ghost',function(){CHGSRC='Wine page'; it.menu=!it.menu; save(); CHGSRC=''; toast(it.menu?'Put back on the wine list.':'Moved to off menu. Prices and codes stay.'); draw();}); mb.appendChild(mt); pg.appendChild(mb);
   }
   draw(); document.body.appendChild(pg);
 }
 
 /* ---------- STOCK CHECK (Sofia stock page): count, compare, recount, accept ---------- */
-var stkYr='';
+var stkYr='', stkIE=false, stkLogs=false;
 var STK_ORD=['Sparkling','White','Rosé','Red','Sweet','Fortified','Sake','Non-alcoholic','Other'], STK_LAB={Sweet:'Dessert'}, stkF='a';
 function stkStore(c){if(!c.stk||typeof c.stk!=='object')c.stk={cur:null,hist:[]}; if(!Array.isArray(c.stk.hist))c.stk.hist=[]; return c.stk;}
 function stkOpen(c){return !!(c.stk&&c.stk.cur);}
