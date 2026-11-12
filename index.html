@@ -5549,7 +5549,7 @@ try{setTimeout(function(){snapNow('Opened the app');},6000); document.addEventLi
   }
   window.addEventListener('resize',apply); window.addEventListener('orientationchange',function(){setTimeout(apply,60);}); apply();
 })();
-var APPVER='Sidekick 24';
+var APPVER='Sidekick 25';
 var KEYNAME='dutybuddy.apikey', inClaude=false;
 function storedKey(){try{return localStorage.getItem(KEYNAME)||'';}catch(e){return '';}}
 function keyOn(){try{return localStorage.getItem('dutybuddy.keyoff')!=='1';}catch(e){return true;}}
@@ -6399,13 +6399,17 @@ function renderInfo(id,keepScroll){
     var rn=(c.recipes||[]).length; if(RCAT[id])tl.push({icon:'recipe',label:'Recipes',sub:rn?rn+' saved':'',fn:function(){location.hash=id+'-recipes';}});
   }
   if(stkUI(a)){var mst=mmStats(c); tl.push({icon:'match',label:'Matching',sub:mst.ok+' matched · '+mst.todo+' to do',fn:function(){location.hash=id+'-match';}}); var tn=todoOpenN(c)+(c.rem||[]).filter(function(r){return r.state==='open';}).length; tl.push({icon:'todo',label:'Order lists',sub:tn?tn+' open':'Reminders',fn:function(){location.hash=id+'-todo';}});}
-  if(a.seating){var rs0=c.rsv||{list:[],tables:[]}; tl.push({icon:'seat',label:'Seating plan',sub:rs0.list.length?rs0.list.length+' bookings':'',fn:function(){location.hash=id+'-seating';}});}
+  if(a.seating){var rs0=c.rsv||{list:[],tables:[]}, ln0=S.chats.leo?(S.chats.leo.guests||[]).length:0;
+    tl.push({icon:'seat',label:'Reservations',sub:rs0.list.length?rs0.list.length+' bookings':'Today\u2019s bookings, waitlist',fn:function(){location.hash=id+'-bookings';}});
+    tl.push({icon:'guests',label:'Guests',sub:ln0?ln0+' profiles':'Profiles, tags, allergies',fn:function(){location.hash='leo-guests';}});
+    tl.push({icon:'preshift',label:'Pre-shift',sub:'Briefing before service',fn:function(){location.hash=id+'-preshift';}});
+    tl.push({icon:'floorplan',label:'Seating plan',sub:rs0.tables&&rs0.tables.length?rs0.tables.length+' tables':'Live tables, layout',fn:function(){location.hash=id+'-seating';}});}
   if(MODBTN[id])MODBTN[id].forEach(function(x){var n=({staff:(c.staff||[]).length,events:(c.events||[]).length,guests:(c.guests||[]).length,evmenu:(c.evmenus||[]).length,chefmenu:(c.cmenu&&c.cmenu.items?c.cmenu.items.length:0),pricelists:(c.costList&&c.costList.items?c.costList.items.length:0),barcosts:(c.cx||[]).length,winecosts:(c.cx||[]).length,floorcosts:(c.cx||[]).length,cellar:(c.cellar&&c.cellar.units?c.cellar.units.filter(function(u){return u.sh.some(function(h){return h.w.length;});}).length:0),rota:(c.rota&&c.rota.weeks&&c.rota.weeks[c.rota.cur]?c.rota.weeks[c.rota.cur].rows.length:0),floorplan:(c.fp&&c.fp.cur&&c.fp.days[c.fp.cur]?c.fp.days[c.fp.cur].tags.filter(function(t){return t.name;}).length:0)})[x[1]]; tl.push({icon:x[1],label:x[0],sub:n?String(n):'',badge:(x[1]==='cellar'&&celPendN(c)>0)?num(celPendN(c))+' to place':'',fn:function(){location.hash=id+'-'+x[1];}});});
   if(id==='omar')tl.push({icon:'tag',label:'Cost list',sub:(c.costList&&c.costList.items.length)?c.costList.items.length+' items':'Item costs',fn:function(){costBrowse(id);}});
   if(stkUI(a))tl.push({icon:'revenue',label:'Reports',sub:'Sales, purchases',fn:function(){location.hash=id+'-reports';}});
   var lbn=kbSlot(id).docs.length; tl.push({icon:'book',label:'Library',sub:lbn?lbn+(lbn===1?' document':' documents'):'Books and files',fn:function(){location.hash=id+'-lib';}});
   if(!infoTeach){
-    var GA={'Wine list':1,'By the glass':1,'Stock':1,'Off menu':1,'Matching':1,'Recipes':1,'Seating plan':1}, GB={'Wine cellar':1,'Reminders':1,'Order lists':1,'Wine costs':1}, GC={'Reports':1,'Library':1};
+    var GA={'Wine list':1,'By the glass':1,'Stock':1,'Off menu':1,'Matching':1,'Recipes':1,'Seating plan':1,'Reservations':1,'Guests':1,'Pre-shift':1}, GB={'Wine cellar':1,'Reminders':1,'Order lists':1,'Wine costs':1}, GC={'Reports':1,'Library':1};
     var ga=[],gb=[],gc=[],gw=[]; tl.forEach(function(t){(GA[t.label]?ga:GB[t.label]?gb:GC[t.label]?gc:gw).push(t);});
     gc.push({icon:'book',label:'Teach '+a.name,sub:'Stock list, notes, photos',fn:function(){infoTeach=true; renderInfo(id);}});
     function grp(title,list){ if(!list.length)return; box.appendChild(Object.assign(el('div',null,title),{style:'font-size:12px;font-weight:800;letter-spacing:.07em;color:var(--accent,#0b6b5c);margin:16px 16px 8px;text-transform:uppercase'})); var cd=el('div','card'); cd.style.cssText='padding:0;overflow:hidden;margin:0 16px'; list.forEach(function(t,i){
@@ -7719,16 +7723,19 @@ function rsvCheck(){
   if(changed){save(); if(cur&&byId[cur]&&byId[cur].seating)refreshChat(cur); renderList();}
   if(seatId&&!$('seatingView').hidden&&!seatBusy)renderSeating(seatId);
 }
-var seatId=null, seatBusy=false, rvS={panel:'',open:null};
-function openSeating(id){if(!byId[id].seating){openInfo(id); return;} seatId=id; setView('seating'); renderSeating(id);}
+var seatId=null, seatBusy=false, rvS={panel:'',open:null,pg:'floor',edit:false,sel:null};
+function openSeating(id,pg){if(!byId[id].seating){openInfo(id); return;} seatId=id; if((pg||'floor')!==rvS.pg){rvS.panel=''; rvS.edit=false;} rvS.pg=pg||'floor'; setView('seating'); renderSeating(id);}
 function renderSeating(id){
   var a=byId[id], c=S.chats[id], box=$('seatingPg'), keep=box.scrollTop, R=rsPlan(c), now=nowM(); box.textContent='';
   function again(){save(); renderSeating(id);}
   var bk=R.list.filter(function(r){return r.status==='booked';}), st=R.list.filter(function(r){return r.status==='seated';});
-  var hd=el('div','card'); hd.appendChild(el('h3',null,'Seating plan'));
-  hd.appendChild(el('p',null,(R.date!==today()?'List from '+dmy(R.date)+'. ':'')+R.list.length+' bookings · '+R.list.reduce(function(s,r){return s+r.pax;},0)+' guests · '+st.length+' seated now · '+rsFreeAt(R,now).length+' of '+R.tables.length+' tables free. Meal duration: '+R.durs.join(' / ')+' min for 2 / 4 / 6 / 7+ guests, plus '+R.buf+' min to reset a table.'));
+  var book=rvS.pg==='book', allow=book?{add:1,paste:1,set:1}:{tables:1}; if(rvS.panel&&!allow[rvS.panel])rvS.panel='';
+  var hd=el('div','card'); hd.appendChild(el('h3',null,book?'Reservations':'Seating plan'));
+  hd.appendChild(el('p',null,(R.date!==today()?'List from '+dmy(R.date)+'. ':'')+R.list.length+' bookings · '+R.list.reduce(function(s,r){return s+r.pax;},0)+' guests · '+st.length+' seated now · '+rsFreeAt(R,now).length+' of '+R.tables.length+' tables free.'+(book?' Meal duration: '+R.durs.join(' / ')+' min for 2 / 4 / 6 / 7+ guests, plus '+R.buf+' min to reset a table.':'')));
   var tb=el('div','btns');
-  [['add','Add booking'],['paste','Paste or photo'],['tables','Tables'],['set','Meal times']].forEach(function(p){var b=mkBtn(p[1],(p[0]==='add'?'':'ghost sm'),function(){rvS.panel=rvS.panel===p[0]?'':p[0]; renderSeating(id);}); if(rvS.panel===p[0])b.style.outline='2px solid var(--focus)'; tb.appendChild(b);});
+  (book?[['add','Add booking'],['paste','Paste or photo'],['set','Meal times']]:[['tables','Tables list']]).forEach(function(p){var b=mkBtn(p[1],(p[0]==='add'?'':'ghost sm'),function(){rvS.panel=rvS.panel===p[0]?'':p[0]; renderSeating(id);}); if(rvS.panel===p[0])b.style.outline='2px solid var(--focus)'; tb.appendChild(b);});
+  if(!book){var eb=mkBtn(rvS.edit?'Done':'Edit layout',rvS.edit?'':'ghost sm',function(){rvS.edit=!rvS.edit; rvS.sel=null; renderSeating(id);}); tb.insertBefore(eb,tb.firstChild);}
+  else{var pb2=mkBtn('Pre-shift','ghost sm',function(){location.hash=id+'-preshift';}); tb.appendChild(pb2);}
   hd.appendChild(tb); box.appendChild(hd);
   if(rvS.panel){
     var pc=el('div','card');
@@ -7770,7 +7777,7 @@ function renderSeating(id){
       pc.appendChild(el('h4',null,'Your tables'));
       pc.appendChild(el('p',null,'Ranges and seats, for example “1-8: 2, 9-14: 4, 15-16: 6”, or one table per line like “T1, 2”. '+R.tables.length+' tables now.'));
       var tt=el('textarea','ta'); tt.value=tablesText(R); tt.setAttribute('aria-label','Tables'); tt.spellcheck=false; pc.appendChild(tt);
-      var tbb=el('div','btns'); tbb.appendChild(mkBtn('Save tables','',function(){var t=parseTables(tt.value); if(!t.length){toast('I could not read the tables.'); return;} R.tables=t; rvS.panel=''; toast(t.length+' tables saved.'); again();})); pc.appendChild(tbb);
+      var tbb=el('div','btns'); tbb.appendChild(mkBtn('Save tables','',function(){var t=parseTables(tt.value); if(!t.length){toast('I could not read the tables.'); return;} var old0={}; R.tables.forEach(function(x){old0[x.id]=x;}); t.forEach(function(x){var o=old0[x.id]; if(o){x.x=o.x; x.y=o.y; x.sh=o.sh; x.k=o.k;}}); R.tables=t; rvS.panel=''; toast(t.length+' tables saved.'); again();})); pc.appendChild(tbb);
     }
     if(rvS.panel==='set'){
       pc.appendChild(el('h4',null,'Meal duration (minutes)'));
@@ -7782,9 +7789,10 @@ function renderSeating(id){
     }
     box.appendChild(pc);
   }
-  if(!R.tables.length){var nt=el('div','card'); nt.appendChild(el('p',null,'Add your tables first (Tables button). Tell me the table numbers and how many seats each has, and I will plan the evening around them.')); box.appendChild(nt);}
+  if(!book)seatFloor(box,id,c,R,function(){save(); renderSeating(id);});
+  if(!R.tables.length&&book){var nt=el('div','card'); nt.appendChild(el('p',null,'Add your tables first (Seating plan, Edit layout). Tell me the table numbers and how many seats each has, and I will plan the evening around them.')); box.appendChild(nt);}
   /* board */
-  if(R.tables.length&&R.list.length){
+  if(R.tables.length&&R.list.length&&!book){
     var ev=R.list.filter(function(r){return r.status!=='noshow';}), starts=ev.map(function(r){return r.status==='seated'?r.seatedAt:t2m(r.time);}), ends=ev.map(function(r){return r.status==='seated'?seatEnd(R,r):(r.status==='left'?r.leftAt:t2m(r.time)+rsDur(R,r.pax));});
     var lo=Math.floor((Math.min.apply(null,starts.concat([now]))-20)/60)*60, hi=Math.ceil((Math.max.apply(null,ends.concat([now]))+20)/60)*60, ppm=1.25, W=Math.round((hi-lo)*ppm), LW=44;
     var bd=el('div','card'); bd.appendChild(el('h4',null,'Tonight on the floor'));
@@ -7815,8 +7823,8 @@ function renderSeating(id){
   }
   /* bookings */
   var order={seated:0,booked:1,left:2,noshow:3};
-  var list=R.list.slice().sort(function(x,y){return order[x.status]-order[y.status]||t2m(x.time)-t2m(y.time);});
-  if(!list.length&&R.tables.length){var e0=el('div','card'); e0.appendChild(el('p',null,'No bookings yet. Tap Paste or photo, or send the list to '+a.name+' in the chat.')); box.appendChild(e0);}
+  var list=R.list.slice().sort(function(x,y){return order[x.status]-order[y.status]||t2m(x.time)-t2m(y.time);}); if(!book)list=[];
+  if(!list.length&&book){var e0=el('div','card'); e0.appendChild(el('p',null,'No bookings yet. Tap Paste or photo, or send the list to '+a.name+' in the chat.')); box.appendChild(e0);}
   list.forEach(function(r){
     var cd=el('div','card'); cd.setAttribute('data-rid',r.id); var t=tableBy(R,r.table), open=rvS.open===r.id;
     var top=el('div'); top.style.cssText='display:flex;justify-content:space-between;gap:8px;align-items:baseline';
@@ -7824,7 +7832,9 @@ function renderSeating(id){
     var stx={seated:'Seated '+m2t(r.seatedAt||0),booked:'Booked',left:'Finished',noshow:'No show'}[r.status]; var sp=el('span',null,stx); sp.style.cssText='font-size:12px;font-weight:700;color:'+(r.status==='seated'?'var(--tick)':'var(--muted)'); top.appendChild(sp); cd.appendChild(top);
     var l2=el('div',null,r.pax+(r.pax===1?' guest':' guests')+' · '+(t?'table '+t.name:(r.warn||'no table'))+(r.status==='seated'?' · finishing around '+m2t(seatEnd(R,r)):(r.status==='booked'?' · until '+m2t(t2m(r.time)+rsDur(R,r.pax)):''))+(r.next?' · free from '+r.next:'')+(r.warn&&t?' · '+r.warn:'')); l2.style.cssText='font-size:13.5px;opacity:.8'; if(r.warn)l2.style.color='var(--danger)'; cd.appendChild(l2);
     if(r.note){var nn=el('div',null,r.note); nn.style.cssText='font-size:13px;opacity:.75;margin-top:2px'; cd.appendChild(nn);}
+    var gp0=guestFor(r.name); if(gp0&&(gp0.allergies||gp0.likes||gp0.visits.length)){var gl=el('div',null,'Profile: '+[gp0.allergies?'allergies '+gp0.allergies:'',gp0.likes?'likes '+gp0.likes:'',gp0.visits.length?gp0.visits.length+(gp0.visits.length===1?' visit':' visits'):''].filter(Boolean).join(' · ')); gl.style.cssText='font-size:12.5px;margin-top:3px;color:'+(gp0.allergies?'var(--danger)':'var(--muted)'); cd.appendChild(gl);}
     var ab=el('div','btns');
+    ab.appendChild(mkBtn(gp0?'Guest profile':'Create profile','ghost sm',function(){openGuestOf(r);}));
     if(r.status==='booked'||r.status==='seated'){
       var ts=el('select','sel'); ts.setAttribute('aria-label','Table for '+r.name); var o0=el('option',null,r.status==='booked'?'Table: auto':'Table'); o0.value=''; ts.appendChild(o0);
       R.tables.forEach(function(x){var o=el('option',null,'Table '+x.name+' ('+x.seats+')'); o.value=x.id; if(x.id===r.table&&(r.pin||r.status==='seated'))o.selected=true; ts.appendChild(o);});
@@ -7847,6 +7857,81 @@ function renderSeating(id){
 }
 setInterval(function(){try{rsvCheck();}catch(e){} modTimers();},60000);
 
+
+/* ---------- table layout (floor view and editor) ---------- */
+function guestFor(name){var L=S.chats.leo; return L&&name&&name!=='Guest'?findGuestByName(L,name):null;}
+function openGuestOf(r){var L=S.chats.leo; if(!L){toast('Leo keeps the guest profiles.'); return;} var g=guestFor(r.name); if(!g){g=newGuest(r.name); if(r.note)g.notes=dmyShort(tdy())+': '+r.note; gst(L).push(g); save(); toast('Profile created for '+g.name+'.');} location.hash='leo-guests-'+g.id;}
+function tbDim(t){var n=Math.max(1,t.seats||2), k=t.k||1, w,h; if(t.sh==='c'){w=h=30+n*7;} else {w=30+n*9; h=n<=4?w:56;} return {w:Math.round(w*k),h:Math.round(h*k)};}
+function tbFree(R,d){for(var y=26;y<1400;y+=20)for(var x=26;x+d.w<=334;x+=20){var ok=R.tables.every(function(t){if(t.x==null)return true; var e=tbDim(t); return x+d.w+24<t.x||x>t.x+e.w+24||y+d.h+24<t.y||y>t.y+e.h+24;}); if(ok)return {x:x,y:y};} return {x:26,y:26};}
+function tbAuto(R){var x=26,y=26,rowH=0; R.tables.forEach(function(t){if(!t.sh)t.sh='r'; if(t.x!=null&&t.y!=null)return; var d=tbDim(t); if(x+d.w>336){x=26; y+=rowH+34; rowH=0;} t.x=x; t.y=y; x+=d.w+34; rowH=Math.max(rowH,d.h);});}
+function tbState(R,t,now){var cur=null,nx=null; R.list.forEach(function(r){if(r.table!==t.id)return; if(r.status==='seated')cur=r; else if(r.status==='booked'){var s0=t2m(r.time); if(s0-60<=now&&s0+rsDur(R,r.pax)>now&&(!nx||s0<t2m(nx.time)))nx=r;}}); return {cur:cur,nx:nx};}
+function tbChairPts(t,d){var n=Math.max(1,t.seats||2), pts=[], i; if(t.sh==='c'){var r=d.w/2+8, cx=t.x+d.w/2, cy=t.y+d.h/2; for(i=0;i<n;i++){var a=2*Math.PI*i/n-Math.PI/2; pts.push([cx+r*Math.cos(a),cy+r*Math.sin(a)]);}} else {var top=Math.ceil(n/2), bot=n-top; for(i=0;i<top;i++)pts.push([t.x+d.w*(i+.5)/top,t.y-8]); for(i=0;i<bot;i++)pts.push([t.x+d.w*(i+.5)/bot,t.y+d.h+8]);} return pts;}
+function seatFloor(box,id,c,R,again){
+  tbAuto(R); var now=nowM(), edit=!!rvS.edit, H=260; R.tables.forEach(function(t){var d=tbDim(t); if(t.y+d.h+44>H)H=t.y+d.h+44;});
+  var cd=el('div','card'); cd.appendChild(el('h4',null,edit?'Edit layout':'Floor'));
+  if(!R.tables.length)cd.appendChild(el('p',null,'No tables yet. Tap Edit layout, then add a square or round table.'));
+  else if(edit)cd.appendChild(el('p',null,'Drag a table to move it. Tap it to change seats, shape or size.')); else cd.appendChild(el('p',null,'Tap a table to see its bookings. Filled chairs are seated guests.'));
+  var svg=sv('svg',{viewBox:'0 0 360 '+H,width:'100%'}); svg.style.cssText='display:block;border-radius:14px;border:1px solid var(--line);background-color:var(--soft);touch-action:'+(edit?'none':'pan-y')+(edit?';background-image:radial-gradient(var(--line) 1px,transparent 1px);background-size:16px 16px':''); svg.setAttribute('role','img'); svg.setAttribute('aria-label','Table layout');
+  R.tables.forEach(function(t){
+    var d=tbDim(t), g=sv('g'), S0=tbState(R,t,now), seatedN=S0.cur?Math.min(S0.cur.pax,t.seats):0, sel=edit&&rvS.sel===t.id;
+    g.style.cursor='pointer'; if(edit)g.style.touchAction='none';
+    tbChairPts(t,d).forEach(function(p,i){g.appendChild(sv('circle',{cx:p[0],cy:p[1],r:5,style:'fill:'+(i<seatedN?'var(--tick)':'var(--soft)')+';stroke:'+(i<seatedN?'var(--tick)':'var(--muted)')+';stroke-width:1.2'}));});
+    var fill=S0.cur?'var(--tick)':(S0.nx?'var(--chip-on)':'var(--in)'), stroke=sel?'var(--accent,#0b6b5c)':(S0.cur?'var(--tick)':(S0.nx?'var(--chip-ink)':'var(--muted)')), ink=S0.cur?'#fff':'var(--ink)';
+    var shp=t.sh==='c'?sv('ellipse',{cx:t.x+d.w/2,cy:t.y+d.h/2,rx:d.w/2,ry:d.h/2}):sv('rect',{x:t.x,y:t.y,width:d.w,height:d.h,rx:0});
+    shp.style.cssText='fill:'+fill+';stroke:'+stroke+';stroke-width:'+(sel?3:1.6); g.appendChild(shp);
+    var fs=Math.max(9,Math.min(13,Math.min(d.w,d.h)*.3)), cx=t.x+d.w/2, cy=t.y+d.h/2, sub=S0.cur?(fpFirst(S0.cur.name)+' '+S0.cur.pax):(S0.nx?S0.nx.time:'');
+    var tx=sv('text',{x:cx,y:cy+(sub?-1:fs*.35),'text-anchor':'middle','font-size':fs,'font-weight':700},t.name); tx.style.fill=ink; g.appendChild(tx);
+    if(sub){var t2=sv('text',{x:cx,y:cy+fs,'text-anchor':'middle','font-size':Math.max(8,fs-2)},sub); t2.style.fill=ink; g.appendChild(t2);}
+    g.addEventListener('pointerdown',function(e){var ctm=svg.getScreenCTM(); if(!ctm)return; var k=1/ctm.a, sx=e.clientX, sy=e.clientY, ox=t.x, oy=t.y, moved=false;
+      function mv(ev){if(!edit)return; if(Math.abs(ev.clientX-sx)+Math.abs(ev.clientY-sy)>6)moved=true; if(moved){var dx=(ev.clientX-sx)*k, dy=(ev.clientY-sy)*k; g.setAttribute('transform','translate('+dx+','+dy+')');}}
+      function up(ev){document.removeEventListener('pointermove',mv); document.removeEventListener('pointerup',up);
+        if(edit&&moved){var dx=(ev.clientX-sx)*k, dy=(ev.clientY-sy)*k; t.x=Math.max(14,Math.min(346-d.w,Math.round((ox+dx)/4)*4)); t.y=Math.max(14,Math.round((oy+dy)/4)*4); rvS.sel=t.id; again();}
+        else if(edit){rvS.sel=(rvS.sel===t.id?null:t.id); renderSeating(id);} else seatTableSheet(c,R,t,again);}
+      document.addEventListener('pointermove',mv); document.addEventListener('pointerup',up); e.preventDefault();});
+    svg.appendChild(g);
+  });
+  cd.appendChild(svg);
+  if(!edit){var lg=el('p',null,'Green: seated. Light green: booked in the next hour. White: free.'); lg.style.cssText='font-size:12px;opacity:.75;margin-top:8px'; cd.appendChild(lg);}
+  box.appendChild(cd);
+  if(!edit)return;
+  var tbn=el('div','card'), ab=el('div','btns'); ab.style.marginTop='0';
+  function addT(sh){var nums=R.tables.map(function(t){return natKey(t.name);}), nn=String((nums.length?Math.max.apply(null,nums):0)+1); var t={id:nn,name:nn,seats:4,zone:'',sh:sh,k:1}, d=tbDim(t), p=tbFree(R,d); t.x=p.x; t.y=p.y; R.tables.push(t); rvS.sel=t.id; again();}
+  ab.appendChild(mkBtn('Add square table','',function(){addT('r');})); ab.appendChild(mkBtn('Add round table','ghost',function(){addT('c');})); tbn.appendChild(ab); box.appendChild(tbn);
+  var t=tableBy(R,rvS.sel); if(!t)return;
+  var pc=el('div','card'); pc.appendChild(el('h4',null,'Table '+t.name));
+  var nr=el('div','kv'); nr.appendChild(el('span',null,'Name')); var ni=el('input'); ni.value=t.name; ni.setAttribute('aria-label','Table name'); ni.style.maxWidth='120px';
+  ni.addEventListener('change',function(){var v=ni.value.trim(); if(!v||(v!==t.id&&tableBy(R,v))){ni.value=t.name; toast(v?'That name is used.':'Give the table a name.'); return;} R.list.forEach(function(r){if(r.table===t.id)r.table=v;}); t.id=v; t.name=v; rvS.sel=v; again();}); nr.appendChild(ni); pc.appendChild(nr);
+  var sr=el('div','kv'); sr.appendChild(el('span',null,'Shape')); var sb=el('div'); sb.style.cssText='display:flex;margin:0;gap:8px;flex:none';
+  sb.appendChild(mkBtn('Square',t.sh==='r'?'':'ghost sm',function(){var d0=tbDim(t), cx=t.x+d0.w/2, cy=t.y+d0.h/2; t.sh='r'; var d1=tbDim(t); t.x=Math.max(14,Math.round(cx-d1.w/2)); t.y=Math.max(14,Math.round(cy-d1.h/2)); again();}));
+  sb.appendChild(mkBtn('Round',t.sh==='c'?'':'ghost sm',function(){var d0=tbDim(t), cx=t.x+d0.w/2, cy=t.y+d0.h/2; t.sh='c'; var d1=tbDim(t); t.x=Math.max(14,Math.round(cx-d1.w/2)); t.y=Math.max(14,Math.round(cy-d1.h/2)); again();})); sr.appendChild(sb); pc.appendChild(sr);
+  function stp(label,val,minus,plus){var r=el('div','kv'); r.appendChild(el('span',null,label)); var b=el('div'); b.style.cssText='display:flex;margin:0;align-items:center;gap:8px;flex:none'; var mb=mkBtn('−','ghost sm',minus), pb=mkBtn('+','ghost sm',plus); [mb,pb].forEach(function(x){x.style.cssText='flex:none;width:46px;min-width:46px;padding:0'; x.setAttribute('aria-label',x===mb?'Fewer '+label:'More '+label);}); b.appendChild(mb); var v=el('b',null,val); v.style.minWidth='46px'; v.style.textAlign='center'; b.appendChild(v); b.appendChild(pb); r.appendChild(b); pc.appendChild(r);}
+  function resize(fn){var d0=tbDim(t), cx=t.x+d0.w/2, cy=t.y+d0.h/2; fn(); var d1=tbDim(t); t.x=Math.max(14,Math.round(cx-d1.w/2)); t.y=Math.max(14,Math.round(cy-d1.h/2)); again();}
+  stp('Seats',String(t.seats),function(){if(t.seats>1)resize(function(){t.seats--;});},function(){if(t.seats<16)resize(function(){t.seats++;});});
+  stp('Size',Math.round((t.k||1)*100)+'%',function(){resize(function(){t.k=Math.max(.7,Math.round(((t.k||1)-.1)*10)/10);});},function(){resize(function(){t.k=Math.min(1.8,Math.round(((t.k||1)+.1)*10)/10);});});
+  var ba=el('div','btns');
+  ba.appendChild(mkBtn('Duplicate','ghost sm',function(){var nums=R.tables.map(function(x){return natKey(x.name);}), nn=String(Math.max.apply(null,nums)+1), d=tbDim(t), p=tbFree(R,d); var n2={id:nn,name:nn,seats:t.seats,zone:t.zone||'',sh:t.sh,k:t.k||1,x:p.x,y:p.y}; R.tables.push(n2); rvS.sel=nn; again();}));
+  var dl=mkBtn('Delete','ghost sm',function(){if(!dl._a){dl._a=true; dl.textContent='Tap again to delete'; setTimeout(function(){dl._a=false; dl.textContent='Delete';},3000); return;} R.list.forEach(function(r){if(r.table===t.id){r.table=''; r.pin=false;}}); R.tables=R.tables.filter(function(x){return x!==t;}); rvS.sel=null; again();}); ba.appendChild(dl); pc.appendChild(ba);
+  box.appendChild(pc);
+}
+function seatTableSheet(c,R,t,again){
+  fpSheet('Table '+t.name+' · '+t.seats+' seats',function(bx,close){
+    var rs=R.list.filter(function(r){return r.table===t.id&&(r.status==='seated'||r.status==='booked');}).sort(function(a,b){return (a.status==='seated'?0:1)-(b.status==='seated'?0:1)||t2m(a.time)-t2m(b.time);});
+    if(!rs.length)bx.appendChild(el('p',null,'No bookings on this table.'));
+    rs.forEach(function(r){var row=el('div'); row.style.cssText='border-top:1px solid var(--line);padding:8px 0'; var h=el('div',null,(r.status==='seated'?'Seated '+m2t(r.seatedAt||0):r.time)+' · '+r.name+' · '+r.pax); h.style.fontWeight='700'; row.appendChild(h); if(r.note)row.appendChild(el('div',null,r.note)).style.cssText='font-size:13px;opacity:.75';
+      var gp=guestFor(r.name); if(gp&&gp.allergies){var al=el('div',null,'Allergies: '+gp.allergies); al.style.cssText='font-size:13px;color:var(--danger);font-weight:700'; row.appendChild(al);}
+      var b=el('div','btns'); if(r.status==='booked')b.appendChild(mkBtn('Seated','',function(){toast(rsSeat(c,r,t.id)); close(); again();})); if(r.status==='seated')b.appendChild(mkBtn('Left','',function(){toast(rsLeft(c,r)); close(); again();}));
+      b.appendChild(mkBtn(gp?'Guest profile':'Create profile','ghost sm',function(){close(); openGuestOf(r);})); row.appendChild(b); bx.appendChild(row);});
+  });
+}
+/* ---------- pre-shift (Hana) ---------- */
+function preshiftData(c){
+  var R=rsPlan(c), act=R.list.filter(function(r){return r.status==='booked'||r.status==='seated';}).sort(function(a,b){return t2m(a.time)-t2m(b.time);}), D={R:R,act:act,al:[],occ:[],warn:[],big:[]};
+  var rxA=/allerg|vegan|vegetarian|gluten|nut|halal|dairy|lactose|shellfish|pescatarian/i, rxO=/vip|birthday|anniversar|celebrat|honeymoon|proposal|engag/i;
+  act.forEach(function(r){var g=guestFor(r.name), al=[]; if(g&&g.allergies)al.push(g.allergies); if(r.note&&rxA.test(r.note))al.push(r.note); if(al.length)D.al.push({r:r,t:al.join(' · ')});
+    var oc=[]; if(r.note&&rxO.test(r.note))oc.push(r.note); if(g&&g.notes&&rxO.test(g.notes)&&!oc.length)oc.push(g.notes.split('\n').pop()); if(oc.length)D.occ.push({r:r,t:oc.join(' · ')});
+    if(r.warn||!r.table)D.warn.push({r:r,t:r.warn||'No table yet'}); if(r.pax>=6)D.big.push(r);});
+  return D;
+}
 /* ---------- by the glass page ---------- */
 function openGlass(id){
   if(!(byId[id].pour>0)){openInfo(id); return;}
@@ -8412,6 +8497,23 @@ function newGuest(name){return {id:uid(),name:name||'',phone:'',nat:'',likes:'',
 function findGuestByName(c,name){var n=String(name).trim().toLowerCase(); return gst(c).filter(function(g){return g.name.toLowerCase()===n;})[0]||null;}
 function lastVisit(g){return g.visits.reduce(function(m,v){return v.date>m?v.date:m;},'');}
 function gStats(g){var sp=0,px=0; g.visits.forEach(function(v){sp+=parseFloat(v.spend)||0; px+=parseInt(v.pax)||0;}); var n=g.visits.length; return {n:n,sp:sp,px:px,perVisit:n?sp/n:0,perPerson:px?sp/px:0};}
+MODS.preshift={who:'hana',title:'Pre-shift',render:function(id,sub,box){
+  var c=S.chats[id], D=preshiftData(c), R=D.R, covers=D.act.reduce(function(s,r){return s+r.pax;},0), lines=[];
+  var hd=el('div','card'); hd.appendChild(el('h3',null,'Pre-shift briefing')); hd.appendChild(el('p',null,(R.date!==today()?'The list is from '+dmy(R.date)+'. ':'')+dmyShort(tdy())+' · built from the bookings and guest profiles in the app.')); hd.appendChild(kv('Bookings still to come or seated',String(D.act.length))); hd.appendChild(kv('Covers',String(covers))); hd.appendChild(kv('Parties of 6 or more',String(D.big.length))); hd.appendChild(kv('Allergy or diet flags',String(D.al.length))); box.appendChild(hd);
+  lines.push('PRE-SHIFT '+dmyShort(tdy())+' · '+D.act.length+' bookings · '+covers+' covers');
+  function sec(title,arr,fmt){var cd=el('div','card'); cd.appendChild(el('h3',null,title)); if(!arr.length)cd.appendChild(el('p',null,'Nothing flagged.')); else lines.push('\n'+title.toUpperCase()); arr.forEach(function(o){var r=o.r||o, row=el('div'); row.style.cssText='border-top:1px solid var(--line);padding:8px 0'; var h=el('div',null,r.time+' · '+r.name+' · '+r.pax+(r.table?' · table '+r.table:'')); h.style.fontWeight='700'; row.appendChild(h); var tx=fmt(o); if(tx)row.appendChild(el('div',null,tx)); cd.appendChild(row); lines.push('• '+r.time+' '+r.name+' ('+r.pax+')'+(r.table?' T'+r.table:'')+(tx?': '+tx:''));}); box.appendChild(cd);}
+  sec('Allergies and diets',D.al,function(o){return o.t;});
+  sec('VIP and occasions',D.occ,function(o){return o.t;});
+  sec('Big parties',D.big,function(r){return r.note||'';});
+  sec('Needs attention',D.warn,function(o){return o.t;});
+  var tm=el('div','card'); tm.appendChild(el('h3',null,'From the team')); var tl2=[];
+  var ev=S.chats.zara?evs(S.chats.zara).filter(function(e){return e.date===tdy();}):[]; ev.forEach(function(e){tl2.push('Event today: '+e.title+(e.pax?' · '+e.pax+' guests':'')+(e.host?' · host '+e.host:'')+(e.allergies?' · allergies: '+e.allergies:''));});
+  var so=S.chats.sofia, lw=so?(so.low||byId.sofia.low||3):0; if(so){var lowL=so.inv.filter(function(i){return i.menu&&i.qty!=null&&i.qty<=lw;}).sort(function(a,b){return a.qty-b.qty;}); if(lowL.length)tl2.push('Sofia, low wines ('+lowL.length+'): '+lowL.slice(0,6).map(function(i){return i.name+' '+i.qty;}).join(', ')+(lowL.length>6?', …':''));}
+  if(!tl2.length)tm.appendChild(el('p',null,'No events today and no low wines.')); else {lines.push('\nFROM THE TEAM'); tl2.forEach(function(x){var p=el('p',null,x); p.style.margin='6px 0'; tm.appendChild(p); lines.push('• '+x);});}
+  box.appendChild(tm);
+  var ac=el('div','card'), ab=el('div','btns'); ab.style.marginTop='0'; ab.appendChild(mkBtn('Share briefing','',function(){var tx=lines.join('\n'); if(navigator.share){navigator.share({text:tx}).catch(function(){});} else if(navigator.clipboard){navigator.clipboard.writeText(tx).then(function(){toast('Briefing copied.');},function(){toast('Could not copy.');});} else toast('Sharing is not available here.');})); ab.appendChild(mkBtn('Open reservations','ghost',function(){location.hash=id+'-bookings';})); ac.appendChild(ab); box.appendChild(ac);
+}};
+
 MODS.guests={who:'leo',title:'Guests',render:function(id,sub,box){
   var c=S.chats[id], list=gst(c);
   if(sub==='new'){var ng=newGuest(''), cd=el('div','card'); cd.appendChild(el('h3',null,'New guest')); fld(cd,'Name',ng.name,function(v){ng.name=v;}); fld(cd,'Phone',ng.phone,function(v){ng.phone=v;},{inputMode:'tel'}); fld(cd,'Likes',ng.likes,function(v){ng.likes=v;},{multi:true}); fld(cd,'Dislikes',ng.dislikes,function(v){ng.dislikes=v;},{multi:true});
@@ -9148,8 +9250,8 @@ function renderMatchOne(id,key,box){
 function route(){
   if(MMDIRTY&&MMDH&&location.hash!==MMDH){var tgt=location.hash; location.hash=MMDH; mmAsk('You have changes that are not saved. Leave anyway?','Leave','Stay',function(){MMIMP=(/-match-import$/.test(MMDH)?null:MMIMP); mmDirty(false); location.hash=tgt;}); return;}
   closeAllOverlays();
-  var h=location.hash.replace('#',''), m=h.match(/^([a-z]+)-info$/), gm=h.match(/^([a-z]+)-glass$/), wm=h.match(/^([a-z]+)-wines$/), om=h.match(/^([a-z]+)-off$/), sm=h.match(/^([a-z]+)-stock$/), lm=h.match(/^([a-z]+)-lib$/), rm2=h.match(/^([a-z]+)-recipes$/), sg2=h.match(/^([a-z]+)-seating$/), rp2=h.match(/^([a-z]+)-reports$/), wr2=h.match(/^([a-z]+)-wrep$/), pr2=h.match(/^([a-z]+)-prep$/), cm2=h.match(/^([a-z]+)-cmpr$/), cr2=h.match(/^([a-z]+)-crep$/), md=h.match(/^([a-z]+)-(staff|events|evmenu|chefmenu|pricelists|barcosts|winecosts|floorcosts|floorplan|rota|cellar|guests|revenue|checklist|match|todo)(?:-([a-z0-9]+))?$/);
-  var dp=wm||gm||om||sm;
+  var h=location.hash.replace('#',''), m=h.match(/^([a-z]+)-info$/), gm=h.match(/^([a-z]+)-glass$/), wm=h.match(/^([a-z]+)-wines$/), om=h.match(/^([a-z]+)-off$/), sm=h.match(/^([a-z]+)-stock$/), lm=h.match(/^([a-z]+)-lib$/), rm2=h.match(/^([a-z]+)-recipes$/), sg2=h.match(/^([a-z]+)-seating$/), rp2=h.match(/^([a-z]+)-reports$/), wr2=h.match(/^([a-z]+)-wrep$/), pr2=h.match(/^([a-z]+)-prep$/), cm2=h.match(/^([a-z]+)-cmpr$/), cr2=h.match(/^([a-z]+)-crep$/), md=h.match(/^([a-z]+)-(staff|events|evmenu|chefmenu|pricelists|barcosts|winecosts|floorcosts|floorplan|rota|cellar|guests|revenue|checklist|match|todo|preshift)(?:-([a-z0-9]+))?$/);
+  var bk2=h.match(/^([a-z]+)-bookings$/); var dp=wm||gm||om||sm;
   if(draft&&!(dp&&dp[1]===draft.id)){var had=draft.dirty; discardDraft(true); if(had)toast('Unsaved changes were discarded.');}
   if(md&&byId[md[1]])openMod(md[1],md[2],md[3]||null);
   else if(cr2&&byId[cr2[1]])openCostReport(cr2[1],true);
@@ -9157,7 +9259,8 @@ function route(){
   else if(pr2&&byId[pr2[1]]&&PR.spec)openPeriodReport(pr2[1],PR.spec,true);
   else if(cm2&&byId[cm2[1]]&&PR.cmp)openCmpReport(cm2[1],PR.cmp,true);
   else if(rp2&&byId[rp2[1]])openReports(rp2[1]);
-  else if(sg2&&byId[sg2[1]])openSeating(sg2[1]);
+  else if(bk2&&byId[bk2[1]])openSeating(bk2[1],'book');
+  else if(sg2&&byId[sg2[1]])openSeating(sg2[1],'floor');
   else if(rm2&&byId[rm2[1]])openRecipes(rm2[1]);
   else if(lm&&(byId[lm[1]]||lm[1]==='lib'))openLib(lm[1]);
   else if(om&&byId[om[1]])openOff(om[1]);
@@ -9186,7 +9289,7 @@ function parentHash(h){
   var id=m[1], k=m[2], sub=m[3];
   if(k==='info')return id;
   if(/^(crep|wrep|prep|cmpr)$/.test(k))return id+'-reports';
-  if(/^(glass|wines|off|stock|lib|recipes|seating|reports)$/.test(k))return id+'-info';
+  if(/^(glass|wines|off|stock|lib|recipes|seating|bookings|reports)$/.test(k))return id+'-info';
   if(k==='cellar'&&sub&&/^[esdwfu]\d+s\d+$/.test(sub))return id+'-cellar-'+sub.replace(/s\d+$/,'');
   if(sub)return id+'-'+k;
   return id+'-info';
@@ -10173,7 +10276,7 @@ function cxMod(who,title,list){
   }};
 }
 cxMod('james','Bar costs','Bar'); cxMod('sofia','Wine costs','Wine'); cxMod('elena','Floor costs','Floor');
-TILEICON.rota='<path d="M4 5h16v15H4zM4 10h16M9 3v4M15 3v4M8 14h2M12 14h2M8 17h2"/>'; TILEICON.floorplan='<path d="M3 5l6-2 6 2 6-2v16l-6 2-6-2-6 2V5zM9 3v16M15 5v16"/>'; TILEICON.pricelists=TILEICON.tag; TILEICON.barcosts=TILEICON.glass; TILEICON.winecosts=TILEICON.wine; TILEICON.floorcosts=TILEICON.seat;
+TILEICON.rota='<path d="M4 5h16v15H4zM4 10h16M9 3v4M15 3v4M8 14h2M12 14h2M8 17h2"/>'; TILEICON.preshift=TILEICON.checklist; TILEICON.floorplan='<path d="M3 5l6-2 6 2 6-2v16l-6 2-6-2-6 2V5zM9 3v16M15 5v16"/>'; TILEICON.pricelists=TILEICON.tag; TILEICON.barcosts=TILEICON.glass; TILEICON.winecosts=TILEICON.wine; TILEICON.floorcosts=TILEICON.seat;
 /* ---- dish ingredients in the chef menu ---- */
 var CMF='all';
 function cmFilt(i){return CMF==='all'||(CMF==='u'&&i.cd==='u')||(CMF==='d'&&i.cd==='d')||(CMF==='n'&&(i.cd==='n'||i.cd==='new'));}
