@@ -5549,7 +5549,7 @@ try{setTimeout(function(){snapNow('Opened the app');},6000); document.addEventLi
   }
   window.addEventListener('resize',apply); window.addEventListener('orientationchange',function(){setTimeout(apply,60);}); apply();
 })();
-var APPVER='Sidekick 25';
+var APPVER='Sidekick 27';
 var KEYNAME='dutybuddy.apikey', inClaude=false;
 function storedKey(){try{return localStorage.getItem(KEYNAME)||'';}catch(e){return '';}}
 function keyOn(){try{return localStorage.getItem('dutybuddy.keyoff')!=='1';}catch(e){return true;}}
@@ -7552,8 +7552,8 @@ function rsPlan(c){
 }
 function parseTables(text){
   var out=[], seen={}, add=function(name,seats,zone){if(seen[name]||!(seats>=1&&seats<=40))return; seen[name]=1; out.push({id:name,name:name,seats:seats,zone:zone||''});};
-  var rx=/([A-Za-z]{0,3})(\d+)(?:\s*[-–]\s*([A-Za-z]{0,3})(\d+))?\s*[:=]\s*(\d+)/g, m, hit=false;
-  while((m=rx.exec(text))){hit=true; var a=parseInt(m[2],10), b=m[4]?parseInt(m[4],10):a; if(b<a||b-a>200)continue; for(var i=a;i<=b;i++)add(m[1]+i,parseInt(m[5],10));}
+  var rx=/([A-Za-z]{0,3})(\d+)([A-Za-z]?)(?:\s*[-–]\s*([A-Za-z]{0,3})(\d+))?\s*[:=]\s*(\d+)/g, m, hit=false;
+  while((m=rx.exec(text))){hit=true; var a=parseInt(m[2],10), b=m[5]?parseInt(m[5],10):a; if(b<a||b-a>200)continue; if(!m[5]){add(m[1]+m[2]+m[3],parseInt(m[6],10)); continue;} for(var i=a;i<=b;i++)add(m[1]+i,parseInt(m[6],10));}
   if(hit)return out;
   String(text).split(/\r?\n|;/).forEach(function(l){
     var mm=l.trim().match(/^(?:tables?\s*)?([A-Za-z]{0,3}\d+[A-Za-z]?)\s*[,\-–:\s]\s*(\d+)\s*(?:seats?|pax|guests?|covers?)?\s*(.*)$/i);
@@ -7723,7 +7723,7 @@ function rsvCheck(){
   if(changed){save(); if(cur&&byId[cur]&&byId[cur].seating)refreshChat(cur); renderList();}
   if(seatId&&!$('seatingView').hidden&&!seatBusy)renderSeating(seatId);
 }
-var seatId=null, seatBusy=false, rvS={panel:'',open:null,pg:'floor',edit:false,sel:null};
+var seatId=null, seatBusy=false, rvS={panel:'',open:null,pg:'floor',edit:false,sel:null,fl:'',zoom:1.6};
 function openSeating(id,pg){if(!byId[id].seating){openInfo(id); return;} seatId=id; if((pg||'floor')!==rvS.pg){rvS.panel=''; rvS.edit=false;} rvS.pg=pg||'floor'; setView('seating'); renderSeating(id);}
 function renderSeating(id){
   var a=byId[id], c=S.chats[id], box=$('seatingPg'), keep=box.scrollTop, R=rsPlan(c), now=nowM(); box.textContent='';
@@ -7777,7 +7777,7 @@ function renderSeating(id){
       pc.appendChild(el('h4',null,'Your tables'));
       pc.appendChild(el('p',null,'Ranges and seats, for example “1-8: 2, 9-14: 4, 15-16: 6”, or one table per line like “T1, 2”. '+R.tables.length+' tables now.'));
       var tt=el('textarea','ta'); tt.value=tablesText(R); tt.setAttribute('aria-label','Tables'); tt.spellcheck=false; pc.appendChild(tt);
-      var tbb=el('div','btns'); tbb.appendChild(mkBtn('Save tables','',function(){var t=parseTables(tt.value); if(!t.length){toast('I could not read the tables.'); return;} var old0={}; R.tables.forEach(function(x){old0[x.id]=x;}); t.forEach(function(x){var o=old0[x.id]; if(o){x.x=o.x; x.y=o.y; x.sh=o.sh; x.k=o.k;}}); R.tables=t; rvS.panel=''; toast(t.length+' tables saved.'); again();})); pc.appendChild(tbb);
+      var tbb=el('div','btns'); tbb.appendChild(mkBtn('Save tables','',function(){var t=parseTables(tt.value); if(!t.length){toast('I could not read the tables.'); return;} var old0={}; R.tables.forEach(function(x){old0[x.id]=x;}); t.forEach(function(x){var o=old0[x.id]; if(o){x.x=o.x; x.y=o.y; x.sh=o.sh; x.k=o.k; x.fl=o.fl; x.bw=o.bw; x.bh=o.bh; x.s0=o.s0;}}); R.tables=t; rvS.panel=''; toast(t.length+' tables saved.'); again();})); pc.appendChild(tbb);
     }
     if(rvS.panel==='set'){
       pc.appendChild(el('h4',null,'Meal duration (minutes)'));
@@ -7861,55 +7861,81 @@ setInterval(function(){try{rsvCheck();}catch(e){} modTimers();},60000);
 /* ---------- table layout (floor view and editor) ---------- */
 function guestFor(name){var L=S.chats.leo; return L&&name&&name!=='Guest'?findGuestByName(L,name):null;}
 function openGuestOf(r){var L=S.chats.leo; if(!L){toast('Leo keeps the guest profiles.'); return;} var g=guestFor(r.name); if(!g){g=newGuest(r.name); if(r.note)g.notes=dmyShort(tdy())+': '+r.note; gst(L).push(g); save(); toast('Profile created for '+g.name+'.');} location.hash='leo-guests-'+g.id;}
-function tbDim(t){var n=Math.max(1,t.seats||2), k=t.k||1, w,h; if(t.sh==='c'){w=h=30+n*7;} else {w=30+n*9; h=n<=4?w:56;} return {w:Math.round(w*k),h:Math.round(h*k)};}
-function tbFree(R,d){for(var y=26;y<1400;y+=20)for(var x=26;x+d.w<=334;x+=20){var ok=R.tables.every(function(t){if(t.x==null)return true; var e=tbDim(t); return x+d.w+24<t.x||x>t.x+e.w+24||y+d.h+24<t.y||y>t.y+e.h+24;}); if(ok)return {x:x,y:y};} return {x:26,y:26};}
-function tbAuto(R){var x=26,y=26,rowH=0; R.tables.forEach(function(t){if(!t.sh)t.sh='r'; if(t.x!=null&&t.y!=null)return; var d=tbDim(t); if(x+d.w>336){x=26; y+=rowH+34; rowH=0;} t.x=x; t.y=y; x+=d.w+34; rowH=Math.max(rowH,d.h);});}
+function rsFloors(R){return R.floors&&R.floors.length?R.floors:[{id:'',name:'Main',sub:'',w:360,h:0,zones:[]}];}
+function tbFl(R,t){return t.fl||rsFloors(R)[0].id;}
+function tbDim(t){var n=Math.max(1,t.seats||2), k=t.k||1, w,h; if(t.bw){var f=Math.sqrt(n/(t.s0||n)); return {w:Math.max(14,Math.round(t.bw*f*k)),h:Math.max(14,Math.round(t.bh*f*k))};} if(t.sh==='c'){w=h=30+n*7;} else {w=30+n*9; h=n<=4?w:56;} return {w:Math.round(w*k),h:Math.round(h*k)};}
+function tbFree(R,d,fid,W){for(var y=26;y<2400;y+=10)for(var x=14;x+d.w<=W-14;x+=10){var ok=R.tables.every(function(t){if(t.x==null||tbFl(R,t)!==fid)return true; var e=tbDim(t); return x+d.w+8<t.x||x>t.x+e.w+8||y+d.h+8<t.y||y>t.y+e.h+8;}); if(ok)return {x:x,y:y};} return {x:14,y:14};}
+function tbAuto(R){var fl0=rsFloors(R)[0], x=26,y=26,rowH=0; R.tables.forEach(function(t){if(!t.sh)t.sh='r'; if(t.x!=null&&t.y!=null)return; var d=tbDim(t); if(x+d.w>336){x=26; y+=rowH+34; rowH=0;} t.x=x; t.y=y; x+=d.w+34; rowH=Math.max(rowH,d.h);});}
+var LLSEED=[{"name":"23rd Floor","sub":"MDR & Bar","items":[{"k":"z","n":"WC","x":465,"y":225,"w":61,"h":40},{"k":"z","n":"Reception","x":1058,"y":134,"w":92,"h":42},{"k":"z","n":"Lounge","x":1070,"y":338,"w":87,"h":48},{"k":"t","n":"112","x":471,"y":524,"w":38,"h":88,"s":"r"},{"k":"z","n":"Bar","x":684,"y":200,"w":52,"h":38},{"k":"t","n":"126","x":532,"y":652,"w":28,"h":26,"s":"r"},{"k":"t","n":"127","x":612,"y":650,"w":28,"h":26,"s":"r"},{"k":"t","n":"124","x":355,"y":652,"w":28,"h":26,"s":"r"},{"k":"t","n":"125","x":435,"y":652,"w":28,"h":26,"s":"r"},{"k":"t","n":"1","x":776,"y":257,"w":19,"h":26,"s":"r"},{"k":"t","n":"2","x":776,"y":236,"w":19,"h":26,"s":"r"},{"k":"t","n":"3","x":776,"y":214,"w":19,"h":26,"s":"r"},{"k":"t","n":"4","x":776,"y":191,"w":19,"h":26,"s":"r"},{"k":"t","n":"5","x":776,"y":168,"w":19,"h":26,"s":"r"},{"k":"t","n":"6","x":776,"y":146,"w":19,"h":26,"s":"r"},{"k":"t","n":"7","x":775,"y":122,"w":19,"h":26,"s":"r"},{"k":"t","n":"8","x":775,"y":101,"w":19,"h":26,"s":"r"},{"k":"t","n":"9","x":775,"y":78,"w":19,"h":26,"s":"r"},{"k":"t","n":"123","x":262,"y":651,"w":28,"h":26,"s":"r"},{"k":"t","n":"122","x":190,"y":640,"w":38,"h":38,"s":"r"},{"k":"t","n":"128","x":702,"y":647,"w":28,"h":26,"s":"r"},{"k":"t","n":"129","x":770,"y":634,"w":38,"h":38,"s":"r"},{"k":"t","n":"130","x":766,"y":478,"w":57,"h":26,"s":"r"},{"k":"t","n":"140","x":412,"y":523,"w":28,"h":26,"s":"r"},{"k":"t","n":"141","x":412,"y":557,"w":28,"h":26,"s":"r"},{"k":"t","n":"142","x":412,"y":593,"w":28,"h":26,"s":"r"},{"k":"t","n":"151","x":546,"y":557,"w":28,"h":26,"s":"r"},{"k":"t","n":"150","x":547,"y":522,"w":28,"h":26,"s":"r"},{"k":"t","n":"152","x":546,"y":595,"w":28,"h":26,"s":"r"},{"k":"t","n":"113","x":620,"y":553,"w":61,"h":55,"s":"c"},{"k":"t","n":"114","x":723,"y":556,"w":57,"h":57,"s":"c"},{"k":"t","n":"26","x":998,"y":242,"w":24,"h":22,"s":"c"},{"k":"t","n":"27","x":999,"y":216,"w":25,"h":23,"s":"c"},{"k":"t","n":"49","x":873,"y":93,"w":25,"h":23,"s":"c"},{"k":"t","n":"50","x":907,"y":60,"w":25,"h":23,"s":"c"},{"k":"t","n":"51","x":946,"y":60,"w":25,"h":23,"s":"c"},{"k":"t","n":"52","x":984,"y":60,"w":25,"h":23,"s":"c"},{"k":"t","n":"53","x":1022,"y":60,"w":25,"h":23,"s":"c"},{"k":"t","n":"40","x":823,"y":156,"w":25,"h":23,"s":"c"},{"k":"t","n":"41","x":852,"y":156,"w":25,"h":23,"s":"c"},{"k":"t","n":"42","x":880,"y":156,"w":25,"h":23,"s":"c"},{"k":"t","n":"43","x":909,"y":156,"w":25,"h":23,"s":"c"},{"k":"t","n":"30","x":821,"y":218,"w":25,"h":23,"s":"c"},{"k":"t","n":"31","x":850,"y":218,"w":25,"h":23,"s":"c"},{"k":"t","n":"32","x":878,"y":218,"w":25,"h":23,"s":"c"},{"k":"t","n":"33","x":907,"y":218,"w":25,"h":23,"s":"c"},{"k":"t","n":"20","x":818,"y":275,"w":25,"h":23,"s":"c"},{"k":"t","n":"21","x":875,"y":275,"w":25,"h":23,"s":"c"},{"k":"t","n":"22","x":901,"y":276,"w":25,"h":23,"s":"c"},{"k":"t","n":"23","x":942,"y":278,"w":25,"h":23,"s":"c"},{"k":"t","n":"24","x":973,"y":279,"w":25,"h":23,"s":"c"},{"k":"t","n":"25","x":997,"y":266,"w":25,"h":23,"s":"c"},{"k":"t","n":"110","x":244,"y":549,"w":54,"h":53,"s":"c"},{"k":"t","n":"111","x":322,"y":553,"w":54,"h":53,"s":"c"},{"k":"t","n":"131","x":767,"y":410,"w":57,"h":26,"s":"r"},{"k":"t","n":"130","x":168,"y":562,"w":57,"h":26,"s":"r"},{"k":"t","n":"131","x":159,"y":494,"w":57,"h":26,"s":"r"},{"k":"t","n":"90","x":236,"y":479,"w":57,"h":26,"s":"r"},{"k":"t","n":"91","x":687,"y":472,"w":57,"h":26,"s":"r"},{"k":"t","n":"28","x":999,"y":186,"w":25,"h":23,"s":"c"},{"k":"t","n":"100","x":326,"y":431,"w":28,"h":26,"s":"r"},{"k":"t","n":"101","x":366,"y":431,"w":28,"h":26,"s":"r"},{"k":"t","n":"102","x":406,"y":431,"w":28,"h":26,"s":"r"},{"k":"t","n":"103","x":540,"y":435,"w":28,"h":26,"s":"r"},{"k":"t","n":"104","x":581,"y":435,"w":28,"h":26,"s":"r"},{"k":"t","n":"105","x":621,"y":435,"w":28,"h":26,"s":"r"}]},{"name":"22nd Floor","sub":"Dining Room & Garden","items":[{"k":"z","n":"Level 23","x":570,"y":272,"w":80,"h":41},{"k":"z","n":"Service Bar","x":560,"y":112,"w":106,"h":41},{"k":"z","n":"PDR 600","x":315,"y":3,"w":66,"h":63},{"k":"t","n":"331","x":863,"y":277,"w":37,"h":38,"s":"c"},{"k":"t","n":"352","x":1075,"y":142,"w":30,"h":72,"s":"r"},{"k":"t","n":"353","x":1070,"y":231,"w":30,"h":72,"s":"r"},{"k":"t","n":"320","x":727,"y":133,"w":59,"h":31,"s":"r"},{"k":"t","n":"331","x":854,"y":277,"w":47,"h":45,"s":"c"},{"k":"t","n":"332","x":847,"y":431,"w":37,"h":38,"s":"c"},{"k":"t","n":"322","x":730,"y":433,"w":37,"h":38,"s":"c"},{"k":"t","n":"321","x":712,"y":294,"w":37,"h":38,"s":"c"},{"k":"t","n":"310","x":435,"y":147,"w":72,"h":30,"s":"r"},{"k":"t","n":"312","x":372,"y":429,"w":107,"h":42,"s":"r"},{"k":"t","n":"311","x":481,"y":292,"w":37,"h":38,"s":"c"},{"k":"t","n":"300","x":318,"y":127,"w":28,"h":29,"s":"r"},{"k":"t","n":"301","x":320,"y":162,"w":28,"h":29,"s":"r"},{"k":"t","n":"302","x":323,"y":197,"w":28,"h":29,"s":"r"},{"k":"t","n":"303","x":325,"y":232,"w":28,"h":29,"s":"r"},{"k":"t","n":"304","x":328,"y":271,"w":28,"h":29,"s":"r"},{"k":"t","n":"305","x":330,"y":306,"w":28,"h":29,"s":"r"},{"k":"t","n":"306","x":331,"y":340,"w":28,"h":29,"s":"r"},{"k":"t","n":"307","x":334,"y":375,"w":28,"h":29,"s":"r"},{"k":"t","n":"330","x":851,"y":184,"w":49,"h":46,"s":"c"},{"k":"t","n":"340","x":951,"y":180,"w":49,"h":46,"s":"c"},{"k":"t","n":"341","x":954,"y":273,"w":49,"h":46,"s":"c"},{"k":"t","n":"342","x":975,"y":438,"w":38,"h":38,"s":"c"},{"k":"t","n":"356","x":1058,"y":441,"w":38,"h":38,"s":"c"},{"k":"t","n":"354","x":1066,"y":322,"w":30,"h":72,"s":"r"},{"k":"t","n":"350","x":978,"y":50,"w":28,"h":29,"s":"r"},{"k":"t","n":"350","x":1007,"y":50,"w":28,"h":28,"s":"r"},{"k":"t","n":"351","x":1065,"y":50,"w":28,"h":28,"s":"r"},{"k":"t","n":"351","x":1094,"y":50,"w":28,"h":28,"s":"r"},{"k":"z","n":"Plant","x":1097,"y":408,"w":29,"h":21},{"k":"t","n":"406","x":748,"y":664,"w":28,"h":29,"s":"r"},{"k":"t","n":"408","x":861,"y":664,"w":28,"h":29,"s":"r"},{"k":"t","n":"407","x":796,"y":609,"w":28,"h":29,"s":"r"},{"k":"t","n":"404","x":536,"y":616,"w":56,"h":30,"s":"r"},{"k":"t","n":"405","x":632,"y":619,"w":56,"h":30,"s":"r"},{"k":"t","n":"409","x":962,"y":630,"w":45,"h":52,"s":"r"},{"k":"t","n":"412","x":979,"y":543,"w":45,"h":26,"s":"r"},{"k":"t","n":"410","x":1036,"y":630,"w":45,"h":52,"s":"r"},{"k":"t","n":"401","x":365,"y":526,"w":38,"h":38,"s":"c"},{"k":"t","n":"400","x":445,"y":524,"w":38,"h":38,"s":"c"},{"k":"t","n":"403","x":443,"y":628,"w":38,"h":38,"s":"c"},{"k":"t","n":"402","x":365,"y":630,"w":38,"h":38,"s":"c"},{"k":"t","n":"411","x":1038,"y":546,"w":45,"h":26,"s":"r"}]}];
+function llSeats(i){var a=i.w*i.h*(i.s==='c'?.785:1); return Math.max(2,2*Math.round(a/750));}
+function rsLayoutSource(){var e=S.chats.elena, pl=e&&fpPlan(e); if(pl&&pl.floors&&pl.floors.length)return {src:'Elena\u2019s floor plan'+(pl.date?' ('+dmy(pl.date)+')':''),floors:pl.floors}; return {src:'the Ling Ling floor plan (30.10.26)',floors:LLSEED};}
+function rsApplyLayout(R,floors){
+  var old={}; R.tables.forEach(function(t){old[t.id]=t;}); var nt=[], nf=[];
+  floors.forEach(function(fl,fi){
+    var its=fl.items.filter(function(i){return i.k==='t';}), zs=fl.items.filter(function(i){return i.k==='z';}), x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;
+    its.concat(zs).forEach(function(i){x0=Math.min(x0,i.x); y0=Math.min(y0,i.y); x1=Math.max(x1,i.x+i.w); y1=Math.max(y1,i.y+i.h);});
+    var fid='f'+(fi+1); nf.push({id:fid,name:fl.name,sub:fl.sub||'',w:Math.round(x1-x0+28),h:Math.round(y1-y0+28),zones:zs.map(function(z){return {n:z.n,x:Math.round(z.x-x0+14),y:Math.round(z.y-y0+14),w:z.w,h:z.h};})});
+    var seen={}; its.forEach(function(i){var nm=String(i.n); if(seen[nm]){seen[nm]++; nm+=String.fromCharCode(64+seen[nm]);} else seen[nm]=1;
+      var o=old[nm]; delete old[nm]; var t=o||{id:nm,name:nm,seats:llSeats(i),zone:fl.name}; t.fl=fid; t.zone=fl.name; t.sh=i.s==='c'?'c':'r'; t.bw=i.w; t.bh=i.h; t.s0=llSeats(i); t.k=1; t.x=Math.round(i.x-x0+14); t.y=Math.round(i.y-y0+14); nt.push(t);});});
+  var keep={}; nt.forEach(function(t){keep[t.id]=1;}); R.list.forEach(function(r){if(r.table&&!keep[r.table]){r.table=''; r.pin=false;}});
+  R.floors=nf; R.tables=nt.sort(function(a,b){return natKey(a.name)-natKey(b.name)||String(a.name).localeCompare(String(b.name));}); rvS.fl=nf[0].id; rvS.sel=null;
+}
 function tbState(R,t,now){var cur=null,nx=null; R.list.forEach(function(r){if(r.table!==t.id)return; if(r.status==='seated')cur=r; else if(r.status==='booked'){var s0=t2m(r.time); if(s0-60<=now&&s0+rsDur(R,r.pax)>now&&(!nx||s0<t2m(nx.time)))nx=r;}}); return {cur:cur,nx:nx};}
-function tbChairPts(t,d){var n=Math.max(1,t.seats||2), pts=[], i; if(t.sh==='c'){var r=d.w/2+8, cx=t.x+d.w/2, cy=t.y+d.h/2; for(i=0;i<n;i++){var a=2*Math.PI*i/n-Math.PI/2; pts.push([cx+r*Math.cos(a),cy+r*Math.sin(a)]);}} else {var top=Math.ceil(n/2), bot=n-top; for(i=0;i<top;i++)pts.push([t.x+d.w*(i+.5)/top,t.y-8]); for(i=0;i<bot;i++)pts.push([t.x+d.w*(i+.5)/bot,t.y+d.h+8]);} return pts;}
+function tbChairPts(t,d,cr){cr=cr||5; var n=Math.max(1,t.seats||2), pts=[], i, off=cr+2.5; if(t.sh==='c'){var r=Math.max(d.w,d.h)/2+off, cx=t.x+d.w/2, cy=t.y+d.h/2; for(i=0;i<n;i++){var a=2*Math.PI*i/n-Math.PI/2; pts.push([cx+r*Math.cos(a),cy+r*Math.sin(a)]);}} else {var top=Math.ceil(n/2), bot=n-top; for(i=0;i<top;i++)pts.push([t.x+d.w*(i+.5)/top,t.y-off]); for(i=0;i<bot;i++)pts.push([t.x+d.w*(i+.5)/bot,t.y+d.h+off]);} return pts;}
 function seatFloor(box,id,c,R,again){
-  tbAuto(R); var now=nowM(), edit=!!rvS.edit, H=260; R.tables.forEach(function(t){var d=tbDim(t); if(t.y+d.h+44>H)H=t.y+d.h+44;});
+  tbAuto(R); var now=nowM(), edit=!!rvS.edit, fls=rsFloors(R), fl=fls.filter(function(f){return f.id===rvS.fl;})[0]||fls[0]; rvS.fl=fl.id;
+  var mine=R.tables.filter(function(t){return tbFl(R,t)===fl.id;}), W=Math.max(fl.w||360,360), H=Math.max(fl.h||0,260);
+  mine.forEach(function(t){var d=tbDim(t); if(t.x+d.w+W*.03>W)W=t.x+d.w+14; if(t.y+d.h+30>H)H=t.y+d.h+30;});
   var cd=el('div','card'); cd.appendChild(el('h4',null,edit?'Edit layout':'Floor'));
-  if(!R.tables.length)cd.appendChild(el('p',null,'No tables yet. Tap Edit layout, then add a square or round table.'));
+  if(fls.length>1){var tabs=el('div'); tabs.style.cssText='display:flex;gap:6px;overflow-x:auto;margin:6px 0'; fls.forEach(function(f){var ch=el('button','chip',f.name+(f.sub?' · '+f.sub:'')); ch.type='button'; if(f.id===fl.id)ch.classList.add('on'); ch.style.flex='none'; ch.addEventListener('click',function(){rvS.fl=f.id; rvS.sel=null; renderSeating(id);}); tabs.appendChild(ch);}); cd.appendChild(tabs);}
+  if(!R.tables.length){cd.appendChild(el('p',null,'No tables yet. Load the Ling Ling floor plan, or tap Edit layout and add tables by hand.')); var ls=rsLayoutSource(); cd.appendChild(mkBtn('Load '+ls.src,'',function(){rsApplyLayout(R,ls.floors); toast(R.tables.length+' tables loaded. Seats are estimated from table size, please check them.'); again();}));}
   else if(edit)cd.appendChild(el('p',null,'Drag a table to move it. Tap it to change seats, shape or size.')); else cd.appendChild(el('p',null,'Tap a table to see its bookings. Filled chairs are seated guests.'));
-  var svg=sv('svg',{viewBox:'0 0 360 '+H,width:'100%'}); svg.style.cssText='display:block;border-radius:14px;border:1px solid var(--line);background-color:var(--soft);touch-action:'+(edit?'none':'pan-y')+(edit?';background-image:radial-gradient(var(--line) 1px,transparent 1px);background-size:16px 16px':''); svg.setAttribute('role','img'); svg.setAttribute('aria-label','Table layout');
-  R.tables.forEach(function(t){
-    var d=tbDim(t), g=sv('g'), S0=tbState(R,t,now), seatedN=S0.cur?Math.min(S0.cur.pax,t.seats):0, sel=edit&&rvS.sel===t.id;
+  if(R.tables.length){var zr=el('div'); zr.style.cssText='display:flex;align-items:center;gap:8px;margin:2px 0 8px;font-size:13px'; zr.appendChild(el('span',null,'Zoom')); var zl=[1,1.6,2.4,3.4], zi=zl.indexOf(rvS.zoom); if(zi<0){zi=1; rvS.zoom=zl[1];}
+    function zb(t,lbl,fn){var b=mkBtn(t,'ghost sm',fn); b.style.cssText='flex:none;width:44px;min-width:44px;padding:0'; b.setAttribute('aria-label',lbl); return b;}
+    zr.appendChild(zb('−','Zoom out',function(){if(zi>0){rvS.zoom=zl[zi-1]; renderSeating(id);}})); var zv=el('b',null,Math.round(rvS.zoom*100)+'%'); zv.style.minWidth='44px'; zv.style.textAlign='center'; zr.appendChild(zv); zr.appendChild(zb('+','Zoom in',function(){if(zi<zl.length-1){rvS.zoom=zl[zi+1]; renderSeating(id);}})); cd.appendChild(zr);}
+  var wrap=el('div'); wrap.style.cssText='overflow:auto;border-radius:14px;border:1px solid var(--line);max-height:68vh;-webkit-overflow-scrolling:touch';
+  var svg=sv('svg',{viewBox:'0 0 '+W+' '+H}); svg.style.cssText='display:block;width:'+Math.round(rvS.zoom*100)+'%;background-color:var(--soft)'+(edit?';background-image:radial-gradient(var(--line) 1px,transparent 1px);background-size:16px 16px':''); svg.setAttribute('role','img'); svg.setAttribute('aria-label',fl.name+' table layout');
+  (fl.zones||[]).forEach(function(z){var g=sv('g'); g.appendChild(sv('rect',{x:z.x,y:z.y,width:z.w,height:z.h,rx:8,style:'fill:none;stroke:var(--muted);stroke-dasharray:5 4;stroke-width:1.2'})); var zt=sv('text',{x:z.x+z.w/2,y:z.y+z.h/2+4,'text-anchor':'middle','font-size':Math.max(9,Math.min(15,z.w/7))},z.n); zt.style.fill='var(--muted)'; g.appendChild(zt); svg.appendChild(g);});
+  mine.forEach(function(t){
+    var d=tbDim(t), g=sv('g'), S0=tbState(R,t,now), seatedN=S0.cur?Math.min(S0.cur.pax,t.seats):0, sel=edit&&rvS.sel===t.id, mn=Math.min(d.w,d.h), cr=Math.max(2.4,Math.min(5,mn*.16));
     g.style.cursor='pointer'; if(edit)g.style.touchAction='none';
-    tbChairPts(t,d).forEach(function(p,i){g.appendChild(sv('circle',{cx:p[0],cy:p[1],r:5,style:'fill:'+(i<seatedN?'var(--tick)':'var(--soft)')+';stroke:'+(i<seatedN?'var(--tick)':'var(--muted)')+';stroke-width:1.2'}));});
+    tbChairPts(t,d,cr).forEach(function(p,i){g.appendChild(sv('circle',{cx:p[0],cy:p[1],r:cr,style:'fill:'+(i<seatedN?'var(--tick)':'var(--soft)')+';stroke:'+(i<seatedN?'var(--tick)':'var(--muted)')+';stroke-width:'+(cr<4?.8:1.2)}));});
     var fill=S0.cur?'var(--tick)':(S0.nx?'var(--chip-on)':'var(--in)'), stroke=sel?'var(--accent,#0b6b5c)':(S0.cur?'var(--tick)':(S0.nx?'var(--chip-ink)':'var(--muted)')), ink=S0.cur?'#fff':'var(--ink)';
     var shp=t.sh==='c'?sv('ellipse',{cx:t.x+d.w/2,cy:t.y+d.h/2,rx:d.w/2,ry:d.h/2}):sv('rect',{x:t.x,y:t.y,width:d.w,height:d.h,rx:0});
-    shp.style.cssText='fill:'+fill+';stroke:'+stroke+';stroke-width:'+(sel?3:1.6); g.appendChild(shp);
-    var fs=Math.max(9,Math.min(13,Math.min(d.w,d.h)*.3)), cx=t.x+d.w/2, cy=t.y+d.h/2, sub=S0.cur?(fpFirst(S0.cur.name)+' '+S0.cur.pax):(S0.nx?S0.nx.time:'');
+    shp.style.cssText='fill:'+fill+';stroke:'+stroke+';stroke-width:'+(sel?3:1.4); g.appendChild(shp);
+    var fs=Math.max(7,Math.min(13,mn*.34)), cx=t.x+d.w/2, cy=t.y+d.h/2, sub=mn>=36?(S0.cur?(fpFirst(S0.cur.name)+' '+S0.cur.pax):(S0.nx?S0.nx.time:'')):'';
     var tx=sv('text',{x:cx,y:cy+(sub?-1:fs*.35),'text-anchor':'middle','font-size':fs,'font-weight':700},t.name); tx.style.fill=ink; g.appendChild(tx);
     if(sub){var t2=sv('text',{x:cx,y:cy+fs,'text-anchor':'middle','font-size':Math.max(8,fs-2)},sub); t2.style.fill=ink; g.appendChild(t2);}
     g.addEventListener('pointerdown',function(e){var ctm=svg.getScreenCTM(); if(!ctm)return; var k=1/ctm.a, sx=e.clientX, sy=e.clientY, ox=t.x, oy=t.y, moved=false;
-      function mv(ev){if(!edit)return; if(Math.abs(ev.clientX-sx)+Math.abs(ev.clientY-sy)>6)moved=true; if(moved){var dx=(ev.clientX-sx)*k, dy=(ev.clientY-sy)*k; g.setAttribute('transform','translate('+dx+','+dy+')');}}
+      function mv(ev){if(!edit)return; if(Math.abs(ev.clientX-sx)+Math.abs(ev.clientY-sy)>6)moved=true; if(moved){g.setAttribute('transform','translate('+(ev.clientX-sx)*k+','+(ev.clientY-sy)*k+')');}}
       function up(ev){document.removeEventListener('pointermove',mv); document.removeEventListener('pointerup',up);
-        if(edit&&moved){var dx=(ev.clientX-sx)*k, dy=(ev.clientY-sy)*k; t.x=Math.max(14,Math.min(346-d.w,Math.round((ox+dx)/4)*4)); t.y=Math.max(14,Math.round((oy+dy)/4)*4); rvS.sel=t.id; again();}
+        if(edit&&moved){var dx=(ev.clientX-sx)*k, dy=(ev.clientY-sy)*k; t.x=Math.max(4,Math.min(W-d.w-4,Math.round((ox+dx)/2)*2)); t.y=Math.max(4,Math.round((oy+dy)/2)*2); rvS.sel=t.id; again();}
         else if(edit){rvS.sel=(rvS.sel===t.id?null:t.id); renderSeating(id);} else seatTableSheet(c,R,t,again);}
       document.addEventListener('pointermove',mv); document.addEventListener('pointerup',up); e.preventDefault();});
     svg.appendChild(g);
   });
-  cd.appendChild(svg);
+  wrap.appendChild(svg); cd.appendChild(wrap);
   if(!edit){var lg=el('p',null,'Green: seated. Light green: booked in the next hour. White: free.'); lg.style.cssText='font-size:12px;opacity:.75;margin-top:8px'; cd.appendChild(lg);}
   box.appendChild(cd);
   if(!edit)return;
   var tbn=el('div','card'), ab=el('div','btns'); ab.style.marginTop='0';
-  function addT(sh){var nums=R.tables.map(function(t){return natKey(t.name);}), nn=String((nums.length?Math.max.apply(null,nums):0)+1); var t={id:nn,name:nn,seats:4,zone:'',sh:sh,k:1}, d=tbDim(t), p=tbFree(R,d); t.x=p.x; t.y=p.y; R.tables.push(t); rvS.sel=t.id; again();}
-  ab.appendChild(mkBtn('Add square table','',function(){addT('r');})); ab.appendChild(mkBtn('Add round table','ghost',function(){addT('c');})); tbn.appendChild(ab); box.appendChild(tbn);
-  var t=tableBy(R,rvS.sel); if(!t)return;
+  function addT(sh){var nums=R.tables.map(function(t){return natKey(t.name);}), nn=String((nums.length?Math.max.apply(null,nums):0)+1); var t={id:nn,name:nn,seats:4,zone:fl.name,sh:sh,k:1,fl:fl.id==='' ?undefined:fl.id}, d=tbDim(t), p=tbFree(R,d,fl.id,W); t.x=p.x; t.y=p.y; R.tables.push(t); rvS.sel=t.id; again();}
+  ab.appendChild(mkBtn('Add square table','',function(){addT('r');})); ab.appendChild(mkBtn('Add round table','ghost',function(){addT('c');}));
+  var ls2=rsLayoutSource(); ab.appendChild(mkBtn('Reload layout','ghost',function(){mmAsk('Reload the table layout from '+ls2.src+'?\nTables are matched by number: seats, size and bookings you set stay. Tables that are not in the plan are removed.','Reload','Cancel',function(){rsApplyLayout(R,ls2.floors); toast('Layout reloaded.'); again();});}));
+  tbn.appendChild(ab); box.appendChild(tbn);
+  var t=tableBy(R,rvS.sel); if(!t||tbFl(R,t)!==fl.id)return;
   var pc=el('div','card'); pc.appendChild(el('h4',null,'Table '+t.name));
   var nr=el('div','kv'); nr.appendChild(el('span',null,'Name')); var ni=el('input'); ni.value=t.name; ni.setAttribute('aria-label','Table name'); ni.style.maxWidth='120px';
   ni.addEventListener('change',function(){var v=ni.value.trim(); if(!v||(v!==t.id&&tableBy(R,v))){ni.value=t.name; toast(v?'That name is used.':'Give the table a name.'); return;} R.list.forEach(function(r){if(r.table===t.id)r.table=v;}); t.id=v; t.name=v; rvS.sel=v; again();}); nr.appendChild(ni); pc.appendChild(nr);
   var sr=el('div','kv'); sr.appendChild(el('span',null,'Shape')); var sb=el('div'); sb.style.cssText='display:flex;margin:0;gap:8px;flex:none';
-  sb.appendChild(mkBtn('Square',t.sh==='r'?'':'ghost sm',function(){var d0=tbDim(t), cx=t.x+d0.w/2, cy=t.y+d0.h/2; t.sh='r'; var d1=tbDim(t); t.x=Math.max(14,Math.round(cx-d1.w/2)); t.y=Math.max(14,Math.round(cy-d1.h/2)); again();}));
-  sb.appendChild(mkBtn('Round',t.sh==='c'?'':'ghost sm',function(){var d0=tbDim(t), cx=t.x+d0.w/2, cy=t.y+d0.h/2; t.sh='c'; var d1=tbDim(t); t.x=Math.max(14,Math.round(cx-d1.w/2)); t.y=Math.max(14,Math.round(cy-d1.h/2)); again();})); sr.appendChild(sb); pc.appendChild(sr);
+  sb.appendChild(mkBtn('Square',t.sh==='r'?'':'ghost sm',function(){var d0=tbDim(t), cx=t.x+d0.w/2, cy=t.y+d0.h/2; t.sh='r'; var d1=tbDim(t); t.x=Math.max(4,Math.min(W-d1.w-4,Math.round(cx-d1.w/2))); t.y=Math.max(4,Math.round(cy-d1.h/2)); again();}));
+  sb.appendChild(mkBtn('Round',t.sh==='c'?'':'ghost sm',function(){var d0=tbDim(t), cx=t.x+d0.w/2, cy=t.y+d0.h/2; t.sh='c'; var d1=tbDim(t); t.x=Math.max(4,Math.min(W-d1.w-4,Math.round(cx-d1.w/2))); t.y=Math.max(4,Math.round(cy-d1.h/2)); again();})); sr.appendChild(sb); pc.appendChild(sr);
   function stp(label,val,minus,plus){var r=el('div','kv'); r.appendChild(el('span',null,label)); var b=el('div'); b.style.cssText='display:flex;margin:0;align-items:center;gap:8px;flex:none'; var mb=mkBtn('−','ghost sm',minus), pb=mkBtn('+','ghost sm',plus); [mb,pb].forEach(function(x){x.style.cssText='flex:none;width:46px;min-width:46px;padding:0'; x.setAttribute('aria-label',x===mb?'Fewer '+label:'More '+label);}); b.appendChild(mb); var v=el('b',null,val); v.style.minWidth='46px'; v.style.textAlign='center'; b.appendChild(v); b.appendChild(pb); r.appendChild(b); pc.appendChild(r);}
-  function resize(fn){var d0=tbDim(t), cx=t.x+d0.w/2, cy=t.y+d0.h/2; fn(); var d1=tbDim(t); t.x=Math.max(14,Math.round(cx-d1.w/2)); t.y=Math.max(14,Math.round(cy-d1.h/2)); again();}
+  function resize(fn){var d0=tbDim(t), cx=t.x+d0.w/2, cy=t.y+d0.h/2; fn(); var d1=tbDim(t); t.x=Math.max(4,Math.min(W-d1.w-4,Math.round(cx-d1.w/2))); t.y=Math.max(4,Math.round(cy-d1.h/2)); again();}
   stp('Seats',String(t.seats),function(){if(t.seats>1)resize(function(){t.seats--;});},function(){if(t.seats<16)resize(function(){t.seats++;});});
   stp('Size',Math.round((t.k||1)*100)+'%',function(){resize(function(){t.k=Math.max(.7,Math.round(((t.k||1)-.1)*10)/10);});},function(){resize(function(){t.k=Math.min(1.8,Math.round(((t.k||1)+.1)*10)/10);});});
   var ba=el('div','btns');
-  ba.appendChild(mkBtn('Duplicate','ghost sm',function(){var nums=R.tables.map(function(x){return natKey(x.name);}), nn=String(Math.max.apply(null,nums)+1), d=tbDim(t), p=tbFree(R,d); var n2={id:nn,name:nn,seats:t.seats,zone:t.zone||'',sh:t.sh,k:t.k||1,x:p.x,y:p.y}; R.tables.push(n2); rvS.sel=nn; again();}));
+  ba.appendChild(mkBtn('Duplicate','ghost sm',function(){var nums=R.tables.map(function(x){return natKey(x.name);}), nn=String(Math.max.apply(null,nums)+1), d=tbDim(t), p=tbFree(R,d,fl.id,W); var n2={id:nn,name:nn,seats:t.seats,zone:t.zone||'',sh:t.sh,k:t.k||1,fl:t.fl,bw:t.bw,bh:t.bh,s0:t.s0,x:p.x,y:p.y}; R.tables.push(n2); rvS.sel=nn; again();}));
   var dl=mkBtn('Delete','ghost sm',function(){if(!dl._a){dl._a=true; dl.textContent='Tap again to delete'; setTimeout(function(){dl._a=false; dl.textContent='Delete';},3000); return;} R.list.forEach(function(r){if(r.table===t.id){r.table=''; r.pin=false;}}); R.tables=R.tables.filter(function(x){return x!==t;}); rvS.sel=null; again();}); ba.appendChild(dl); pc.appendChild(ba);
   box.appendChild(pc);
 }
@@ -9308,7 +9334,7 @@ function backGo(def){
   if(closeTopOverlay())return;
   var cur=(location.hash||'').replace(/^#/,''), par=parentHash(cur), up={}, x=par, n=0; while(x!==null&&n++<8){up[x]=1; x=parentHash(x);} 
   var pv=HS.length>1?(HS[HS.length-2]||'').replace(/^#/,''):null;
-  location.hash=(pv!==null&&pv!==cur&&up[pv])?pv:(par!==null?par:(def||''));
+  location.hash=(pv!==null&&pv!==cur&&(up[pv]||(/^[a-z]+-info$/.test(pv)&&/^[a-z]+-(guests|preshift|bookings|seating)/.test(cur))))?pv:(par!==null?par:(def||''));
 }
 $('backBtn').addEventListener('click',function(){backGo('');});
 $('infoBack').addEventListener('click',function(){backGo(infoId||'');});
