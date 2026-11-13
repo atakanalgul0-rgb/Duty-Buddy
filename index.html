@@ -971,7 +971,7 @@ function serial(){
     var o={v:2,chats:{}};
     Object.keys(S.chats).forEach(function(id){
       var c=S.chats[id];
-      o.chats[id]={rev:c.rev||0,noMenu:c.noMenu,recipes:c.recipes||[],log:c.log||[],rsv:c.rsv||null,staff:c.staff||[],events:c.events||[],guests:c.guests||[],sales:c.sales||[],costs:c.costs||[],chkCfg:c.chkCfg||null,chkDay:c.chkDay||{},todo:c.todo||[],rem:c.rem||[],evmenus:c.evmenus||[],cx:c.cx||[],fp:c.fp||{days:{},cur:''},cellar:c.cellar||null,stk:c.stk||null,rota:c.rota||null,puPend:c.puPend||null,evDraft:c.evDraft||null,menuSnap:c.menuSnap||null,cmenu:c.cmenu||null,asked:c.asked||{},starterV:c.starterV||0,glassFix:c.glassFix||0,inv:c.inv,undo:c.undo,unread:c.unread,pour:c.pour,low:c.low,ml:c.ml,pool:c.pool,alias:c.alias,micros:c.micros||{},mm:c.mm||null,pendingText:c.pendingText,base:c.base||null,sheets:c.sheets||[],sheetUse:c.sheetUse||null,countPend:c.countPend||null,quiz:c.quiz,quizOff:c.quizOff,instr:c.instr,kb:c.kb,costList:c.costList||null,costRep:c.costRep||null,costHist:c.costHist||[],costBook:c.costBook||null,extCost:c.extCost||null,pick:c.pick||null,chosen:c.chosen||null,costPend:c.costPend||null,filePend:c.filePend||null,extra:c.extra||[],feedback:c.feedback,notes:c.notes,msgs:c.msgs.slice(-300).map(function(m){
+      o.chats[id]={rev:c.rev||0,noMenu:c.noMenu,recipes:c.recipes||[],log:c.log||[],rsv:c.rsv||null,staff:c.staff||[],events:c.events||[],guests:c.guests||[],sales:c.sales||[],costs:c.costs||[],chkCfg:c.chkCfg||null,chkDay:c.chkDay||{},todo:c.todo||[],rem:c.rem||[],evmenus:c.evmenus||[],cx:c.cx||[],fp:c.fp||{days:{},cur:''},cellar:c.cellar||null,stk:c.stk||null,rota:c.rota||null,laundry:c.laundry||null,puPend:c.puPend||null,evDraft:c.evDraft||null,menuSnap:c.menuSnap||null,cmenu:c.cmenu||null,asked:c.asked||{},starterV:c.starterV||0,glassFix:c.glassFix||0,inv:c.inv,undo:c.undo,unread:c.unread,pour:c.pour,low:c.low,ml:c.ml,pool:c.pool,alias:c.alias,micros:c.micros||{},mm:c.mm||null,pendingText:c.pendingText,base:c.base||null,sheets:c.sheets||[],sheetUse:c.sheetUse||null,countPend:c.countPend||null,quiz:c.quiz,quizOff:c.quizOff,instr:c.instr,kb:c.kb,costList:c.costList||null,costRep:c.costRep||null,costHist:c.costHist||[],costBook:c.costBook||null,extCost:c.extCost||null,pick:c.pick||null,chosen:c.chosen||null,costPend:c.costPend||null,filePend:c.filePend||null,extra:c.extra||[],feedback:c.feedback,notes:c.notes,msgs:c.msgs.slice(-300).map(function(m){
         var x={from:m.from,text:m.text||'',ts:m.ts}; if(m.who)x.who=m.who; if(m.ai)x.ai=1; if(m.dl)x.dl=m.dl; if(m.sug)x.sug=m.sug; if(m.wrep)x.wrep=m.wrep; if(m.prep)x.prep=m.prep; if(m.crep)x.crep=m.crep; if(m.rows)x.rows=m.rows; if(m.pg)x.pg=m.pg; if(m.react)x.react=m.react; if(m.fwd)x.fwd=m.fwd; if(m.edit)x.edit=m.edit; if(m.chg)x.chg=m.chg; if(m.opts)x.opts=m.opts; if(m.more)x.more=1; if(m.chosen)x.chosen=m.chosen; if(m.rc)x.rc=m.rc; if(m.plan)x.plan=m.plan; if(m.cf)x.cf=m.cf; if(m.seat)x.seat=m.seat; if(m.sales)x.sales=m.sales; if(m.rem)x.rem=m.rem; if(m.mc)x.mc=m.mc; if(m.img||m.photo)x.photo=true; if(m.pid)x.pid=m.pid; return x;})};
     });
     return o;
@@ -5588,7 +5588,7 @@ try{setTimeout(function(){snapNow('Opened the app');},6000); document.addEventLi
   }
   window.addEventListener('resize',apply); window.addEventListener('orientationchange',function(){setTimeout(apply,60);}); apply();
 })();
-var APPVER='Sidekick 38';
+var APPVER='Sidekick 39';
 var KEYNAME='dutybuddy.apikey', inClaude=false;
 function storedKey(){try{return localStorage.getItem(KEYNAME)||'';}catch(e){return '';}}
 function keyOn(){try{return localStorage.getItem('dutybuddy.keyoff')!=='1';}catch(e){return true;}}
@@ -8997,7 +8997,43 @@ function handleMod(a,c,text){
 function modBlock(id,text){
   var c=S.chats[id]; if(byId[id]&&byId[id].seating)return '\n\n'+seatBlock(c); if(id==='karim')return '\n\nHR DATA\n'+hrBlock(c,text); if(id==='zara')return '\n\nEVENTS DATA\n'+evBlock(c); if(id==='leo')return '\n\nGUEST DATA\n'+guestBlock(c,text); if(id==='victor')return '\n\n'+revBlock(c); if(id==='chloe')return '\n\n'+chkBlock(c); return '';
 }
-var MODBTN={karim:[['Staff','staff']],zara:[['Events','events'],['Event menu','evmenu']],marco:[['Chef menu','chefmenu']],omar:[['Price lists','pricelists']],james:[['Bar costs','barcosts']],sofia:[['Wine cellar','cellar'],['Wine costs','winecosts']],elena:[['Rota','rota'],['Floor plan','floorplan'],['Floor costs','floorcosts']],leo:[['Guests','guests']],victor:[['Revenue','revenue']],chloe:[['Checklists','checklist']]};
+/* ---------- LAUNDRY (Elena) ---------- */
+var LAUNDRY0=[
+ ['Uniforms',['Waiter jacket','Waiter shirt','Waistcoat','Trousers','Skirt','Waist apron','Bib apron','Sommelier apron','Tie / bow tie','Scarf','Host uniform','Bar shirt','Chef jacket','Chef trousers','Chef apron','Chef hat']],
+ ['Table linen',['Tablecloth, round','Tablecloth, square','Tablecloth, rectangular','Overlay / top cloth','Table runner','Table skirting','Fabric placemat','Underlay (table felt)','Chair cover','Cushion cover','Banquette cover']],
+ ['Napkins',['Guest napkin','Cocktail napkin','Bread basket cloth','Bottle napkin','Hot towel (refresher)','Banquet napkin']],
+ ['Service cloths',['Polishing cloth (glass)','Service cloth (waiter’s towel)','Side towel','Bar mop','Bar towel','Glass drying cloth','Cutlery polishing cloth','Microfibre cloth','Tea towel','Dish towel']],
+ ['Kitchen',['Chef towel','Kitchen cloth','Oven glove','Pot holder','Cleaning cloth','Mop head']],
+ ['Other',['Curtain','Entrance mat','Floor mat','Staff towel','Dust cover']]
+];
+function lndStore(c){if(!c.laundry||!Array.isArray(c.laundry.groups)){c.laundry={groups:LAUNDRY0.map(function(g){return {id:uid(),name:g[0],items:g[1].map(function(n){return {id:uid(),name:n,qty:0};})};})};} return c.laundry;}
+var lndEdit=false;
+MODS.laundry={who:'elena',title:'Laundry',render:function(id,sub,box){
+  var c=S.chats[id], L=lndStore(c), tot=0, nIt=0; L.groups.forEach(function(g){g.items.forEach(function(i){tot+=i.qty||0; nIt++;});});
+  var hd=el('div','card'); hd.appendChild(el('h3',null,'Laundry')); hd.appendChild(el('p',null,'Uniforms, table linen, napkins and cloths. '+nIt+' items, '+num(tot)+' pieces counted. This starting list is only an example. Tap Edit list to change it.'));
+  var hb=el('div','btns'); hb.appendChild(mkBtn(lndEdit?'Done':'Edit list',lndEdit?'':'ghost sm',function(){lndEdit=!lndEdit; renderMod();}));
+  if(lndEdit)hb.appendChild(mkBtn('Add group','ghost sm',function(){L.groups.push({id:uid(),name:'New group',items:[]}); save(); renderMod();}));
+  hd.appendChild(hb); box.appendChild(hd);
+  L.groups.forEach(function(g){
+    var cd=el('div','card'), n=0; g.items.forEach(function(i){n+=i.qty||0;});
+    if(lndEdit){var gi=el('input'); gi.value=g.name; gi.setAttribute('aria-label','Group name'); gi.style.cssText='width:100%;box-sizing:border-box;height:40px;border:1px solid var(--line);border-radius:10px;padding:0 12px;font-size:16px;font-weight:700;background:var(--surface);color:var(--ink);margin-bottom:6px'; gi.addEventListener('change',function(){g.name=gi.value.trim()||g.name; save();}); cd.appendChild(gi);}
+    else cd.appendChild(el('h4',null,g.name+' · '+num(n)));
+    g.items.forEach(function(it){
+      var row=el('div','ri cgr'), left=el('div','pl'), right=el('span','r cgq');
+      if(lndEdit){var ni=el('input'); ni.value=it.name; ni.setAttribute('aria-label','Item name'); ni.style.cssText='width:100%;box-sizing:border-box;height:38px;border:1px solid var(--line);border-radius:10px;padding:0 10px;font-size:15px;background:var(--surface);color:var(--ink)'; ni.addEventListener('change',function(){it.name=ni.value.trim()||it.name; save();}); left.appendChild(ni);
+        var rm=mkBtn('✕','ghost sm',function(){if(!rm._a){rm._a=true; rm.textContent='Delete?'; setTimeout(function(){rm._a=false; rm.textContent='✕';},2500); return;} g.items=g.items.filter(function(x){return x!==it;}); save(); renderMod();}); rm.setAttribute('aria-label','Remove '+it.name); right.appendChild(rm);}
+      else{left.appendChild(el('div','nm',it.name));
+        var mn=mkBtn('−','ghost sm',function(){it.qty=Math.max(0,(it.qty||0)-1); save(); renderMod();}), pl=mkBtn('+','ghost sm',function(){it.qty=(it.qty||0)+1; save(); renderMod();}), qv=el('span',null,num(it.qty||0)); qv.style.cssText='min-width:34px;text-align:center;font-weight:700'; mn.setAttribute('aria-label','Less '+it.name); pl.setAttribute('aria-label','More '+it.name); right.appendChild(mn); right.appendChild(qv); right.appendChild(pl);}
+      row.appendChild(left); row.appendChild(right); cd.appendChild(row);
+    });
+    if(lndEdit){var ar=el('div'); ar.style.cssText='display:flex;gap:8px;margin-top:8px'; var ai=el('input'); ai.placeholder='New item'; ai.setAttribute('aria-label','New item name'); ai.style.cssText='flex:1;min-width:0;box-sizing:border-box;height:40px;border:1px solid var(--line);border-radius:10px;padding:0 12px;font-size:15px;background:var(--surface);color:var(--ink)'; ar.appendChild(ai);
+      var ab=mkBtn('Add','ghost sm',function(){var v=ai.value.trim(); if(!v){toast('Write the item name first.'); return;} g.items.push({id:uid(),name:v,qty:0}); save(); renderMod();}); ar.appendChild(ab); cd.appendChild(ar);
+      var dg=mkBtn('Delete group','ghost sm',function(){if(!dg._a){dg._a=true; dg.textContent='Tap again to delete'; setTimeout(function(){dg._a=false; dg.textContent='Delete group';},3000); return;} L.groups=L.groups.filter(function(x){return x!==g;}); save(); renderMod();}); dg.style.marginTop='8px'; cd.appendChild(dg);}
+    box.appendChild(cd);
+  });
+}};
+
+var MODBTN={karim:[['Staff','staff']],zara:[['Events','events'],['Event menu','evmenu']],marco:[['Chef menu','chefmenu']],omar:[['Price lists','pricelists']],james:[['Bar costs','barcosts']],sofia:[['Wine cellar','cellar'],['Wine costs','winecosts']],elena:[['Rota','rota'],['Floor plan','floorplan'],['Floor costs','floorcosts'],['Laundry','laundry']],leo:[['Guests','guests']],victor:[['Revenue','revenue']],chloe:[['Checklists','checklist']]};
 function modTimers(){try{hrCheck();}catch(e){} try{evCheck();}catch(e){} try{chkCheck();}catch(e){}}
 
 /* ---------- MATCHING (Micros button name <-> stock name <-> menu name) ---------- */
@@ -9538,7 +9574,7 @@ function renderMatchOne(id,key,box){
 function route(){
   if(MMDIRTY&&MMDH&&location.hash!==MMDH){var tgt=location.hash; location.hash=MMDH; mmAsk('You have changes that are not saved. Leave anyway?','Leave','Stay',function(){MMIMP=(/-match-import$/.test(MMDH)?null:MMIMP); mmDirty(false); location.hash=tgt;}); return;}
   closeAllOverlays();
-  var h=location.hash.replace('#',''), m=h.match(/^([a-z]+)-info$/), gm=h.match(/^([a-z]+)-glass$/), wm=h.match(/^([a-z]+)-wines$/), om=h.match(/^([a-z]+)-off$/), sm=h.match(/^([a-z]+)-stock$/), lm=h.match(/^([a-z]+)-lib$/), rm2=h.match(/^([a-z]+)-recipes$/), sg2=h.match(/^([a-z]+)-seating$/), rp2=h.match(/^([a-z]+)-reports$/), wr2=h.match(/^([a-z]+)-wrep$/), pr2=h.match(/^([a-z]+)-prep$/), cm2=h.match(/^([a-z]+)-cmpr$/), cr2=h.match(/^([a-z]+)-crep$/), md=h.match(/^([a-z]+)-(staff|events|evmenu|chefmenu|pricelists|barcosts|winecosts|floorcosts|floorplan|rota|cellar|guests|revenue|checklist|match|todo|preshift)(?:-([a-z0-9]+))?$/);
+  var h=location.hash.replace('#',''), m=h.match(/^([a-z]+)-info$/), gm=h.match(/^([a-z]+)-glass$/), wm=h.match(/^([a-z]+)-wines$/), om=h.match(/^([a-z]+)-off$/), sm=h.match(/^([a-z]+)-stock$/), lm=h.match(/^([a-z]+)-lib$/), rm2=h.match(/^([a-z]+)-recipes$/), sg2=h.match(/^([a-z]+)-seating$/), rp2=h.match(/^([a-z]+)-reports$/), wr2=h.match(/^([a-z]+)-wrep$/), pr2=h.match(/^([a-z]+)-prep$/), cm2=h.match(/^([a-z]+)-cmpr$/), cr2=h.match(/^([a-z]+)-crep$/), md=h.match(/^([a-z]+)-(staff|events|evmenu|chefmenu|pricelists|barcosts|winecosts|floorcosts|floorplan|rota|laundry|cellar|guests|revenue|checklist|match|todo|preshift)(?:-([a-z0-9]+))?$/);
   var bk2=h.match(/^([a-z]+)-bookings$/); var dp=wm||gm||om||sm;
   if(draft&&!(dp&&dp[1]===draft.id)){var had=draft.dirty; discardDraft(true); if(had)toast('Unsaved changes were discarded.');}
   if(md&&byId[md[1]])openMod(md[1],md[2],md[3]||null);
@@ -10564,7 +10600,7 @@ function cxMod(who,title,list){
   }};
 }
 cxMod('james','Bar costs','Bar'); cxMod('sofia','Wine costs','Wine'); cxMod('elena','Floor costs','Floor');
-TILEICON.rota='<path d="M4 5h16v15H4zM4 10h16M9 3v4M15 3v4M8 14h2M12 14h2M8 17h2"/>'; TILEICON.preshift=TILEICON.checklist; TILEICON.floorplan='<path d="M3 5l6-2 6 2 6-2v16l-6 2-6-2-6 2V5zM9 3v16M15 5v16"/>'; TILEICON.pricelists=TILEICON.tag; TILEICON.barcosts=TILEICON.glass; TILEICON.winecosts=TILEICON.wine; TILEICON.floorcosts=TILEICON.seat;
+TILEICON.laundry='<path d="M8 4l-5 3 2 4 3-1v10h8V10l3 1 2-4-5-3a4 4 0 0 1-8 0z"/>'; TILEICON.rota='<path d="M4 5h16v15H4zM4 10h16M9 3v4M15 3v4M8 14h2M12 14h2M8 17h2"/>'; TILEICON.preshift=TILEICON.checklist; TILEICON.floorplan='<path d="M3 5l6-2 6 2 6-2v16l-6 2-6-2-6 2V5zM9 3v16M15 5v16"/>'; TILEICON.pricelists=TILEICON.tag; TILEICON.barcosts=TILEICON.glass; TILEICON.winecosts=TILEICON.wine; TILEICON.floorcosts=TILEICON.seat;
 /* ---- dish ingredients in the chef menu ---- */
 var CMF='all';
 function cmFilt(i){return CMF==='all'||(CMF==='u'&&i.cd==='u')||(CMF==='d'&&i.cd==='d')||(CMF==='n'&&(i.cd==='n'||i.cd==='new'));}
