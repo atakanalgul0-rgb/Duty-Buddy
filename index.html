@@ -5549,7 +5549,7 @@ try{setTimeout(function(){snapNow('Opened the app');},6000); document.addEventLi
   }
   window.addEventListener('resize',apply); window.addEventListener('orientationchange',function(){setTimeout(apply,60);}); apply();
 })();
-var APPVER='Sidekick 28';
+var APPVER='Sidekick 29';
 var KEYNAME='dutybuddy.apikey', inClaude=false;
 function storedKey(){try{return localStorage.getItem(KEYNAME)||'';}catch(e){return '';}}
 function keyOn(){try{return localStorage.getItem('dutybuddy.keyoff')!=='1';}catch(e){return true;}}
@@ -7723,13 +7723,13 @@ function rsvCheck(){
   if(changed){save(); if(cur&&byId[cur]&&byId[cur].seating)refreshChat(cur); renderList();}
   if(seatId&&!$('seatingView').hidden&&!seatBusy)renderSeating(seatId);
 }
-var seatId=null, seatBusy=false, rvS={panel:'',open:null,pg:'floor',edit:false,sel:null,fl:'',zoom:1.6};
+var seatId=null, seatBusy=false, rvS={panel:'',open:null,pg:'floor',edit:false,sel:null,fl:'',zoom:1.6,pf:null,pfMode:'new'};
 function openSeating(id,pg){if(!byId[id].seating){openInfo(id); return;} seatId=id; if((pg||'floor')!==rvS.pg){rvS.panel=''; rvS.edit=false;} rvS.pg=pg||'floor'; setView('seating'); renderSeating(id);}
 function renderSeating(id){
   var a=byId[id], c=S.chats[id], box=$('seatingPg'), keep=box.scrollTop, R=rsPlan(c), now=nowM(); box.textContent='';
   function again(){save(); renderSeating(id);}
   var bk=R.list.filter(function(r){return r.status==='booked';}), st=R.list.filter(function(r){return r.status==='seated';});
-  var book=rvS.pg==='book', allow=book?{add:1,paste:1,set:1}:{tables:1}; if(rvS.panel&&!allow[rvS.panel])rvS.panel='';
+  var book=rvS.pg==='book', allow=book?{add:1,paste:1,set:1}:{tables:1,plan:1}; if(rvS.panel&&!allow[rvS.panel])rvS.panel='';
   var hd=el('div','card'); hd.appendChild(el('h3',null,book?'Reservations':'Seating plan'));
   hd.appendChild(el('p',null,(R.date!==today()?'List from '+dmy(R.date)+'. ':'')+R.list.length+' bookings · '+R.list.reduce(function(s,r){return s+r.pax;},0)+' guests · '+st.length+' seated now · '+rsFreeAt(R,now).length+' of '+R.tables.length+' tables free.'+(book?' Meal duration: '+R.durs.join(' / ')+' min for 2 / 4 / 6 / 7+ guests, plus '+R.buf+' min to reset a table.':'')));
   var tb=el('div','btns');
@@ -7773,6 +7773,7 @@ function renderSeating(id){
         seatBusy=false;
       });
     }
+    if(rvS.panel==='plan'){planPanel(pc,c,R,id,again);}
     if(rvS.panel==='tables'){
       pc.appendChild(el('h4',null,'Your tables'));
       pc.appendChild(el('p',null,'Ranges and seats, for example “1-8: 2, 9-14: 4, 15-16: 6”, or one table per line like “T1, 2”. '+R.tables.length+' tables now.'));
@@ -7894,7 +7895,7 @@ function seatFloor(box,id,c,R,again){
   var cd=el('div','card'); cd.appendChild(el('h4',null,edit?'Edit layout':'Floor'));
   if(fls.length>1){var tabs=el('div'); tabs.style.cssText='display:flex;gap:6px;overflow-x:auto;margin:6px 0'; fls.forEach(function(f){var ch=el('button','chip',f.name+(f.sub?' · '+f.sub:'')); ch.type='button'; if(f.id===fl.id)ch.classList.add('on'); ch.style.flex='none'; ch.addEventListener('click',function(){rvS.fl=f.id; rvS.sel=null; renderSeating(id);}); tabs.appendChild(ch);}); cd.appendChild(tabs);}
   if(!R.tables.length){cd.appendChild(el('p',null,'No tables yet. Load the Ling Ling floor plan, or tap Edit layout and add tables by hand.')); var ls=rsLayoutSource(); cd.appendChild(mkBtn('Load '+ls.src,'',function(){rsApplyLayout(R,ls.floors); toast(R.tables.length+' tables loaded. Seats are estimated from table size, please check them.'); again();}));}
-  else if(edit)cd.appendChild(el('p',null,'Drag a table to move it. Tap it to change seats, shape or size.')); else cd.appendChild(el('p',null,'Tap a table to see its bookings. Filled chairs are seated guests.'));
+  else if(edit)cd.appendChild(el('p',null,'Drag a table to move it. Tap it to change seats, shape or size.'+(mine.some(function(t){return t.chk;})?' Orange outline: please check that table (number, place or seats).':''))); else cd.appendChild(el('p',null,'Tap a table to see its bookings. Filled chairs are seated guests.'));
   if(R.tables.length){var zr=el('div'); zr.style.cssText='display:flex;align-items:center;gap:8px;margin:2px 0 8px;font-size:13px'; zr.appendChild(el('span',null,'Zoom')); var zl=[1,1.6,2.4,3.4], zi=zl.indexOf(rvS.zoom); if(zi<0){zi=1; rvS.zoom=zl[1];}
     function zb(t,lbl,fn){var b=mkBtn(t,'ghost sm',fn); b.style.cssText='flex:none;width:44px;min-width:44px;padding:0'; b.setAttribute('aria-label',lbl); return b;}
     zr.appendChild(zb('−','Zoom out',function(){if(zi>0){rvS.zoom=zl[zi-1]; renderSeating(id);}})); var zv=el('b',null,Math.round(rvS.zoom*100)+'%'); zv.style.minWidth='44px'; zv.style.textAlign='center'; zr.appendChild(zv); zr.appendChild(zb('+','Zoom in',function(){if(zi<zl.length-1){rvS.zoom=zl[zi+1]; renderSeating(id);}})); cd.appendChild(zr);}
@@ -7914,17 +7915,17 @@ function seatFloor(box,id,c,R,again){
     g.style.cursor='pointer'; if(edit)g.style.touchAction='none';
     var rg=sv('g'); if(t.r)rg.setAttribute('transform','rotate('+t.r+' '+(t.x+d.w/2)+' '+(t.y+d.h/2)+')'); g.appendChild(rg);
     tbChairPts(t,d,cr).forEach(function(p,i){rg.appendChild(sv('circle',{cx:p[0],cy:p[1],r:cr,style:'fill:'+(i<seatedN?'var(--tick)':'var(--soft)')+';stroke:'+(i<seatedN?'var(--tick)':'var(--muted)')+';stroke-width:'+(cr<4?.8:1.2)}));});
-    var fill=S0.cur?'var(--tick)':(S0.nx?'var(--chip-on)':'var(--in)'), stroke=sel?'var(--accent,#0b6b5c)':(S0.cur?'var(--tick)':(S0.nx?'var(--chip-ink)':'var(--muted)')), ink=S0.cur?'#fff':'var(--ink)';
+    var fill=S0.cur?'var(--tick)':(S0.nx?'var(--chip-on)':'var(--in)'), stroke=sel?'var(--accent,#0b6b5c)':(t.chk&&edit?'#e07a1a':(S0.cur?'var(--tick)':(S0.nx?'var(--chip-ink)':'var(--muted)'))), ink=S0.cur?'#fff':'var(--ink)';
     var shp=t.sh==='c'?sv('ellipse',{cx:t.x+d.w/2,cy:t.y+d.h/2,rx:d.w/2,ry:d.h/2}):sv('rect',{x:t.x,y:t.y,width:d.w,height:d.h,rx:0});
-    shp.style.cssText='fill:'+fill+';stroke:'+stroke+';stroke-width:'+(sel?3:1.4); rg.appendChild(shp);
+    shp.style.cssText='fill:'+fill+';stroke:'+stroke+';stroke-width:'+(sel?3:(t.chk&&edit?2.6:1.4)); rg.appendChild(shp);
     var fs=Math.max(7,Math.min(13,mn*.34)), cx=t.x+d.w/2, cy=t.y+d.h/2, sub=mn>=36?(S0.cur?(fpFirst(S0.cur.name)+' '+S0.cur.pax):(S0.nx?S0.nx.time:'')):'';
     var tx=sv('text',{x:cx,y:cy+(sub?-1:fs*.35),'text-anchor':'middle','font-size':fs,'font-weight':700},t.name); tx.style.fill=ink; g.appendChild(tx);
     if(sub){var t2=sv('text',{x:cx,y:cy+fs,'text-anchor':'middle','font-size':Math.max(8,fs-2)},sub); t2.style.fill=ink; g.appendChild(t2);}
     g.addEventListener('pointerdown',function(e){var ctm=svg.getScreenCTM(); if(!ctm)return; var k=1/ctm.a, sx=e.clientX, sy=e.clientY, ox=t.x, oy=t.y, moved=false;
       function mv(ev){if(!edit)return; if(Math.abs(ev.clientX-sx)+Math.abs(ev.clientY-sy)>6)moved=true; if(moved){g.setAttribute('transform','translate('+(ev.clientX-sx)*k+','+(ev.clientY-sy)*k+')');}}
       function up(ev){document.removeEventListener('pointermove',mv); document.removeEventListener('pointerup',up);
-        if(edit&&moved){var dx=(ev.clientX-sx)*k, dy=(ev.clientY-sy)*k; t.x=Math.max(4,Math.min(W-d.w-4,Math.round((ox+dx)/2)*2)); t.y=Math.max(4,Math.round((oy+dy)/2)*2); rvS.sel=t.id; again();}
-        else if(edit){rvS.sel=(rvS.sel===t.id?null:t.id); renderSeating(id);} else seatTableSheet(c,R,t,again);}
+        if(edit&&moved){var dx=(ev.clientX-sx)*k, dy=(ev.clientY-sy)*k; t.x=Math.max(4,Math.min(W-d.w-4,Math.round((ox+dx)/2)*2)); t.y=Math.max(4,Math.round((oy+dy)/2)*2); rvS.sel=t.id; t.chk=false; again();}
+        else if(edit){rvS.sel=(rvS.sel===t.id?null:t.id); t.chk=false; renderSeating(id);} else seatTableSheet(c,R,t,again);}
       document.addEventListener('pointermove',mv); document.addEventListener('pointerup',up); e.preventDefault();});
     svg.appendChild(g);
   });
@@ -7935,6 +7936,7 @@ function seatFloor(box,id,c,R,again){
   var tbn=el('div','card'), ab=el('div','btns'); ab.style.marginTop='0';
   function addT(sh){var nums=R.tables.map(function(t){return natKey(t.name);}), nn=String((nums.length?Math.max.apply(null,nums):0)+1); var t={id:nn,name:nn,seats:4,zone:fl.name,sh:sh,k:1,fl:fl.id==='' ?undefined:fl.id}, d=tbDim(t), p=tbFree(R,d,fl.id,W); t.x=p.x; t.y=p.y; R.tables.push(t); rvS.sel=t.id; again();}
   ab.appendChild(mkBtn('Add square table','',function(){addT('r');})); ab.appendChild(mkBtn('Add round table','ghost',function(){addT('c');}));
+  ab.appendChild(mkBtn('Plan from photo','ghost',function(){rvS.panel='plan'; if(!rvS.pf||rvS.pf.stage==='reading')rvS.pf=rvS.pf&&rvS.pf.stage==='reading'?rvS.pf:{stage:'idle'}; renderSeating(id); window.scrollTo(0,0);}));
   var ls2=rsLayoutSource(); ab.appendChild(mkBtn('Reload layout','ghost',function(){mmAsk('Reload the table layout from '+ls2.src+'?\nTables are matched by number: seats, size and bookings you set stay. Tables that are not in the plan are removed.','Reload','Cancel',function(){rsApplyLayout(R,ls2.floors); toast('Layout reloaded.'); again();});}));
   tbn.appendChild(ab); box.appendChild(tbn);
   var t=tableBy(R,rvS.sel); if(!t||tbFl(R,t)!==fl.id)return;
@@ -7953,6 +7955,68 @@ function seatFloor(box,id,c,R,again){
   ba.appendChild(mkBtn('Duplicate','ghost sm',function(){var nums=R.tables.map(function(x){return natKey(x.name);}), nn=String(Math.max.apply(null,nums)+1), d=tbDim(t), p=tbFree(R,d,fl.id,W); var n2={id:nn,name:nn,seats:t.seats,zone:t.zone||'',sh:t.sh,k:t.k||1,fl:t.fl,bw:t.bw,bh:t.bh,s0:t.s0,r:t.r||0,x:p.x,y:p.y}; R.tables.push(n2); rvS.sel=nn; again();}));
   var dl=mkBtn('Delete','ghost sm',function(){if(!dl._a){dl._a=true; dl.textContent='Tap again to delete'; setTimeout(function(){dl._a=false; dl.textContent='Delete';},3000); return;} R.list.forEach(function(r){if(r.table===t.id){r.table=''; r.pin=false;}}); R.tables=R.tables.filter(function(x){return x!==t;}); rvS.sel=null; again();}); ba.appendChild(dl); pc.appendChild(ba);
   box.appendChild(pc);
+}
+
+/* ---------- plan from photo ---------- */
+var PLANPROMPT='You read a restaurant floor plan from a picture. Find every table that has a number written on it or next to it. Ignore staff name tags, notes, titles and legends. Reply with JSON only, no other text, in this shape: {"tables":[{"n":"12","box":[ymin,xmin,ymax,xmax],"shape":"round","turn":0,"seats":null,"sure":true}],"areas":[{"n":"WC","box":[ymin,xmin,ymax,xmax]}]}. Rules: box values are whole numbers from 0 to 1000, relative to the whole picture (0,0 is the top left corner). "n" is the table number exactly as written. "shape" is "round" for round or oval tables, otherwise "square" for square or rectangular tables. "turn" is how many degrees clockwise the table is turned (0 when it is upright, 90 for a table that lies sideways). "seats" is the number of chairs only if you can count them in the picture, otherwise null. "sure" is false when you are not sure about the number or the place. "areas" are named zones such as WC, Bar, Reception, Lounge, Kitchen. If a number appears on two different tables, list both. Do not invent tables.';
+function planParse(txt,iw,ih){
+  var t=String(txt||'').replace(/```[a-z]*/gi,''), a=t.indexOf('{'), b=t.lastIndexOf('}'), j; if(a<0||b<a)return null; try{j=JSON.parse(t.slice(a,b+1));}catch(e){return null;}
+  var W=900, H=Math.max(300,Math.round(900*ih/iw));
+  function bx(o){var q=o&&o.box; if(!q||q.length<4)return null; var y0=+q[0], x0=+q[1], y1=+q[2], x1=+q[3]; if(![y0,x0,y1,x1].every(isFinite)||x1<=x0||y1<=y0)return null; return {x:Math.round(x0/1000*W),y:Math.round(y0/1000*H),w:Math.max(10,Math.round((x1-x0)/1000*W)),h:Math.max(10,Math.round((y1-y0)/1000*H))};}
+  var tb=[], seen={}, ar=[], un=0;
+  (j.tables||[]).forEach(function(o){var n=String(o&&o.n!=null?o.n:'').trim().slice(0,8), g=bx(o); if(!n||!g)return; var rot=((Math.round(+o.turn||0)%360)+360)%360;
+    if(rot===90||rot===270){var cx=g.x+g.w/2, cy=g.y+g.h/2, nw=g.h, nh=g.w; g.x=Math.round(cx-nw/2); g.y=Math.round(cy-nh/2); g.w=nw; g.h=nh;}
+    if(/round|circ|ellip|oval/i.test(String(o.shape||''))){var m=Math.round((g.w+g.h)/2); g.x+=Math.round((g.w-m)/2); g.y+=Math.round((g.h-m)/2); g.w=m; g.h=m;}
+    var sure=o.sure!==false; if(seen[n]){seen[n]++; n+=String.fromCharCode(64+Math.min(seen[n],26)); sure=false;} else seen[n]=1; if(!sure)un++;
+    tb.push({n:n,x:g.x,y:g.y,w:g.w,h:g.h,sh:/round|circ|ellip|oval/i.test(String(o.shape||''))?'c':'r',r:rot,seats:(+o.seats>=1&&+o.seats<=16)?Math.round(+o.seats):0,sure:sure});});
+  (j.areas||[]).forEach(function(o){var n=String(o&&o.n!=null?o.n:'').trim().slice(0,24), g=bx(o); if(n&&g)ar.push({n:n,x:g.x,y:g.y,w:g.w,h:g.h});});
+  return tb.length?{W:W,H:H,tables:tb,areas:ar,unsure:un}:null;
+}
+function rsEnsureFloors(R){if(!R.floors||!R.floors.length){R.floors=[{id:'f1',name:'Main',sub:'',w:360,h:0,zones:[],bg:[]}]; R.tables.forEach(function(t){if(!t.fl)t.fl='f1';});} return R.floors;}
+function planApply(c,R,pf,mode,name){
+  var d=pf.data, fls=rsEnsureFloors(R), fl, ids={}, i;
+  if(mode==='replace'){fl=fls.filter(function(f){return f.id===rvS.fl;})[0]||fls[0]; fl.w=d.W; fl.h=d.H; fl.zones=d.areas.slice(); fl.bg=[];
+    var mineOld={}; R.tables.forEach(function(t){if(tbFl(R,t)===fl.id)mineOld[t.id]=t;}); var keep=[];
+    R.tables=R.tables.filter(function(t){return tbFl(R,t)!==fl.id;});
+    d.tables.forEach(function(o){var t=mineOld[o.n]; delete mineOld[o.n]; var est=llSeats({w:o.w,h:o.h,s:o.sh}); if(!t){t={id:o.n,name:o.n,seats:o.seats||est,zone:fl.name,k:1};} t.fl=fl.id; t.sh=o.sh; t.r=o.r; t.bw=o.w; t.bh=o.h; t.s0=o.seats&&!t.seats?o.seats:est; t.x=o.x; t.y=o.y; t.chk=!o.sure; keep.push(t);});
+    for(var k in mineOld)R.list.forEach(function(r){if(r.table===k){r.table='';r.pin=false;}});
+    R.tables=R.tables.concat(keep);
+  } else {var mx=0; fls.forEach(function(f){var m=/^f(\d+)$/.exec(f.id); if(m)mx=Math.max(mx,+m[1]);}); fl={id:'f'+(mx+1),name:name||'Plan from photo',sub:'',w:d.W,h:d.H,zones:d.areas.slice(),bg:[]}; fls.push(fl);
+    R.tables.forEach(function(t){ids[t.id]=1;});
+    d.tables.forEach(function(o){var nm=o.n, ex=0; while(ids[nm]){ex++; nm=o.n+'-p'+ex;} ids[nm]=1; var est=llSeats({w:o.w,h:o.h,s:o.sh}); R.tables.push({id:nm,name:o.n,seats:o.seats||est,zone:fl.name,k:1,fl:fl.id,sh:o.sh,r:o.r,bw:o.w,bh:o.h,s0:o.seats||est,x:o.x,y:o.y,chk:!o.sure});});}
+  R.tables.sort(function(a,b){return natKey(a.name)-natKey(b.name)||String(a.name).localeCompare(String(b.name));});
+  rvS.fl=fl.id; rvS.sel=null; rvS.edit=true; rvS.panel=''; rvS.pf=null;
+}
+function imgDims(blob){return new Promise(function(res){var u=URL.createObjectURL(blob), im=new Image(); im.onload=function(){URL.revokeObjectURL(u); res({w:im.naturalWidth||1000,h:im.naturalHeight||700});}; im.onerror=function(){URL.revokeObjectURL(u); res({w:1000,h:700});}; im.src=u;});}
+function planPanel(pc,c,R,id,again){
+  var pf=rvS.pf||(rvS.pf={stage:'idle'});
+  pc.appendChild(el('h4',null,'Plan from photo'));
+  if(pf.stage==='reading'){var p0=el('p',null,'Google is reading the plan … this can take up to a minute. The screen stays on.'); pc.appendChild(p0); return;}
+  if(pf.stage==='idle'||pf.stage==='err'){
+    pc.appendChild(el('p',null,'Choose a photo or a screenshot of a floor plan. Google reads the table numbers and places them. You check the result before anything changes. It uses one read of your Google limit.'));
+    if(pf.msg){var er=el('p',null,pf.msg); er.style.color='var(--danger)'; er.setAttribute('role','alert'); pc.appendChild(er);}
+    var fi=el('input'); fi.type='file'; fi.accept='image/*'; fi.hidden=true; pc.appendChild(fi);
+    var bb=el('div','btns'); bb.appendChild(mkBtn('Choose photo','',function(){fi.click();})); bb.appendChild(mkBtn('Close','ghost',function(){rvS.panel=''; rvS.pf=null; again();})); pc.appendChild(bb);
+    fi.addEventListener('change',async function(){var f=fi.files&&fi.files[0]; fi.value=''; if(!f)return; rvS.pf={stage:'reading'}; seatBusy=true; renderSeating(id); wlGet(); var res;
+      try{var sample=await getSample(); if(!sample)throw {message:'Plan reading needs your Google key. Add it in Settings, then try again.'};
+        var lim=await sample.limits(); if(!lim||!lim.images)throw {message:ERR.images_unavailable};
+        var blob=await toJpeg(f), dm=await imgDims(blob), o={cache:false,images:[blob],effort:'high'}; if((lim.modelTiers||[]).indexOf('complex')>-1)o.modelTier='complex';
+        var r=await sample(PLANPROMPT,o), d=planParse(r.text,dm.w,dm.h);
+        res=d?{stage:'check',data:d,name:'Plan from photo',trunc:!!r.truncated}:{stage:'err',msg:'I could not find tables in that picture. Try a brighter, flatter photo with the table numbers visible.'+(r.truncated?' The answer was cut off, so try a smaller part of the plan.':'')};
+      }catch(e){res={stage:'err',msg:(e&&e.code&&ERR[e.code])||(e&&e.message)||'I could not read that picture.'};}
+      wlOff(); seatBusy=false; rvS.pf=res; if(rvS.panel==='plan')renderSeating(id);});
+    return;}
+  var d=pf.data; var sm=el('p'); sm.appendChild(el('b',null,d.tables.length+' tables found')); sm.appendChild(document.createTextNode(' · '+d.areas.length+' areas.'+(d.unsure?' '+d.unsure+' need a look (orange).':'')+(pf.trunc?' The answer was cut off, so some tables may be missing.':''))); pc.appendChild(sm);
+  var svg=sv('svg',{viewBox:'0 0 '+d.W+' '+d.H,width:'100%'}); svg.style.cssText='display:block;border-radius:12px;border:1px solid var(--line);background:var(--soft);margin:8px 0';
+  d.areas.forEach(function(z){svg.appendChild(sv('rect',{x:z.x,y:z.y,width:z.w,height:z.h,rx:6,style:'fill:none;stroke:var(--muted);stroke-dasharray:5 4;stroke-width:1.2'})); var zt=sv('text',{x:z.x+z.w/2,y:z.y+z.h/2+4,'text-anchor':'middle','font-size':Math.max(9,Math.min(15,z.w/6))},z.n); zt.style.fill='var(--muted)'; svg.appendChild(zt);});
+  d.tables.forEach(function(o){var g=sv('g'); if(o.r)g.setAttribute('transform','rotate('+o.r+' '+(o.x+o.w/2)+' '+(o.y+o.h/2)+')'); var sh=o.sh==='c'?sv('ellipse',{cx:o.x+o.w/2,cy:o.y+o.h/2,rx:o.w/2,ry:o.h/2}):sv('rect',{x:o.x,y:o.y,width:o.w,height:o.h}); sh.style.cssText='fill:var(--in);stroke:'+(o.sure?'var(--muted)':'#e07a1a')+';stroke-width:'+(o.sure?1.4:2.6); g.appendChild(sh); svg.appendChild(g); var tx=sv('text',{x:o.x+o.w/2,y:o.y+o.h/2+Math.min(o.w,o.h)*.12,'text-anchor':'middle','font-size':Math.max(7,Math.min(13,Math.min(o.w,o.h)*.34)),'font-weight':700},o.n); tx.style.fill='var(--ink)'; svg.appendChild(tx);});
+  pc.appendChild(svg);
+  var fls=rsFloors(R), cur=fls.filter(function(f){return f.id===rvS.fl;})[0]||fls[0];
+  function opt(mode,title,sub){var b=el('button','chip'); b.type='button'; b.style.cssText='display:block;width:100%;text-align:left;padding:10px 12px;margin:6px 0;border-radius:12px'; if(rvS.pfMode===mode)b.classList.add('on'); var t1=el('b',null,title); b.appendChild(t1); var s1=el('div',null,sub); s1.style.cssText='font-size:12.5px;font-weight:400;margin-top:2px'; b.appendChild(s1); b.addEventListener('click',function(){rvS.pfMode=mode; renderSeating(id);}); pc.appendChild(b);}
+  opt('new','Add as a new floor','Your current floors stay as they are.');
+  opt('replace','Replace "'+cur.name+'"','Tables are matched by number. Seats and bookings stay. Walls and banquettes of this floor are cleared.');
+  var nr=el('div','kv'); if(rvS.pfMode==='new'){nr.appendChild(el('span',null,'Floor name')); var ni=el('input'); ni.value=pf.name; ni.setAttribute('aria-label','Floor name'); ni.style.cssText='flex:1;min-width:0;margin-left:10px'; ni.addEventListener('input',function(){pf.name=ni.value;}); nr.appendChild(ni); pc.appendChild(nr);}
+  var ab=el('div','btns'); ab.appendChild(mkBtn('Apply','',function(){planApply(c,R,pf,rvS.pfMode,(pf.name||'').trim()||'Plan from photo'); toast(d.tables.length+' tables added. Seats are estimated from table size, please check them.'); again();})); ab.appendChild(mkBtn('Cancel','ghost',function(){rvS.pf=null; rvS.panel=''; again();})); pc.appendChild(ab);
 }
 function seatTableSheet(c,R,t,again){
   fpSheet('Table '+t.name+' · '+t.seats+' seats',function(bx,close){
