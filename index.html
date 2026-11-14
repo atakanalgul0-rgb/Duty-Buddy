@@ -61,6 +61,23 @@ button{cursor:pointer}
 #app{position:fixed;top:var(--appTop,0px);bottom:0;left:0;right:0;max-width:460px;height:var(--appH,auto);margin:0 auto;background:var(--surface);overflow:hidden}
 @media (min-width:600px){#app{border-left:1px solid var(--line);border-right:1px solid var(--line)}}
 [hidden]{display:none!important}
+
+#widePh{display:none}
+@media (min-width:700px){
+  #app{max-width:1400px;--lw:clamp(350px,42%,400px)}
+  #listView,#listView[hidden]{display:flex!important;position:absolute;left:0;top:0;bottom:0;width:var(--lw);height:auto;border-right:1px solid var(--line);z-index:2;background:var(--surface)}
+  #app>.view:not(#listView){position:absolute;left:var(--lw);right:0;top:0;bottom:0;height:auto;width:auto}
+  #widePh{position:absolute;left:var(--lw);right:0;top:0;bottom:0;align-items:center;justify-content:center;text-align:center;color:var(--muted);background:var(--soft);padding:24px}
+  #app[data-v=list] #widePh{display:flex}
+  #widePh .wmk{font-size:34px;justify-content:center;margin-bottom:10px;display:flex;gap:2px}
+  #widePh p{margin:0;font-size:15px;max-width:320px}
+  #chatView #backBtn{display:none}
+  #app:not([data-v=list]) .row[aria-current=true]{background:var(--tile)}
+  #chatView .msgs,#chatView #msgs{padding-left:max(var(--gl),6%);padding-right:max(var(--gr),6%)}
+  #toast{left:calc(50% + var(--lw)/2)!important}
+}
+@media (max-width:899px){#listScroll .restpill img{height:22px}#listScroll .restpill{padding:4px 8px}#listScroll .wmk{font-size:.9em}}
+@media (min-width:1100px){#app{--lw:400px}}
 .view{display:flex;flex-direction:column;height:100%}
 
 .bar{flex:none;background:var(--teal);color:var(--on-teal);display:flex;align-items:center;min-height:calc(68px + var(--sat));padding:calc(10px + var(--sat)) max(6px,env(safe-area-inset-right,0px)) 10px var(--gl);gap:6px}
@@ -497,6 +514,7 @@ textarea:not(#text){min-height:44px!important;height:auto;resize:none!important;
 </style>
 
 <div id="app">
+  <div id="widePh" aria-hidden="true"><div><div class="wmk"><span class="a">duty</span><span class="g">buddy</span></div><p>Pick an assistant on the left to see its chat, stock and tools here.</p></div></div>
   <section id="listView" class="view" aria-label="Assistants">
     <div id="menu" class="menu" hidden>
       <p>Prototype. Stock lists and chats are saved in this browser only. A photo leaves your phone only if you turned on Online mode.</p>
@@ -1191,12 +1209,15 @@ function glassFix(c){
   if(pr){pr.size=1500; pr.name=sizeName(pr.name,1500); done++;}
   c.glassFix=1; return done;
 }
+var OFFNM={"200230210": "Taylor's, Fine Tawny Port, Douro, Portugal", "200361344": "Armand de Brignac, Brut Gold, Ace of Spades, Champagne, France (6000 ml)", "200082401": "Armand de Brignac, Brut Rosé, Ace of Spades, Champagne, France (3000 ml)", "200361348": "Armand de Brignac, Brut Rosé, Ace of Spades, Champagne, France (6000 ml)", "200111489": "Charles Taillet, Cuvée Sainte-Anne, Champagne, France", "200118024": "Chavost, Assemblage, Brut Nature, Vallée de la Marne, Champagne, France", "200112647": "L. Bernier, Latitude, Blanc de Blancs, Extra Brut, Champagne, France", "200112650": "L. Bernier, Rosé de Saignée, Premier Cru, Extra Brut, Champagne, France", "200117144": "Marguet, Shaman, Grand Cru, Ambonnay, Champagne, France", "200117143": "Marguet, Yuman, Champagne, France", "200114545": "Nowack, La Tuilerie, Extra Brut, Vallée de la Marne, Champagne, France 2012", "200114539": "Nowack, Sans Année, Champagne, France", "200111498": "Robert Moncuit, Les Grands Blancs, Blanc de Blancs, Grand Cru, Champagne, France", "200084220": "Louis Roederer, Brut, Cristal 2016 (6000 ml)", "200101187": "Moët & Chandon, Brut Rosé, Impérial (1500 ml)", "200119755": "Domaine Belleville, Chambolle-Musigny, Les Drazeys, Burgundy, France 2020", "200110361": "Domaine de Coyeux, Muscat de Beaumes-de-Venise, Rhône, France (375 ml)", "200110554": "Quady, Elysium, Black Muscat, California, USA (375 ml)", "200101089": "Emperatriz Eugenia, Oloroso, Solera Gran Reserva, Jerez, Spain (500 ml)", "200099828": "Mas Lavail, Expression, Maury Doux, Roussillon, France", "200104387": "Oremus, Tokaji, Hungary 2016 (500 ml)", "200096736": "Liquid Geography, Rosado, Rosé", "200350763": "M. Chapoutier, Marius, Rosé, Pays d'Oc, France", "200122435": "Baron Philippe de Rothschild, Escudo Rojo, Reserva, Pinot Noir, Chile", "200106457": "Catherine & Pierre Breton, Chinon, Les Beaux Monts, Loire, France", "200120412": "Castello di Montepò, Sassoalloro, Maremma Toscana, Tuscany, Italy 2021", "200111201": "Château de Pez, Saint-Estèphe, Bordeaux, France", "200112065": "Château La Mission Haut-Brion, Pessac-Léognan, Bordeaux, France 2013", "200103135": "Château La Mission Haut-Brion, Pessac-Léognan, Bordeaux, France 2012", "200361125": "Clos de los Siete, Uco Valley, Mendoza, Argentina", "200104630": "Clos La Madeleine, Saint-Émilion Grand Cru, Bordeaux, France 2016", "200116684": "Comando G, Rozas 1º, Sierra de Gredos, Spain 2021", "200099778": "Cuvée Juliette Louise, France", "200123935": "Domaine des Perdrix, Vosne-Romanée, Burgundy, France 2020", "200099987": "Famille Perrin, Clos de Tourelles, Rhône, France 2019", "200125772": "Freemark Abbey, Cabernet Sauvignon, Napa Valley, California, USA", "200101246": "J.L. Chave Sélection, Offerus, Saint-Joseph, Rhône, France", "200104793": "Kracher, Reunion, Blaufränkisch, Burgenland, Austria", "200104083": "Château Cantemerle, Les Allées de Cantemerle, Haut-Médoc, Bordeaux, France 2015 (1500 ml)", "200099659": "Chandon de Briailles, Savigny-lès-Beaune 1er Cru, Les Lavières, Burgundy, France", "200099985": "Mischief & Mayhem, Savigny-lès-Beaune, Burgundy, France", "200100135": "Esporão, Pé, Tinto, Alentejo, Portugal", "200104435": "Prunotto, Secondine, Piedmont, Italy 2018", "200103048": "Ridge, Lytton Springs, Dry Creek Valley, Sonoma County, California, USA 2019", "200114594": "Blossom Hill, White Zinfandel, California, USA", "200101215": "AR.PE.PE., Rosso di Valtellina, Lombardy, Italy", "200120710": "Backhouse, Cabernet Sauvignon, California, USA", "200090026": "La Spinetta, Barolo, Vigneto Garretti, Piedmont, Italy", "200620273": "Jean-Claude Boisset, Bourgogne, Pinot Noir, Burgundy, France", "200120396": "Casanova di Neri, Brunello di Montalcino, White Label, Tuscany, Italy 2019", "200122056": "Castello di Albola, Chianti Classico, Tuscany, Italy", "200100137": "Chalkboard, Merlot, California, USA", "200084449": "Château Lassègue, Saint-Émilion Grand Cru, Bordeaux, France", "200112668": "DAOU, Cabernet Sauvignon, Paso Robles, California, USA", "200122436": "De Bortoli, Windy Peak, Pinot Noir, Yarra Valley, Australia", "200210836": "Erath, Pinot Noir, Willamette Valley, Oregon, USA", "200620857": "Golan Heights Winery, Gamla, Syrah, Golan Heights, Israel", "200101219": "Girard, Cabernet Sauvignon, Napa Valley, California, USA 2018", "200083305": "Luigi Bosca, La Linda, Malbec, Mendoza, Argentina", "200121151": "Boutinot, Le Fou, Pinot Noir, Pays d'Oc, France", "200120545": "Le Macchiole, Bolgheri Rosso, Tuscany, Italy 2022", "200103025": "Lieu Dit, Cabernet Franc, Santa Ynez Valley, California, USA 2021", "200088159": "Catena Zapata, Alta, Malbec, Mendoza, Argentina (1500 ml)", "200110422": "Kaiken, Ultra, Malbec, Mendoza, Argentina", "200097007": "Lapostolle, Cuvée Alexandre, Merlot, Colchagua Valley, Chile", "200351240": "Kanonkop, Pinotage, Stellenbosch, South Africa", "200084454": "CVNE, Cune, Rioja Crianza, Spain", "200101224": "Smith-Madrone, Cabernet Sauvignon, Spring Mountain District, Napa Valley, California, USA", "200092420": "Terrazas de los Andes, Cabernet Sauvignon, Mendoza, Argentina", "200088162": "The Prisoner, Red Blend, Napa Valley, California, USA 2019 (1500 ml)", "200105251": "Villa Domiziano, Chianti, Tuscany, Italy", "200620860": "Yarden, Cabernet Sauvignon, Golan Heights, Israel", "200104484": "Rousseau, Santenay, Burgundy, France 2018", "200100150": "Kartveli Wines, Saperavi, Qvevri, Kakheti, Georgia 2017", "200099505": "Torres, Gran Coronas, Penedès, Spain", "200112255": "Vara y Pulgar, Tintilla de Rota, Cádiz, Andalucía, Spain 2020", "200120033": "Domaine de Vernus, Morgon, Grands Cras, Beaujolais, France 2020", "200125098": "Vieux Télégraphe, Télégramme, Châteauneuf-du-Pape, Rhône, France 2022", "200100667": "Takashimizu, Wacho, Daiginjo, Akita (720 ml)", "200098245": "Roger Goulart, Coral, Brut Rosé, Cava, Penedès, Spain", "200111344": "French Bloom, Le Blanc, Non-Alcoholic Sparkling, France", "200119761": "Antinori, Cervaro della Sala, Umbria, Italy 2022", "200350864": "Bouchard Père & Fils, Meursault, Les Clous, Burgundy, France 2021", "200098489": "Domaine Roux Père & Fils, Bouzeron, Les Fias, Burgundy, France 2019", "200111197": "Chateau Ste. Michelle, Eroica, Riesling, Columbia Valley, Washington, USA", "200104577": "Château de Chantegrive, Graves, Bordeaux, France 2016", "200104461": "Zind-Humbrecht, Clos Windsbuhl, Alsace, France 2020", "200361142": "Cloudy Bay, Sauvignon Blanc, Marlborough, New Zealand", "200104642": "Yves Cuilleron, Condrieu, Les Chaillets, Rhône, France 2021", "2000706400": "Villard, JCV Charlie Villard, Ramato, Pinot Grigio, Casablanca Valley, Chile 2018", "200116459": "Jermann, Where Dreams Have No End, Friuli-Venezia Giulia, Italy", "200110363": "Château Musar, Jeune Blanc, Bekaa Valley, Lebanon", "200117924": "Louis Jadot, Chassagne-Montrachet 1er Cru, Grande Montagne, Burgundy, France 2020", "200120421": "Pierre-Yves Colin-Morey, Saint-Aubin 1er Cru, Hommage à Marguerite, Burgundy, France 2020", "200098557": "Domaine du Bois Bruley, Muscadet Sèvre et Maine Sur Lie, Loire, France", "200112061": "Addax, Chardonnay, USA 2021", "200099857": "Château La Louvière, Blanc, Pessac-Léognan, Bordeaux, France 2014", "200112067": "Chablis, Burgundy, France 2021", "200111900": "Failla, Estate, Chardonnay, Sonoma Coast, California, USA", "200210971": "Feudi di San Gregorio, Greco di Tufo, Campania, Italy", "200117922": "Frescobaldi, Castello di Pomino, Pomino Bianco, Tuscany, Italy", "200121410": "Gabrielskloof, Sauvignon Blanc, Botrivier, South Africa", "200620853": "Golan Heights Winery, Gamla, Sauvignon Blanc, Golan Heights, Israel", "200110537": "Hugel, Gewurztraminer, Alsace, France", "200068116": "Penfolds, Koonunga Hill, Chardonnay, South Australia", "200101316": "Louis Latour, Viognier, Ardèche, France", "200104828": "Luigi Baudana, Dragon, Langhe Bianco, Piedmont, Italy 2021", "200098574": "Monte Rotondo, Gavi del Comune di Gavi, Piedmont, Italy", "200098519": "Clos Mogador, Nelin, Priorat, Catalonia, Spain 2018", "200097054": "Paco & Lola, Albariño, Rías Baixas, Galicia, Spain", "200092383": "Jermann, Pinot Grigio, Friuli-Venezia Giulia, Italy", "200098560": "Château de Tracy, Pouilly-Fumé, Loire, France", "200084649": "Dr. Loosen, Riesling QbA, Mosel, Germany", "200103448": "Veramonte, Ritual, Chardonnay, Supertuga Block, Casablanca Valley, Chile", "200082407": "Henri Bourgeois, Sancerre, Grande Réserve, Loire, France (1500 ml)", "200083046": "Santa Julia, Sauvignon Blanc, Mendoza, Argentina", "200092417": "Montes, Outer Limits, Sauvignon Blanc, Zapallar, Chile", "200112229": "Terras Gauda, O Rosal, Albariño, Rías Baixas, Spain 2020", "200097047": "Tyrrell's, Vat 1, Semillon, Hunter Valley, Australia", "200085174": "Contini, Tyrsos, Vermentino di Sardegna, Sardinia, Italy", "200119765": "Villa Antinori, Bianco, Tuscany, Italy", "200116270": "Domaine de la Vougeraie, Terres de Famille, Bourgogne Blanc, Burgundy, France 2019", "200120725": "William Fèvre, Chablis Grand Cru, Les Clos, Burgundy, France 2021"};
+function offNamesApply(c){var n=0; if(!c||!Array.isArray(c.inv))return 0; c.inv.forEach(function(i){if(!i.menu&&!i.onm&&i.code&&OFFNM[i.code]){i.name=OFFNM[i.code]; i.onm=1; n++;}}); return n;}
 function ensureBase(){
   try{var c=S.chats.sofia; if(!c||typeof BASE==='undefined'||typeof WINELIST==='undefined')return;
     if(c.starterV!==3||(c.inv||[]).length<30||menuItems(c).length<20){
       baseApply('sofia'); glassFix(c); c.rev=Date.now(); save(); try{renderList();}catch(e){} toast('Sofia’s stock is set from your sheet: '+BASE.rows.length+' lines, '+c.inv.filter(function(i){return i.menu;}).length+' on the wine list.');
     }
     else if(c.glassFix!==1){glassFix(c); c.rev=Date.now(); save(); try{renderList();}catch(e){} toast('La Scolca Gavi and Promis are now served from 1.5 L bottles (10 glasses).');}
+    var on=offNamesApply(c); if(on){c.rev=Date.now(); save(); try{renderList();}catch(e){} toast(on+' off-menu wines now have wine list style names.');}
   }catch(e){}
 }
 function settle(){if(SETTLED)return; SETTLED=true; ensureBase();}
@@ -2097,7 +2118,7 @@ function microsCard(a,c,rows,pre){
     if(r.qty<=0){if(r.qty<0)neg++; skipped.push(r.raw+' ('+r.qty+')'); return;}
     var it=null, k='ok', cands=[], lid=c.micros[r.mx];
     if(lid)it=c.inv.filter(function(x){return x.id===lid;})[0]||null;
-    if(!it){var mmi=mmFind(c,r.raw); if(mmi){it=mmi; lid=mmi.id;}}
+    if(!it){var mmi=wineAny(c,r.raw,r.mx); if(mmi){it=mmi; lid=mmi.id;}}
     if(!it){
       var rk=microsRank(c,r,W); cands=rk.slice(0,5).map(function(x){return x.it.id;});
       if(rk.length){var top=rk[0], sec=rk.length>1?rk[1].eff:0; it=top.it; k=(top.sc>=0.8&&(top.eff-sec)>=0.1)?'ok':'check'; cands=cands.filter(function(i){return i!==it.id;});}
@@ -2467,7 +2488,9 @@ function stockRows(c,text,ov,layout){
     else if(o.id){ch=pool.filter(function(x){return x.id===o.id;})[0]||null; st=ch?'ok':'none'; why=ch?'Picked by you':'';}
     else{
       var al=aliasLookup(c,it);
+      var wa=al?null:wineAny(c,it.raw||it.name,it.code);
       if(al){ch=al; st='ok'; why='Remembered';}
+      else if(wa){ch=wa; st='ok'; why='Known name or code';}
       else{
         var cm=it.code?pool.filter(function(x){return x.code&&normCode(x.code)===normCode(it.code);})[0]:null;
         if(cm){ch=cm; st='ok'; why='Same code';}
@@ -4841,7 +4864,7 @@ function baseApply(id){
     if(q==null)nocount++; else{var sp=splitCount(q,glassesPer(c,w)); w.qty=(w.qty||0)+sp.qty; w.open=(w.open||0)+sp.open;}
     c.alias=c.alias||{};
   });
-  c.inv=inv; c.alias={}; BASE.rows.forEach(function(r,i){var it={code:r[0]||'',name:r[1],raw:r[1]}; var w=inv.filter(function(x){return x.sheet===r[1];})[0]; if(w)aliasSet(c,it,w);});
+  offNamesApply({inv:inv}); c.inv=inv; c.alias={}; BASE.rows.forEach(function(r,i){var it={code:r[0]||'',name:r[1],raw:r[1]}; var w=inv.filter(function(x){return x.sheet===r[1];})[0]; if(w)aliasSet(c,it,w);});
   c.pool=[]; poolAdd(c,p.items); c.pendingText=null; c.starterV=3;
   c.msgs=c.msgs.filter(function(m){return !(m.photo&&!m.text);}); c.msgs.forEach(function(m){if(m.pid){phDel(m.pid);} delete m.pid; delete m.photo; delete m.img;});
   c.base={date:BASE.date,file:BASE.file,applied:Date.now(),lines:BASE.rows.length,matched:listed,made:off,pend:0,blank:[],resized:0,merged:0,nocount:nocount};
@@ -4856,7 +4879,7 @@ function baseXlsxBlob(){
 /* ================= ENGINE END ================= */
 
 /* ---------- views ---------- */
-function setView(v){$('listView').hidden=v!=='list'; $('chatView').hidden=v!=='chat'; $('infoView').hidden=v!=='info'; $('glassView').hidden=v!=='glass'; $('wineView').hidden=v!=='wines'; $('offView').hidden=v!=='off'; $('stockView').hidden=v!=='stock'; $('libView').hidden=v!=='lib'; $('recipesView').hidden=v!=='recipes'; $('seatingView').hidden=v!=='seating'; $('reportsView').hidden=v!=='reports'; $('modView').hidden=v!=='mod';}
+function setView(v){$('app').dataset.v=v; $('listView').hidden=v!=='list'; $('chatView').hidden=v!=='chat'; $('infoView').hidden=v!=='info'; $('glassView').hidden=v!=='glass'; $('wineView').hidden=v!=='wines'; $('offView').hidden=v!=='off'; $('stockView').hidden=v!=='stock'; $('libView').hidden=v!=='lib'; $('recipesView').hidden=v!=='recipes'; $('seatingView').hidden=v!=='seating'; $('reportsView').hidden=v!=='reports'; $('modView').hidden=v!=='mod';}
 function toast(msg,o){
   var t=$('toast'), tip=!!(o&&o.tip); if(tip){t.textContent=''; var sp=document.createElement('span'); sp.textContent=msg; var xx=document.createElement('b'); xx.textContent='\u2715'; t.appendChild(sp); t.appendChild(xx);} else t.textContent=msg; t.classList.toggle('tipbar',tip); t.hidden=false; clearTimeout(toastTimer); t.onclick=function(){t.hidden=true;};
   toastTimer=setTimeout(function(){t.hidden=true;},tip?5000:3800);
@@ -4895,7 +4918,7 @@ function renderList(){
   ids.forEach(function(id){
     var c=S.chats[id], m=lastMsg(id), a=byId[id];
     if(!lfOk(id,c,a))return;
-    var li=el('li'); var link=el('a','row'); link.href='#'+id;
+    var li=el('li'); var link=el('a','row'); link.href='#'+id; if(cur===id)link.setAttribute('aria-current','true');
     link.appendChild(id==='team'?teamAvatarEl(46):avatarEl(id,46));
     var body=el('div','row-body');
     var top=el('div','row-top'); var nm=el('div','nm',id==='team'?'Team meeting':a.name);
@@ -5588,7 +5611,7 @@ try{setTimeout(function(){snapNow('Opened the app');},6000); document.addEventLi
   }
   window.addEventListener('resize',apply); window.addEventListener('orientationchange',function(){setTimeout(apply,60);}); apply();
 })();
-var APPVER='Sidekick 39';
+var APPVER='Sidekick 42';
 var KEYNAME='dutybuddy.apikey', inClaude=false;
 function storedKey(){try{return localStorage.getItem(KEYNAME)||'';}catch(e){return '';}}
 function keyOn(){try{return localStorage.getItem('dutybuddy.keyoff')!=='1';}catch(e){return true;}}
@@ -9070,6 +9093,23 @@ function mmUnlinkName(c,w){
   c.mm.rows.push({id:uid(),bt:isGl?'':w.name,gl:isGl?w.name:'',sid:'',conf:'',sc:0,near:w.it.sheet||w.it.name||'',mn:''});
 }
 function mmItem(c,sid){return sid?(c.inv.filter(function(i){return i.id===sid;})[0]||null):null;}
+function wineAny(c,raw,code){
+  // One wine, many names: menu name, stock name, stock code, Micros names and Micros codes all lead to the same stock item.
+  if(!c||!c.inv)return null; var cn=code?normCode(code):'', it=null, k=mmKey(raw);
+  if(cn){
+    if(c.micros&&c.micros[code])it=mmItem(c,c.micros[code]);
+    if(!it)it=c.inv.filter(function(x){return x.code&&normCode(x.code)===cn;})[0]||null;
+    if(!it&&c.mm&&c.mm.rows){var r=c.mm.rows.filter(function(x){return x.sid&&(normCode(x.btc||'')===cn||normCode(x.glc||'')===cn);})[0]; if(r)it=mmItem(c,r.sid);}
+    if(it)return it;
+  }
+  if(k){
+    var hit=c.inv.filter(function(x){return mmKey(x.name)===k||(x.sheet&&mmKey(x.sheet)===k);});
+    if(hit.length===1)return hit[0];
+    it=mmFind(c,raw); if(it)return it;
+    var al=c.alias&&c.alias['n:'+nameKey(raw)]; if(al)return mmItem(c,al);
+  }
+  return null;
+}
 function mmFind(c,raw){
   if(!c.mm||!c.mm.rows)return null; var k=mmKey(raw); if(!k)return null;
   var r=c.mm.rows.filter(function(x){return x.sid&&(mmKey(x.bt)===k||mmKey(x.gl)===k);})[0];
@@ -12096,7 +12136,7 @@ syncStart();
 A.forEach(function(x){kbLoad(x.id).then(function(){kbResumeAll(x.id); kbBarUpdate(); if((libId===x.id||libId==='lib')&&!$('libView').hidden)renderLib(libId);});});
 kbLoad('lib').then(function(){kbResumeAll('lib'); kbBarUpdate(); if(libId==='lib'&&!$('libView').hidden)renderLib('lib');});
 document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible'){A.forEach(function(x){kbResumeAll(x.id);}); kbWake(); kbBarUpdate();}});
-if(window.__DB_TEST__)window.__DB_TEST__({mxInit:mxInit,mxLearn:mxLearn,wineOpen:wineOpen,photoOrOcr:photoOrOcr,gqCount:gqCount,kbSlot:kbSlot,libAll:libAll,renderLib:renderLib,libPicker:libPicker,kbShare:kbShare,celInvTotals:celInvTotals,stkPdfRes:stkPdfRes,stkReportRes:stkReportRes,bkStatus:bkStatus,openBackup:openBackup,todoPoke:todoPoke,save:save,barPlan:barPlan,celSale:celSale,wineOpen:wineOpen,chgLoad:chgLoad,openSettings:openSettings,chgStore:chgStore,chgDiff:chgDiff,stkRows:stkRows,stkCounts:stkCounts,stkParse:stkParse,stkApplyImport:stkApplyImport,stkAccept:stkAccept,stkSheets:stkSheets,stkStore:stkStore,celParseCsv:celParseCsv,celStore:celStore,celParseRows:celParseRows,celParseCsv:celParseCsv,celApplyImport:celApplyImport,celRows:celRows,celXlsx:celXlsx,celCollect:celCollect,celApply:celApply,celSwap:celSwap,rtSeed:rtSeed,evMenuItems:evMenuItems,evFind:evFind,evAddDish:evAddDish,rtGridArr:rtGridArr,rtXlsx:rtXlsx,rtDiff:rtDiff,rtPages:rtPages,rtGrid:rtGrid,rtParseGrid:rtParseGrid,rtHandle:rtHandle,rtApplyImport:rtApplyImport,fpImportBuf:fpImportBuf,fpPut:fpPut,fpPlan:fpPlan,fpHandle:fpHandle,fpTablesOf:fpTablesOf,getS:function(){return S;},cmGet:cmGet,fileRoute:fileRoute,costRefresh:costRefresh,pbL:pbL,pbSearch:pbSearch,cmRecipeSheets:cmRecipeSheets,cmDishCost:cmDishCost,pcTeam:pcTeam,cxList:cxList,pbSet:pbSet,cmTouch:cmTouch,emMenu:emMenu,emPick:emPick,emCount:emCount,emPages:emPages,emDoc:emDoc,emOpenDiff:emOpenDiff,emApply:emApply,emTeam:emTeam,emCmd:emCmd,evIntentRx:evIntentRx,save:save,send:send,openChat:openChat,teamFlow:teamFlow,foreignGuard:foreignGuard,kbDetail:kbDetail,baseApply:baseApply,BASE:BASE,kbAdd:kbAdd,kbEnqueue:kbEnqueue,kbSearch:kbSearch,kbLoad:kbLoad,kbRemove:kbRemove,kbCloze:kbCloze,kbSlot:kbSlot,kbAnswer:kbAnswer,readAny:readAny,exportRows:exportRows,xlsxBuild:xlsxBuild,pdfBuild:pdfBuild,csvBuild:csvBuild,handleExport:handleExport,exportStock:exportStock,needsRules:needsRules,buildPrompt:buildPrompt,teamSpeakersFor:teamSpeakersFor,dataBlock:dataBlock,stockRows:stockRows,parseCount:parseCount,splitCount:splitCount,idfWeights:idfWeights,rankMatches:rankMatches,aliasSet:aliasSet,handleMatches:handleMatches,respond:respond,respondTeam:respondTeam,parseList:parseList,applyList:applyList,avatarSVG:avatarSVG,glassCard:glassCard,parseMenuText:parseMenuText,looksMenu:looksMenu,autoMatch:autoMatch,searchPool:searchPool,scoreName:scoreName,sendGlassEdit:sendGlassEdit,guessType:guessType,getS:function(){return S;},A:A});
+if(window.__DB_TEST__)window.__DB_TEST__({wineAny:wineAny,mxInit:mxInit,mxLearn:mxLearn,wineOpen:wineOpen,photoOrOcr:photoOrOcr,gqCount:gqCount,kbSlot:kbSlot,libAll:libAll,renderLib:renderLib,libPicker:libPicker,kbShare:kbShare,celInvTotals:celInvTotals,stkPdfRes:stkPdfRes,stkReportRes:stkReportRes,bkStatus:bkStatus,openBackup:openBackup,todoPoke:todoPoke,save:save,barPlan:barPlan,celSale:celSale,wineOpen:wineOpen,chgLoad:chgLoad,openSettings:openSettings,chgStore:chgStore,chgDiff:chgDiff,stkRows:stkRows,stkCounts:stkCounts,stkParse:stkParse,stkApplyImport:stkApplyImport,stkAccept:stkAccept,stkSheets:stkSheets,stkStore:stkStore,celParseCsv:celParseCsv,celStore:celStore,celParseRows:celParseRows,celParseCsv:celParseCsv,celApplyImport:celApplyImport,celRows:celRows,celXlsx:celXlsx,celCollect:celCollect,celApply:celApply,celSwap:celSwap,rtSeed:rtSeed,evMenuItems:evMenuItems,evFind:evFind,evAddDish:evAddDish,rtGridArr:rtGridArr,rtXlsx:rtXlsx,rtDiff:rtDiff,rtPages:rtPages,rtGrid:rtGrid,rtParseGrid:rtParseGrid,rtHandle:rtHandle,rtApplyImport:rtApplyImport,fpImportBuf:fpImportBuf,fpPut:fpPut,fpPlan:fpPlan,fpHandle:fpHandle,fpTablesOf:fpTablesOf,getS:function(){return S;},cmGet:cmGet,fileRoute:fileRoute,costRefresh:costRefresh,pbL:pbL,pbSearch:pbSearch,cmRecipeSheets:cmRecipeSheets,cmDishCost:cmDishCost,pcTeam:pcTeam,cxList:cxList,pbSet:pbSet,cmTouch:cmTouch,emMenu:emMenu,emPick:emPick,emCount:emCount,emPages:emPages,emDoc:emDoc,emOpenDiff:emOpenDiff,emApply:emApply,emTeam:emTeam,emCmd:emCmd,evIntentRx:evIntentRx,save:save,send:send,openChat:openChat,teamFlow:teamFlow,foreignGuard:foreignGuard,kbDetail:kbDetail,baseApply:baseApply,BASE:BASE,kbAdd:kbAdd,kbEnqueue:kbEnqueue,kbSearch:kbSearch,kbLoad:kbLoad,kbRemove:kbRemove,kbCloze:kbCloze,kbSlot:kbSlot,kbAnswer:kbAnswer,readAny:readAny,exportRows:exportRows,xlsxBuild:xlsxBuild,pdfBuild:pdfBuild,csvBuild:csvBuild,handleExport:handleExport,exportStock:exportStock,needsRules:needsRules,buildPrompt:buildPrompt,teamSpeakersFor:teamSpeakersFor,dataBlock:dataBlock,stockRows:stockRows,parseCount:parseCount,splitCount:splitCount,idfWeights:idfWeights,rankMatches:rankMatches,aliasSet:aliasSet,handleMatches:handleMatches,respond:respond,respondTeam:respondTeam,parseList:parseList,applyList:applyList,avatarSVG:avatarSVG,glassCard:glassCard,parseMenuText:parseMenuText,looksMenu:looksMenu,autoMatch:autoMatch,searchPool:searchPool,scoreName:scoreName,sendGlassEdit:sendGlassEdit,guessType:guessType,getS:function(){return S;},A:A});
 })();
 </script>
 
