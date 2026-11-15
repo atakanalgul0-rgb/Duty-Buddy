@@ -12,6 +12,51 @@
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" type="image/png" href="icon-192.png">
 <style>html,body{margin:0;height:100%;background:#DCE3E0}.limcnt{font-size:15px;font-weight:600;color:var(--muted);margin-top:6px;font-variant-numeric:tabular-nums}.limbar{height:3px;border-radius:9px;background:rgba(128,128,128,.2);margin-top:6px;overflow:hidden}.limbar u{display:block;height:100%;background:#d4a017;transition:width 1s linear}
+
+/* ---- Sidekick 56: glass chat ---- */
+:root{--glass:rgba(255,255,255,.58);--glassb:rgba(255,255,255,.55)}
+:root[data-theme="dark"]{--glass:rgba(26,37,35,.58);--glassb:rgba(255,255,255,.14)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--glass:rgba(26,37,35,.58);--glassb:rgba(255,255,255,.14)}}
+#chatView{--hh:calc(60px + var(--sat,0px));--cb:84px}
+#chatView .bar{position:absolute;top:0;left:0;right:0;z-index:6;background:transparent!important;box-shadow:none!important;min-height:var(--hh);padding:calc(8px + var(--sat,0px)) 12px 6px 12px;gap:8px;pointer-events:none}
+#chatView .bar>*{pointer-events:auto}
+#chatView .bar .icon-btn{width:44px;height:44px;background:var(--glass);-webkit-backdrop-filter:blur(16px) saturate(1.5);backdrop-filter:blur(16px) saturate(1.5);border:1px solid var(--glassb);box-shadow:0 2px 12px rgba(0,0,0,.10)}
+#chatView .who-btn{flex:1;justify-content:center;padding:0;min-height:44px;background:transparent}
+#chatView .who-btn #chatAv,#chatView .who-btn .who span{display:none}
+#chatView .who{display:flex;justify-content:center}
+#chatView .who b{display:inline-block;padding:9px 22px;border-radius:22px;background:var(--glass);-webkit-backdrop-filter:blur(16px) saturate(1.5);backdrop-filter:blur(16px) saturate(1.5);border:1px solid var(--glassb);box-shadow:0 2px 12px rgba(0,0,0,.10);font-size:16.5px;letter-spacing:.2px}
+#chatView .msgs{position:absolute;inset:0;padding-top:calc(var(--hh) + 10px);padding-bottom:calc(var(--cb) + 8px);overscroll-behavior:contain}
+#chatView .cbot{position:absolute;left:0;right:0;bottom:0;z-index:6;display:flex;flex-direction:column;pointer-events:none}
+#chatView .cbot>*{pointer-events:auto}
+#chatView .composer,#chatView .pendbar,#chatView .chips{background:transparent}
+#chatView .chips{padding-top:4px;padding-bottom:2px}
+#chatView .chips button.chip,#chatView .chip{background:var(--glass);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border:1px solid var(--glassb)}
+#chatView .field{background:var(--glass);-webkit-backdrop-filter:blur(18px) saturate(1.5);backdrop-filter:blur(18px) saturate(1.5);border:1px solid var(--glassb);box-shadow:0 2px 14px rgba(0,0,0,.10)}
+#chatView .send{box-shadow:0 2px 12px rgba(0,0,0,.18)}
+#chatView .rdline{position:absolute;top:calc(var(--hh) + 2px);left:var(--gl);right:var(--gr);z-index:5;margin:0;background:var(--glass);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+#chatView .tobtm{bottom:calc(var(--cb) + 12px)}
+.chips[hidden]{display:none!important}
+
+/* Sidekick 57: bigger glass title with role, glass profile */
+#chatView .who{flex-direction:column;align-items:center}
+#chatView .who-btn .who span{display:block}
+#chatView .who{display:inline-flex;padding:6px 26px 7px;border-radius:22px;background:var(--glass);-webkit-backdrop-filter:blur(16px) saturate(1.5);backdrop-filter:blur(16px) saturate(1.5);border:1px solid var(--glassb);box-shadow:0 2px 12px rgba(0,0,0,.10);text-align:center;max-width:100%}
+#chatView .who b{display:block;padding:0;border:0;background:none;box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none;font-size:20px;line-height:1.15;letter-spacing:.2px}
+#chatView .who span{font-size:12px;line-height:1.2;margin-top:1px;color:var(--muted)}
+#infoView{position:relative;--hh:calc(60px + var(--sat,0px))}
+#infoView .bar{position:absolute;top:0;left:0;right:0;z-index:6;background:transparent!important;box-shadow:none!important;min-height:var(--hh);padding:calc(8px + var(--sat,0px)) 12px 6px 12px;gap:8px;pointer-events:none}
+#infoView .bar>*{pointer-events:auto}
+#infoView .bar .icon-btn{background:var(--glass);-webkit-backdrop-filter:blur(16px) saturate(1.5);backdrop-filter:blur(16px) saturate(1.5);border:1px solid var(--glassb);box-shadow:0 2px 12px rgba(0,0,0,.10)}
+#infoView .bsp{flex:none;width:44px;height:44px}
+#infoView .ptl{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;margin:0 auto;max-width:max-content;padding:6px 26px 7px;border-radius:22px;background:var(--glass);-webkit-backdrop-filter:blur(16px) saturate(1.5);backdrop-filter:blur(16px) saturate(1.5);border:1px solid var(--glassb);box-shadow:0 2px 12px rgba(0,0,0,.10);text-align:center}
+#infoView .ptl b{font-size:20px;line-height:1.15;font-weight:700;color:var(--ink)}
+#infoView .ptl small{font-size:12px;line-height:1.2;margin-top:1px;color:var(--muted);font-weight:500}
+#infoView .psr{position:static!important}
+#infoView .info{position:absolute;inset:0;padding-top:calc(var(--hh) + 6px)}
+
+/* Sidekick 58: profile title appears only after the hero scrolls away */
+#infoView .ptl{opacity:0;transform:translateY(-8px);pointer-events:none;transition:opacity .22s ease,transform .22s ease}
+#infoView.tshow .ptl{opacity:1;transform:none;pointer-events:auto}
 </style>
 </head>
 <body>
@@ -579,6 +624,7 @@ textarea:not(#text){min-height:44px!important;height:auto;resize:none!important;
     <div id="readLine" class="rdline" hidden></div>
     <div id="msgs" class="msgs" aria-live="polite"></div>
     <button id="toBottom" class="tobtm" type="button" aria-label="Go to the latest message" hidden><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg><span id="toBottomN" class="tbn" hidden></span></button>
+    <div id="cbot" class="cbot">
     <div id="chips" class="chips"></div>
     <div id="pendBar" class="pendbar" hidden></div>
     <form id="composer" class="composer" autocomplete="off">
@@ -598,6 +644,7 @@ textarea:not(#text){min-height:44px!important;height:auto;resize:none!important;
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12 20 4l-4 16-4.5-6.5z"/><path d="m11.5 13.5 4.5-6"/></svg>
       </button>
     </form>
+    </div>
   </section>
 
   <section id="infoView" class="view" aria-label="Assistant profile" hidden>
@@ -605,7 +652,8 @@ textarea:not(#text){min-height:44px!important;height:auto;resize:none!important;
       <button id="infoBack" class="icon-btn" type="button" aria-label="Back to chat">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5 8 12l7 7"/></svg>
       </button>
-      <h2>Assistant info</h2>
+      <h2 id="infoTtl" class="ptl"><b>Profile</b><small></small></h2>
+      <span class="bsp" aria-hidden="true"></span>
     </header>
     <div id="info" class="info"></div>
   </section>
@@ -4347,7 +4395,7 @@ function idbOpen(){return new Promise(function(res){try{var rq=indexedDB.open('d
 function idbDo(store,mode,fn){return new Promise(function(res,rej){if(!KBDB){res(null); return;} var tx=KBDB.transaction(store,mode), r=fn(tx.objectStore(store)); tx.oncomplete=function(){res(r&&r.result!==undefined?r.result:null);}; tx.onerror=tx.onabort=function(){rej(tx.error||new Error('idb'));};});}
 var CJKRX=/[\u3040-\u30ff\u3400-\u9fff\uac00-\ud7af]+/g;
 function kbTok(t){var cj=String(t).match(CJKRX)||[], ex=[]; cj.forEach(function(r){if(r.length===1)ex.push(r); else for(var i=0;i<r.length-1;i++)ex.push(r.substr(i,2));}); return kbTok0(t).concat(ex);}
-function kbTok0(t){return foldS(t).replace(/ı/g,'i').replace(/[^a-z0-9]+/g,' ').split(' ').filter(function(w){return w.length>1&&!KSTOP[w];}).map(function(w){w=norm(w); return w.length>4?w.replace(/(ings?|ed|s)$/,'').replace(/e$/,''):w;});}
+function kbTok0(t){return foldS(t).replace(/ı/g,'i').replace(/[^a-z0-9]+/g,' ').split(' ').filter(function(w){return w.length>1&&!KSTOP[w];}).map(function(w){w=norm(w); return w.length>4?(/ies$/.test(w)?w.replace(/ies$/,'y'):w.replace(/(ings?|ed|s)$/,'').replace(/e$/,'')):w;});}
 function kbSlot(o){return KBMEM[o]||(KBMEM[o]={docs:[],idx:null});}
 var KTF={}, KGATE=Promise.resolve(), KFILES={};
 function kbTf(d,i,t){
@@ -4423,6 +4471,35 @@ function kbShort(c,q){
   return r.length>420?r.slice(0,417)+'...':r;
 }
 var KMORE={};
+var GRAPERX=/\b(chardonnay|pinot noir|pinot meunier|meunier|riesling|sauvignon blanc|cabernet sauvignon|cabernet franc|merlot|syrah|shiraz|grenache|garnacha|tempranillo|sangiovese|nebbiolo|chenin blanc|semillon|viognier|gamay|malbec|pinot gris|pinot grigio|pinot blanc|gewurztraminer|muscat|albarino|mourvedre|zinfandel|primitivo|carmenere|pinotage|aligote|melon de bourgogne|marsanne|roussanne|glera|trebbiano|verdejo|gruner veltliner|furmint|assyrtiko|touriga nacional|barbera|corvina|montepulciano|aglianico|tannat|petit verdot|carignan|cinsault|picpoul|vermentino|cortese|garganega|fiano|greco|falanghina|xarel|macabeo|parellada|palomino|pedro ximenez|colombard|ugni blanc|folle blanche|savagnin|trousseau|poulsard|mondeuse|jacquere|altesse|clairette|bourboulenc|ugni|sylvaner|muller thurgau|silvaner|scheurebe|kerner|bacchus)\b/;
+var KBLAST={};
+/* sentence-level answer: finds the one or two sentences that really hold the answer */
+function kbBest(o,q){
+  var m=KBMEM[o]; if(!m||!m.idx||!m.idx.N)return null; var I=m.idx, qt=kbTok(q).filter(function(w,i,a){return a.indexOf(w)===i;}); if(!qt.length)return null;
+  var r=kbSearch(o,q,28); if(!r.res.length)return null;
+  function idf(w){var n=I.df[w]||0; return Math.log(1+(I.N-n+0.5)/(n+0.5));}
+  var rare=null; qt.forEach(function(w){if(I.df[w]&&(!rare||I.df[w]<I.df[rare]))rare=w;});
+  var grapeQ=/variet|grape|blend|planted|made (from|of)|varietal/i.test(q), cands=[], seen={};
+  r.res.forEach(function(x,ci){
+    var t=kbClean(x.c.t), ss=(t.match(/[^.!?]+[.!?]+["')\]]*\s*|[^.!?]+$/g)||[t]).map(function(z){return z.trim();});
+    var rs=(String(x.c.t).replace(/\[p\.\d+\]\s*/g,' ').match(/[^.!?]+[.!?]+["')\]]*\s*|[^.!?]+$/g)||[]).map(function(z){return z.replace(/\s+/g,' ').trim();});
+    ss.forEach(function(z,si){
+      if(z.length<25||z.length>600||seen[z])return; seen[z]=1;
+      var tk=kbTok(z), hit=0, sc=0, hasRare=false; qt.forEach(function(w){if(tk.indexOf(w)>-1){hit++; sc+=idf(w); if(w===rare)hasRare=true;}});
+      if(!hit)return; if(rare&&!hasRare)sc*=0.3;
+      if(grapeQ&&GRAPERX.test(foldS(z).toLowerCase()))sc+=1.5;
+      sc+=0.15/(ci+1);
+      cands.push({z:z,pv:(function(){var k=rs.findIndex(function(y){return y.indexOf(z.slice(0,30))===0;}); return k>0?rs[k-1]:'';})(),sc:sc,cov:hit/qt.length,hasRare:hasRare,c:x.c,ci:ci,si:si});
+    });
+  });
+  if(!cands.length)return null; cands.sort(function(a,b){return b.sc-a.sc;});
+  var b=cands[0]; if(!(b.cov>=0.5||(b.hasRare&&b.cov>=0.3)))return null;
+  var pick=[b]; for(var i=1;i<cands.length&&pick.length<2;i++){var x=cands[i]; if(x.sc>=b.sc*0.7&&x.cov>=0.5&&(!rare||x.hasRare)&&b.z.indexOf(x.z)<0&&x.z.indexOf(b.z)<0)pick.push(x);}
+  pick.sort(function(a,b2){return a.ci-b2.ci||a.si-b2.si;});
+  var out=pick.map(function(x){return (/^(its|it|this|these|they|their|the region|the wines?)\b/i.test(x.z)&&x.pv&&x.pv.length<260?x.pv+' ':'')+x.z;}).join(' '); if(out.length>420)out=out.slice(0,417)+'...';
+  KBLAST[o]={c:b.c,text:out}; return out;
+}
+
 function kbPassage(c){var t=c.t.replace(/^[ \t]*(?:#{2,}|={3,}|-{5,}).*$/gm,' ').replace(/[#=_]{4,}/g,' ').replace(/\s+/g,' ').trim(); if(t.length<=950)return t; var cut=t.lastIndexOf('. ',950); return t.slice(0,cut>500?cut+1:950);}
 function kbAnswer(o,text){
   var more=/^\s*(continue|more|go on|next|keep going|devam|devam et)\s*[.!?]*\s*$/i.test(text), prev=KMORE[o];
@@ -4433,6 +4510,7 @@ function kbAnswer(o,text){
   r.res=r.res.filter(function(x){return !junk(x.c);}); var res=r.res.slice(off);
   var okc=r.cov>=0.5; if(!okc&&!more&&r.cov>=0.3&&r.res.length){var I0=KBMEM[o].idx, qts=kbTok(q).filter(function(w,i,a){return a.indexOf(w)===i;}).sort(function(a,b){return (I0.df[a]||1e9)-(I0.df[b]||1e9);}), rw=qts[0]; okc=!!(rw&&I0.df[rw]&&I0.df[rw]<=Math.max(6,I0.N*0.03)&&r.res[0].c.tf[rw]);}
   if(!res.length||(!more&&!okc))return more?[{text:'That is all I found on this. Ask me with other words and I will look again.'}]:null;
+  var bst=more?null:kbBest(o,q); if(bst){KMORE[o]={q:q,off:0}; return [{text:bst+'\n\nSay \u201cmore\u201d for the longer text.'}];}
   var top=r.res[0].s, out=[];
   res.forEach(function(x){if(out.length<(more?3:2)&&x.s>=top*0.45)out.push(more?kbClean(kbPassage(x.c)):kbShort(x.c,q));});
   if(!out.length)out.push(more?kbClean(kbPassage(res[0].c)):kbShort(res[0].c,q));
@@ -5510,12 +5588,15 @@ function renderHead(){
   var a=byId[cur];
   av.appendChild(avatarEl(cur,40)); $('chatName').textContent=a.name;
   var t=total(c.inv);
-  $('chatSub').textContent=!stkUI(a)?a.role+' · '+cap(a.area):(c.inv.length?a.role+' · '+num(t)+' '+plural(a,t)+' in stock':a.role+' · no stock list yet');
+  $('chatSub').textContent=roleLine(a);
   $('stockBtn').hidden=false; $('attachBtn').hidden=false; $('whoBtn').setAttribute('aria-label','Open '+a.name+'\u2019s profile');
 }
+var HEADT={sofia:'Head Sommelier'};
+function roleLine(a){return HEADT[a.id]||a.role;}
 var a0;
 function renderChips(){
   var box=$('chips'); box.textContent=''; var out=[];
+  if(cur!=='team'){box.hidden=true; return;} box.hidden=false;
   if(cur==='team'){['Sofia','Marco','James','Elena','Omar'].forEach(function(n){out.push({label:'@'+n,mention:'@'+n+' '});}); out.push({label:'Introductions',text:'Introduce yourselves'},{label:'Status update',text:'Status update'},{label:'Low stock',text:'Low stock'},{label:'Share guest feedback',text:'Chloe, share guest feedback'});}
   else{
     var c=S.chats[cur];
@@ -5642,7 +5723,7 @@ try{setTimeout(function(){snapNow('Opened the app');},6000); document.addEventLi
   }
   window.addEventListener('resize',apply); window.addEventListener('orientationchange',function(){setTimeout(apply,60);}); apply();
 })();
-var APPVER='Sidekick 55';
+var APPVER='Sidekick 59';
 var KEYNAME='dutybuddy.apikey', inClaude=false;
 function storedKey(){try{return localStorage.getItem(KEYNAME)||'';}catch(e){return '';}}
 function keyOn(){try{return localStorage.getItem('dutybuddy.keyoff')!=='1';}catch(e){return true;}}
@@ -5773,10 +5854,10 @@ async function studySend(id,text,gen){
     return false;
   }
   var cw=contentWords(String(text).replace(LENRX,' ')).join(' ')||text, r=kbSearch(id,cw,8), top=r.res.length?r.res[0].s:0, picks=r.res.filter(function(x){return x.s>=top*0.45;}).slice(0,3), names=[];
-  picks.forEach(function(x){var nm=x.c.n+(kbPage(x.c)?' p.'+kbPage(x.c):''); if(names.indexOf(nm)<0)names.push(nm);});
+  var kl=KBLAST[id]; if(kl&&ext&&ext[0]&&ext[0].text.indexOf(kl.text)===0){picks=[{c:kl.c,s:top}].concat(picks.filter(function(x){return x.c!==kl.c;})).slice(0,3);}
   if(gen!=null&&gen!==AIGEN)return true;
   hideTyping();
-  push(id,{from:'bot',text:ext.map(function(m){return m.text;}).join('\n\n')+(names.length?'\n\nSources: '+names.slice(0,3).join('; '):'')});
+  push(id,{from:'bot',text:ext.map(function(m){return m.text;}).join('\n\n')});
   save(); refreshChat(id); renderList();
   if(localOn()&&!STUDYBUSY){STUDYBUSY=true; (async function(){
     try{
@@ -6498,8 +6579,9 @@ function renderReports(id){
 }
 function renderInfo(id,keepScroll){
   var a=byId[id], c=S.chats[id], box=$('info'); box.textContent='';
+  try{var tt=$('infoTtl'); tt.firstChild.textContent=a.name; tt.lastChild.textContent=roleLine(a);}catch(e){}
   var hero=el('div','ihead'); hero.style.cssText='display:flex;align-items:center;gap:12px;padding:14px 16px;background:var(--surface,#fff);border-bottom:1px solid var(--line)'; hero.appendChild(avatarEl(id,48));
-  var hn=el('div'); hn.appendChild(Object.assign(el('div','h-name',a.name),{style:'font-size:19px;font-weight:800;margin:0;text-align:left'})); hn.appendChild(Object.assign(el('div','h-role',a.role+' · '+cap(a.area)),{style:'font-size:12.5px;margin:0;text-align:left'})); hero.appendChild(hn); box.appendChild(hero);
+  var hn=el('div'); hn.appendChild(Object.assign(el('div','h-name',a.name),{style:'font-size:19px;font-weight:800;margin:0;text-align:left'})); hn.appendChild(Object.assign(el('div','h-role',roleLine(a)+' · '+cap(a.area)),{style:'font-size:12.5px;margin:0;text-align:left'})); hero.appendChild(hn); box.appendChild(hero);
   if(infoTeach){
     var tb=el('div'); tb.style.cssText='padding:10px 14px 0'; tb.appendChild(mkBtn('‹ '+a.name,'ghost sm',function(){infoTeach=false; renderInfo(id);})); box.appendChild(tb);
     box.appendChild(Object.assign(el('h2',null,'Teach '+a.name),{style:'font-size:20px;margin:10px 16px 4px'}));
@@ -12514,7 +12596,7 @@ syncStart();
 A.forEach(function(x){kbLoad(x.id).then(function(){kbResumeAll(x.id); kbBarUpdate(); if((libId===x.id||libId==='lib')&&!$('libView').hidden)renderLib(libId);});});
 kbLoad('lib').then(function(){kbResumeAll('lib'); kbBarUpdate(); if(libId==='lib'&&!$('libView').hidden)renderLib('lib');});
 document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible'){A.forEach(function(x){kbResumeAll(x.id);}); kbWake(); kbBarUpdate();}});
-if(window.__DB_TEST__)window.__DB_TEST__({kbClean:kbClean,kbBuild:kbBuild,studySend:studySend,rsPlan:rsPlan,tbDim:tbDim,tbShape:tbShape,tbMerge:tbMerge,tbSnap:tbSnap,tbSplit:tbSplit,wineAny:wineAny,mxInit:mxInit,mxLearn:mxLearn,wineOpen:wineOpen,photoOrOcr:photoOrOcr,gqCount:gqCount,kbSlot:kbSlot,libAll:libAll,renderLib:renderLib,libPicker:libPicker,kbShare:kbShare,celInvTotals:celInvTotals,stkPdfRes:stkPdfRes,stkReportRes:stkReportRes,bkStatus:bkStatus,openBackup:openBackup,todoPoke:todoPoke,save:save,barPlan:barPlan,celSale:celSale,wineOpen:wineOpen,chgLoad:chgLoad,openSettings:openSettings,chgStore:chgStore,chgDiff:chgDiff,stkRows:stkRows,stkCounts:stkCounts,stkParse:stkParse,stkApplyImport:stkApplyImport,stkAccept:stkAccept,stkSheets:stkSheets,stkStore:stkStore,celParseCsv:celParseCsv,celStore:celStore,celParseRows:celParseRows,celParseCsv:celParseCsv,celApplyImport:celApplyImport,celRows:celRows,celXlsx:celXlsx,celCollect:celCollect,celApply:celApply,celSwap:celSwap,rtSeed:rtSeed,evMenuItems:evMenuItems,evFind:evFind,evAddDish:evAddDish,rtGridArr:rtGridArr,rtXlsx:rtXlsx,rtDiff:rtDiff,rtPages:rtPages,rtGrid:rtGrid,rtParseGrid:rtParseGrid,rtHandle:rtHandle,rtApplyImport:rtApplyImport,fpImportBuf:fpImportBuf,fpPut:fpPut,fpPlan:fpPlan,fpHandle:fpHandle,fpTablesOf:fpTablesOf,getS:function(){return S;},cmGet:cmGet,fileRoute:fileRoute,costRefresh:costRefresh,pbL:pbL,pbSearch:pbSearch,cmRecipeSheets:cmRecipeSheets,cmDishCost:cmDishCost,pcTeam:pcTeam,cxList:cxList,pbSet:pbSet,cmTouch:cmTouch,emMenu:emMenu,emPick:emPick,emCount:emCount,emPages:emPages,emDoc:emDoc,emOpenDiff:emOpenDiff,emApply:emApply,emTeam:emTeam,emCmd:emCmd,evIntentRx:evIntentRx,save:save,send:send,openChat:openChat,teamFlow:teamFlow,foreignGuard:foreignGuard,kbDetail:kbDetail,baseApply:baseApply,BASE:BASE,kbAdd:kbAdd,kbEnqueue:kbEnqueue,kbSearch:kbSearch,kbLoad:kbLoad,kbRemove:kbRemove,kbCloze:kbCloze,kbSlot:kbSlot,kbAnswer:kbAnswer,readAny:readAny,exportRows:exportRows,xlsxBuild:xlsxBuild,pdfBuild:pdfBuild,csvBuild:csvBuild,handleExport:handleExport,exportStock:exportStock,needsRules:needsRules,buildPrompt:buildPrompt,teamSpeakersFor:teamSpeakersFor,dataBlock:dataBlock,stockRows:stockRows,parseCount:parseCount,splitCount:splitCount,idfWeights:idfWeights,rankMatches:rankMatches,aliasSet:aliasSet,handleMatches:handleMatches,respond:respond,respondTeam:respondTeam,parseList:parseList,applyList:applyList,avatarSVG:avatarSVG,glassCard:glassCard,parseMenuText:parseMenuText,looksMenu:looksMenu,autoMatch:autoMatch,searchPool:searchPool,scoreName:scoreName,sendGlassEdit:sendGlassEdit,guessType:guessType,getS:function(){return S;},A:A});
+if(window.__DB_TEST__)window.__DB_TEST__({kbBest:kbBest,kbClean:kbClean,kbBuild:kbBuild,studySend:studySend,rsPlan:rsPlan,tbDim:tbDim,tbShape:tbShape,tbMerge:tbMerge,tbSnap:tbSnap,tbSplit:tbSplit,wineAny:wineAny,mxInit:mxInit,mxLearn:mxLearn,wineOpen:wineOpen,photoOrOcr:photoOrOcr,gqCount:gqCount,kbSlot:kbSlot,libAll:libAll,renderLib:renderLib,libPicker:libPicker,kbShare:kbShare,celInvTotals:celInvTotals,stkPdfRes:stkPdfRes,stkReportRes:stkReportRes,bkStatus:bkStatus,openBackup:openBackup,todoPoke:todoPoke,save:save,barPlan:barPlan,celSale:celSale,wineOpen:wineOpen,chgLoad:chgLoad,openSettings:openSettings,chgStore:chgStore,chgDiff:chgDiff,stkRows:stkRows,stkCounts:stkCounts,stkParse:stkParse,stkApplyImport:stkApplyImport,stkAccept:stkAccept,stkSheets:stkSheets,stkStore:stkStore,celParseCsv:celParseCsv,celStore:celStore,celParseRows:celParseRows,celParseCsv:celParseCsv,celApplyImport:celApplyImport,celRows:celRows,celXlsx:celXlsx,celCollect:celCollect,celApply:celApply,celSwap:celSwap,rtSeed:rtSeed,evMenuItems:evMenuItems,evFind:evFind,evAddDish:evAddDish,rtGridArr:rtGridArr,rtXlsx:rtXlsx,rtDiff:rtDiff,rtPages:rtPages,rtGrid:rtGrid,rtParseGrid:rtParseGrid,rtHandle:rtHandle,rtApplyImport:rtApplyImport,fpImportBuf:fpImportBuf,fpPut:fpPut,fpPlan:fpPlan,fpHandle:fpHandle,fpTablesOf:fpTablesOf,getS:function(){return S;},cmGet:cmGet,fileRoute:fileRoute,costRefresh:costRefresh,pbL:pbL,pbSearch:pbSearch,cmRecipeSheets:cmRecipeSheets,cmDishCost:cmDishCost,pcTeam:pcTeam,cxList:cxList,pbSet:pbSet,cmTouch:cmTouch,emMenu:emMenu,emPick:emPick,emCount:emCount,emPages:emPages,emDoc:emDoc,emOpenDiff:emOpenDiff,emApply:emApply,emTeam:emTeam,emCmd:emCmd,evIntentRx:evIntentRx,save:save,send:send,openChat:openChat,teamFlow:teamFlow,foreignGuard:foreignGuard,kbDetail:kbDetail,baseApply:baseApply,BASE:BASE,kbAdd:kbAdd,kbEnqueue:kbEnqueue,kbSearch:kbSearch,kbLoad:kbLoad,kbRemove:kbRemove,kbCloze:kbCloze,kbSlot:kbSlot,kbAnswer:kbAnswer,readAny:readAny,exportRows:exportRows,xlsxBuild:xlsxBuild,pdfBuild:pdfBuild,csvBuild:csvBuild,handleExport:handleExport,exportStock:exportStock,needsRules:needsRules,buildPrompt:buildPrompt,teamSpeakersFor:teamSpeakersFor,dataBlock:dataBlock,stockRows:stockRows,parseCount:parseCount,splitCount:splitCount,idfWeights:idfWeights,rankMatches:rankMatches,aliasSet:aliasSet,handleMatches:handleMatches,respond:respond,respondTeam:respondTeam,parseList:parseList,applyList:applyList,avatarSVG:avatarSVG,glassCard:glassCard,parseMenuText:parseMenuText,looksMenu:looksMenu,autoMatch:autoMatch,searchPool:searchPool,scoreName:scoreName,sendGlassEdit:sendGlassEdit,guessType:guessType,getS:function(){return S;},A:A});
 })();
 </script>
 
@@ -12526,6 +12608,18 @@ if('serviceWorker' in navigator){
     function chk(){try{reg.update();}catch(e){}} chk(); document.addEventListener('visibilitychange',function(){if(!document.hidden)chk();});
   }).catch(function(){});});
 }
+
+(function(){
+  function fit(){try{var b=document.getElementById('cbot'),v=document.getElementById('chatView'); if(!b||!v||v.hidden)return; var h=b.offsetHeight; if(h>0)v.style.setProperty('--cb',h+'px'); var br=v.querySelector('.bar'); if(br&&br.offsetHeight>0)v.style.setProperty('--hh',br.offsetHeight+'px');}catch(e){}}
+  function init(){var b=document.getElementById('cbot'); if(!b)return; if(window.ResizeObserver){try{new ResizeObserver(fit).observe(b);}catch(e){}} window.addEventListener('resize',fit); setInterval(fit,700); fit();}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init); else init();
+})();
+
+(function(){
+  function upd(){try{var v=document.getElementById('infoView'),inf=document.getElementById('info'); if(!v||!inf||v.hidden)return; var h=inf.querySelector('.ihead'); if(!h){v.classList.add('tshow');return;} var bar=v.querySelector('.bar'), hh=bar?bar.offsetHeight:60; var gone=(h.offsetTop+h.offsetHeight-inf.scrollTop)<=hh-6; v.classList.toggle('tshow',gone);}catch(e){}}
+  function init(){var inf=document.getElementById('info'); if(!inf)return; inf.addEventListener('scroll',upd,{passive:true}); window.addEventListener('hashchange',function(){setTimeout(upd,60);}); new MutationObserver(function(){setTimeout(upd,30);}).observe(inf,{childList:true}); setInterval(upd,500); upd();}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init); else init();
+})();
 </script>
 </body>
 </html>
