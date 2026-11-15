@@ -4406,7 +4406,8 @@ function kbAnswer(o,text){
   var r=kbSearch(o,q,off+14);
   function junk(c){var t=c.t, w=t.split(/\s+/), d=(t.match(/\d/g)||[]).length, sh=w.filter(function(x){return x.length<=2;}).length; return /\(retrieved|\bpp?\.\s?\d|\bISBN\b|Source:/i.test(t)&&(t.match(/retrieved/gi)||[]).length>1 || d/t.length>0.12 || sh/w.length>0.3;}
   r.res=r.res.filter(function(x){return !junk(x.c);}); var res=r.res.slice(off);
-  if(!res.length||(!more&&r.cov<0.5))return more?[{text:'That is all I found on this. Ask me with other words and I will look again.'}]:null;
+  var okc=r.cov>=0.5; if(!okc&&!more&&r.cov>=0.3&&r.res.length){var I0=KBMEM[o].idx, qts=kbTok(q).filter(function(w,i,a){return a.indexOf(w)===i;}).sort(function(a,b){return (I0.df[a]||1e9)-(I0.df[b]||1e9);}), rw=qts[0]; okc=!!(rw&&I0.df[rw]&&I0.df[rw]<=Math.max(6,I0.N*0.03)&&r.res[0].c.tf[rw]);}
+  if(!res.length||(!more&&!okc))return more?[{text:'That is all I found on this. Ask me with other words and I will look again.'}]:null;
   var top=r.res[0].s, out=[];
   res.forEach(function(x){if(out.length<3&&x.s>=top*0.45)out.push(kbPassage(x.c));});
   if(!out.length)out.push(kbPassage(res[0].c));
@@ -5616,7 +5617,7 @@ try{setTimeout(function(){snapNow('Opened the app');},6000); document.addEventLi
   }
   window.addEventListener('resize',apply); window.addEventListener('orientationchange',function(){setTimeout(apply,60);}); apply();
 })();
-var APPVER='Sidekick 53';
+var APPVER='Sidekick 54';
 var KEYNAME='dutybuddy.apikey', inClaude=false;
 function storedKey(){try{return localStorage.getItem(KEYNAME)||'';}catch(e){return '';}}
 function keyOn(){try{return localStorage.getItem('dutybuddy.keyoff')!=='1';}catch(e){return true;}}
@@ -5738,22 +5739,29 @@ async function smartRetry(id,text,gen){
   return false;
 }
 /* study mode for the on-device AI: short questions answered only from the person's own library (like NotebookLM) */
+var STUDYBUSY=false;
 async function studySend(id,text,gen){
   if(!kbHas(id))return false;
-  var ext=kbAnswer(id,text); if(!ext||!ext.length)return false;
+  var ext=kbAnswer(id,text);
+  if(!ext||!ext.length){
+    if(isQuestion(text)&&String(text).length>12){if(gen!=null&&gen!==AIGEN)return true; hideTyping(); push(id,{from:'bot',text:'I could not find this in my books. Try other words, or add the wine, grape or region name.'}); save(); refreshChat(id); renderList(); return true;}
+    return false;
+  }
   var cw=contentWords(String(text).replace(LENRX,' ')).join(' ')||text, r=kbSearch(id,cw,8), top=r.res.length?r.res[0].s:0, picks=r.res.filter(function(x){return x.s>=top*0.45;}).slice(0,3), names=[];
   picks.forEach(function(x){if(names.indexOf(x.c.n)<0)names.push(x.c.n);});
-  var tx='';
-  try{
-    var L=await loadLocalLib(), pass=picks.map(function(x,i){var t=kbPassage(x.c); return '['+(i+1)+'] '+(t.length>650?t.slice(0,650):t);}).join('\n\n');
-    var pr='You are a study helper. Answer the question using ONLY the passages below. Be short: 2 to 4 sentences, or a short list. Answer in the language of the question. If the passages do not contain the answer, reply exactly: Not in my sources.\n\nPASSAGES\n'+pass+'\n\nQUESTION: '+String(text).replace(LENRX,' ').slice(0,300)+'\nANSWER:';
-    tx=String(await L.ask(pr,{max:200,timeoutMs:70000})||'').replace(/```[a-z]*/gi,'').replace(/\*\*/g,'').trim();
-  }catch(e){LASTAIERR='on-device: '+(e&&e.message||'error'); tx='';}
   if(gen!=null&&gen!==AIGEN)return true;
   hideTyping();
-  if(tx&&!/not in my sources/i.test(tx)&&tx.length>8)push(id,{from:'bot',text:tx+'\n\nSources: '+names.slice(0,3).join('; '),ai:true});
-  else push(id,{from:'bot',text:ext.map(function(m){return m.text;}).join('\n\n')+'\n\n(The on-device AI could not summarise this, so these are the closest passages from: '+names.slice(0,3).join('; ')+'.)'});
-  save(); refreshChat(id); renderList(); return true;
+  push(id,{from:'bot',text:ext.map(function(m){return m.text;}).join('\n\n')+(names.length?'\n\nSources: '+names.slice(0,3).join('; '):'')});
+  save(); refreshChat(id); renderList();
+  if(localOn()&&!STUDYBUSY){STUDYBUSY=true; (async function(){
+    try{
+      var L=await loadLocalLib(), pass=picks.map(function(x,i){var t=kbPassage(x.c); return '['+(i+1)+'] '+(t.length>650?t.slice(0,650):t);}).join('\n\n');
+      var pr='You are a study helper. Answer the question using ONLY the passages below. Be short: 2 to 4 sentences, or a short list. Answer in the language of the question. If the passages do not contain the answer, reply exactly: Not in my sources.\n\nPASSAGES\n'+pass+'\n\nQUESTION: '+String(text).replace(LENRX,' ').slice(0,300)+'\nANSWER:';
+      var tx=String(await L.ask(pr,{max:200,timeoutMs:90000})||'').replace(/```[a-z]*/gi,'').replace(/\*\*/g,'').trim();
+      if(tx&&!/not in my sources/i.test(tx)&&tx.length>8&&S.chats[id]){push(id,{from:'bot',text:'In short: '+tx,ai:true}); save(); if(typeof refreshChat==='function')refreshChat(id); renderList();}
+    }catch(e){LASTAIERR='on-device: '+(e&&e.message||'error');}
+    STUDYBUSY=false;})();}
+  return true;
 }
 async function smartSend(id,text,gen){
   AINOTE='';
