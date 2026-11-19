@@ -5792,7 +5792,7 @@ try{setTimeout(function(){snapNow('Opened the app');},6000); document.addEventLi
   }
   window.addEventListener('resize',apply); window.addEventListener('orientationchange',function(){setTimeout(apply,60);}); apply();
 })();
-var APPVER='Sidekick 74';
+var APPVER='Sidekick 75';
 var KEYNAME='dutybuddy.apikey', inClaude=false;
 function storedKey(){try{return localStorage.getItem(KEYNAME)||'';}catch(e){return '';}}
 function keyOn(){try{return localStorage.getItem('dutybuddy.keyoff')!=='1';}catch(e){return true;}}
@@ -11561,7 +11561,7 @@ function rtUndo(){var u=RT_UNDO.pop(); if(!u){toast('Nothing to undo.'); return 
 /* drag and drop */
 function rtAttach(el,o){
   el.addEventListener('pointerdown',function(e){
-    if(e.button>0)return; var sx=e.clientX, sy=e.clientY, on=false, gh=null, tm=null, hit=null;
+    if(e.button>0)return; if(o.skip&&e.target&&e.target.closest&&e.target.closest(o.skip))return; var sx=e.clientX, sy=e.clientY, on=false, gh=null, tm=null, hit=null;
     function tmv(ev){if(on)ev.preventDefault();}
     function start(){on=true; gh=el.cloneNode(true); gh.removeAttribute('id'); gh.style.cssText+=';position:fixed;z-index:9999;pointer-events:none;box-shadow:0 8px 22px #0006;transform:scale(1.25);display:block;padding:7px 12px;border-radius:12px;font-size:12px;font-weight:800;left:'+(sx-24)+'px;top:'+(sy-40)+'px'; document.body.appendChild(gh); try{if(navigator.vibrate)navigator.vibrate(12);}catch(_){}}
     function tgt(x,y){var e2=document.elementFromPoint(x,y); return e2&&e2.closest?e2.closest('td[data-ri]'):null;}
@@ -11914,11 +11914,83 @@ function celTile(r,u){
   if(diff){var ch=el('span',null,'!'); ch.style.cssText='position:absolute;top:-6px;right:-4px;background:#b7791f;color:#fff;font-weight:800;font-size:11px;border-radius:9px;padding:1px 7px'; b.appendChild(ch);}
   b.addEventListener('click',function(){modGo('cellar',u.id);}); return b;
 }
+/* ----- month-end count (flat lists per cabinet) ----- */
+function mcUnits(r){
+  var out=[]; r.units.forEach(function(u){
+    if(u.b==='w'){[['Left','l'],['Middle','m'],['Right','r']].forEach(function(p){out.push({key:u.id+p[1],name:'Walk-in · '+p[0],sub:'',src:u.sh.filter(function(s){return s.cab===p[0];})});});}
+    else out.push({key:u.id,name:celUName(u),sub:u.name||'',src:u.sh.filter(function(s){return !s.nw;})});
+  }); return out;
+}
+function mcStore(r){
+  r.mc=r.mc||{lists:{},date:tdy()}; r.mc.lists=r.mc.lists||{};
+  mcUnits(r).forEach(function(mu){ if(!r.mc.lists[mu.key]){var l=[]; mu.src.forEach(function(sh){sh.w.forEach(function(x){l.push({id:uid(),wid:x.wid||'',n:x.n,q:null});});}); r.mc.lists[mu.key]=l;} });
+  return r.mc;
+}
+function mcItem(c,x){if(!x.wid)return null; return c.inv.filter(function(i){return i.id===x.wid;})[0]||null;}
+function mcProg(l){var d=l.filter(function(x){return x.q!=null;}).length; return {d:d,n:l.length};}
+function mcRows(c,r){
+  var mc=mcStore(r), tot={}, order=[], by=[['Cabinet','Wine','Stock code','Count']];
+  mcUnits(r).forEach(function(mu){(mc.lists[mu.key]||[]).forEach(function(x){
+    if(x.q==null)return; var it=mcItem(c,x), k=it?it.id:'n:'+foldS(x.n), q=parseFloat(x.q)||0;
+    by.push([mu.name,it?it.name:x.n,it&&it.code?String(it.code):'',q]);
+    if(!tot[k]){tot[k]={it:it,n:it?it.name:x.n,q:0,w:[]}; order.push(k);} tot[k].q=Math.round((tot[k].q+q)*100)/100; tot[k].w.push(mu.name.replace('EuroCave','EC').replace('Swisscave','SC')+': '+q);
+  });});
+  var t=[['Stock code','Stock name','Count','System stock','Difference','Where']], sum=0;
+  order.sort(function(a,b){return foldS(tot[a].n)<foldS(tot[b].n)?-1:1;}).forEach(function(k){var e=tot[k], st=e.it?celStockN(e.it):null; sum+=e.q; t.push([e.it&&e.it.code?String(e.it.code):'',e.it?(e.it.sheet||e.it.name):e.n+' (not linked to stock)',e.q,st==null?'':st,st==null?'':Math.round((e.q-st)*100)/100,e.w.join(' | ')]);});
+  t.push(['','TOTAL BOTTLES',Math.round(sum*100)/100,'','','']);
+  return [{name:'Count total',rows:t,w:[13,52,10,13,12,70],total:true},{name:'By cabinet',rows:by,w:[22,50,13,9]}];
+}
+function mcExport(c,r){saveFile('Month_end_count_'+tdy()+'.xlsx',new Blob([celXlsx(mcRows(c,r))],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));}
+function mcOverview(c,r,box){
+  var mc=mcStore(r), us=mcUnits(r), done=0, bt=0;
+  us.forEach(function(u){var p=mcProg(mc.lists[u.key]); if(p.n&&p.d===p.n)done++; mc.lists[u.key].forEach(function(x){bt+=parseFloat(x.q)||0;});});
+  var hd=el('div','card'); hd.appendChild(Object.assign(el('b',null,'Month-end count'),{style:'font-size:17px;display:block'})); hd.appendChild(Object.assign(el('small',null,done+' of '+us.length+' cabinets done · '+Math.round(bt*100)/100+' bottles counted'),{style:'color:var(--muted)'})); box.appendChild(hd);
+  box.appendChild(Object.assign(el('p',null,'Every cabinet is a simple list, top to bottom. Type the number next to each wine. Hold a wine and drag it onto another to swap places. Add a wine from stock at the bottom.'),{style:'font-size:12px;color:var(--muted);margin:8px 2px'}));
+  var cd=el('div','card'); cd.style.cssText='padding:0;overflow:hidden';
+  us.forEach(function(u,i){var p=mcProg(mc.lists[u.key]);
+    var b=el('button'); b.type='button'; b.style.cssText='display:flex;align-items:center;gap:10px;width:100%;text-align:left;border:0;'+(i?'border-top:1px solid var(--line);':'')+'background:transparent;padding:12px 14px;font:inherit;color:inherit;cursor:pointer;min-height:56px';
+    var mid=el('div'); mid.style.cssText='flex:1;min-width:0'; mid.appendChild(Object.assign(el('b',null,u.name),{style:'display:block;font-size:15px'})); mid.appendChild(Object.assign(el('small',null,(u.sub?u.sub+' · ':'')+p.n+' wines'),{style:'color:var(--muted);font-size:12px'})); b.appendChild(mid);
+    var pl=el('span',null,p.d+' / '+p.n); pl.style.cssText='border-radius:99px;font-size:12px;font-weight:800;padding:3px 10px;flex:none;'+(p.n&&p.d===p.n?'background:#e1f0ec;color:#0a4d42':'background:#eef1f0;color:#55657f'); b.appendChild(pl); b.appendChild(Object.assign(el('span',null,'›'),{style:'color:#8a9a96;font-size:20px'}));
+    b.addEventListener('click',function(){modGo('cellar','mc'+u.key);}); cd.appendChild(b);});
+  box.appendChild(cd);
+  var xb=mkBtn('Export Excel (stock code, stock name, count)','',function(){mcExport(c,r);}); xb.style.cssText='width:100%;margin-top:14px'; box.appendChild(xb);
+  box.appendChild(Object.assign(el('p',null,'One line per wine, totals of all cabinets. Extra columns: system stock and difference. Only counted wines are listed. Upload the file in the Stock section to update the numbers.'),{style:'font-size:12px;color:var(--muted);margin:6px 4px 0'}));
+  var g=el('div','btns'); g.style.marginTop='12px';
+  g.appendChild(mkBtn('Start new count','ghost',function(){mmAsk('Clear all counted numbers? The wine lists stay.','Clear numbers','Keep',function(){us.forEach(function(u){mc.lists[u.key].forEach(function(x){x.q=null;});}); save(); renderMod();});}));
+  g.appendChild(mkBtn('Reload lists from shelves','ghost',function(){mmAsk('Rebuild every cabinet list from the shelves? Counted numbers are cleared.','Rebuild','Keep',function(){r.mc.lists={}; mcStore(r); save(); renderMod();});}));
+  box.appendChild(g);
+}
+function mcUnit(c,r,key,box){
+  var mc=mcStore(r), mu=mcUnits(r).filter(function(u){return u.key===key;})[0]; if(!mu)return mcOverview(c,r,box);
+  var l=mc.lists[key], top=el('div','card'); top.appendChild(Object.assign(el('b',null,mu.name),{style:'font-size:17px;display:block'})); if(mu.sub)top.appendChild(Object.assign(el('small',null,mu.sub),{style:'color:var(--muted);display:block'}));
+  var pt=el('div'); pt.style.cssText='font-size:12px;font-weight:700;color:#55657f;margin-top:6px'; top.appendChild(pt);
+  var bar=el('div'); bar.style.cssText='height:6px;border-radius:9px;background:#dfe7e4;margin-top:4px'; var fl=el('div'); fl.style.cssText='height:6px;border-radius:9px;background:#0b6b5c;width:0'; bar.appendChild(fl); top.appendChild(bar); box.appendChild(top);
+  function prog(){var p=mcProg(l); pt.textContent=p.d+' / '+p.n+' counted'; fl.style.width=(p.n?p.d/p.n*100:0)+'%';}
+  var list=el('div'); list.style.marginTop='10px'; box.appendChild(list);
+  var tm=null; function later(){clearTimeout(tm); tm=setTimeout(function(){save();},400);}
+  function paint(inp,x){var it=mcItem(c,x), st=it?celStockN(it):null, q=x.q; var bg='#fbfdfc',bd='#cfd9d6',co='inherit'; if(q!=null&&st!=null){if(Math.abs(q-st)<0.001){bg='#f1faf5';bd='#9fd1bd';co='#0a4d42';}else{bg='#fff9e8';bd='#e7c778';co='#8a5a00';}} else if(q!=null){bg='#f1faf5';bd='#9fd1bd';} inp.style.background=bg; inp.style.borderColor=bd; inp.style.color=co;}
+  function draw(){list.textContent=''; if(!l.length)list.appendChild(Object.assign(el('p',null,'No wines in this cabinet yet. Add one below.'),{style:'color:var(--muted);font-size:13px;margin:8px 2px'}));
+    l.forEach(function(x,i){
+      var it=mcItem(c,x), st=it?celStockN(it):null, row=el('div','card'); row.setAttribute('data-celi',String(i)); row.style.cssText='display:flex;align-items:center;gap:8px;padding:7px 8px;margin:0 0 7px;touch-action:pan-y';
+      row.appendChild(Object.assign(el('span',null,'⋮⋮'),{style:'color:#b3c0bc;font-size:16px;letter-spacing:-2px;flex:none'}));
+      var nm=el('div'); nm.style.cssText='flex:1;min-width:0'; nm.appendChild(Object.assign(el('b',null,it?it.name:x.n),{style:'display:block;font-size:13.5px;line-height:1.2'})); nm.appendChild(Object.assign(el('small',null,it?'Stock '+num(st):'Not linked to stock'),{style:'color:var(--muted);font-size:11px'})); row.appendChild(nm);
+      var inp=el('input'); inp.type='text'; inp.inputMode='decimal'; inp.placeholder='—'; inp.value=x.q==null?'':String(x.q); inp.setAttribute('aria-label','Counted number for '+(it?it.name:x.n)); inp.style.cssText='width:62px;height:38px;border:1.5px solid;border-radius:10px;text-align:center;font:inherit;font-size:17px;font-weight:800;flex:none'; paint(inp,x);
+      inp.addEventListener('input',function(){var v=inp.value.replace(',','.').trim(); if(v===''){x.q=null;} else {var n=parseFloat(v); x.q=isNaN(n)?null:n;} paint(inp,x); prog(); later();});
+      inp.addEventListener('focus',function(){try{inp.select();}catch(e){}}); row.appendChild(inp);
+      var rm=el('button',null,'✕'); rm.type='button'; rm.setAttribute('aria-label','Remove from list'); rm.style.cssText='border:0;background:none;color:#a9b5b1;font-size:16px;padding:6px;cursor:pointer;flex:none'; rm.addEventListener('click',function(){mmAsk('Remove '+(it?it.name:x.n)+' from this list?','Remove','Keep',function(){l.splice(i,1); save(); draw(); prog();});}); row.appendChild(rm);
+      celDrag(row,{skip:'input,button',drop:function(j){if(j===i||j<0||j>=l.length)return; var t=l[i]; l[i]=l[j]; l[j]=t; save(); draw();}});
+      list.appendChild(row);});
+    prog();}
+  draw();
+  var ab=mkBtn('+ Add wine from stock','ghost',function(){celPick(c,r,'Add wine to '+mu.name,null,function(it,nm){l.push({id:uid(),wid:it?it.id:'',n:it?it.name:nm,q:null}); save(); draw(); setTimeout(function(){var ins=list.querySelectorAll('input'); if(ins.length)try{ins[ins.length-1].focus();}catch(e){}},50);});}); ab.style.cssText='width:100%;margin-top:6px;border:1.5px dashed #0b6b5c'; box.appendChild(ab);
+  var bk=mkBtn('‹ All cabinets','ghost',function(){modGo('cellar','mc');}); bk.style.cssText='width:100%;margin-top:10px'; box.appendChild(bk);
+}
 function celWall(c,r,box){
   celEditU='';
   var t=celTotals(r), sm=el('div','card'), row=el('div'); row.style.cssText='display:flex;gap:8px';
   [[t.units+' / '+r.units.length,'units counted'],[String(t.cnt),'bottles counted'],[String(t.nd),'differences']].forEach(function(x,i){var d=el('div'); d.style.flex='1'; d.appendChild(Object.assign(el('b',null,x[0]),{style:'font-size:20px;display:block'+(i===2&&t.nd?';color:#b7791f':'')})); d.appendChild(Object.assign(el('small',null,x[1]),{style:'color:var(--muted)'})); row.appendChild(d);}); sm.appendChild(row); box.appendChild(sm);
   if(celFindBox(c,r,box))return;
+  var mb=el('button'); mb.type='button'; mb.style.cssText='display:flex;align-items:center;width:100%;text-align:left;border:1.5px solid #0b6b5c;background:#e9f5f1;border-radius:14px;padding:12px 14px;margin:12px 0 0;font:inherit;color:inherit;cursor:pointer;min-height:58px'; var mm=el('div'); mm.style.flex='1'; mm.appendChild(Object.assign(el('b',null,'Month-end count'),{style:'display:block;font-size:15px'})); mm.appendChild(Object.assign(el('small',null,'Count every cabinet as a simple list'),{style:'color:var(--muted);font-size:12px'})); mb.appendChild(mm); mb.appendChild(Object.assign(el('span',null,'›'),{style:'font-size:20px;color:#0b6b5c'})); mb.addEventListener('click',function(){modGo('cellar','mc');}); box.appendChild(mb);
   r.units.forEach(function(u){}); celWallList(c,r,box);
   var any=Object.keys(r.cnt.sd).length, rb=mkBtn(any?'See result and update stock':'See result','',function(){modGo('cellar','res');}); rb.style.cssText='width:100%;margin-top:14px'; box.appendChild(rb);
   box.appendChild(Object.assign(el('p',null,'Tap a unit to open its shelves. EuroCave and Swisscave shelves are fixed: 11 in each EuroCave (the 11th stays empty), 5 in each Swisscave. Dispense fridges and the walk-in chiller can have shelves added or removed in Edit layout.'),{style:'font-size:12px;color:var(--muted);margin:10px 2px'}));
@@ -12501,6 +12573,8 @@ MODS.cellar={who:'sofia',title:'Wine cellar',render:function(id,sub,box){
   var c=S.chats[id], r=celStore(c), m=sub&&sub.match(/^([esdwfu]\d)(?:s(\d+))?$/);
   if(sub&&/^p[1-8]$/.test(sub)){celEditU=''; return celPair(c,r,+sub.slice(1),box);}
   if(sub==='res'){celEditU=''; return celResult(c,r,box);}
+  if(sub==='mc'){celEditU=''; return mcOverview(c,r,box);}
+  if(sub&&/^mc[a-z0-9]+$/.test(sub)){celEditU=''; return mcUnit(c,r,sub.slice(2),box);}
   if(m){var u=celU(r,m[1]); if(u){if(m[2]){var sh=u.sh.filter(function(s){return s.id===sub;})[0]; if(sh){celEditU=''; return celShelf(c,r,u,sh,box);}} return celUnit(c,r,u,box);}}
   return celWall(c,r,box);
 }};
@@ -12823,7 +12897,7 @@ syncStart();
 A.forEach(function(x){kbLoad(x.id).then(function(){kbResumeAll(x.id); kbBarUpdate(); if((libId===x.id||libId==='lib')&&!$('libView').hidden)renderLib(libId);});});
 kbLoad('lib').then(function(){kbResumeAll('lib'); kbBarUpdate(); if(libId==='lib'&&!$('libView').hidden)renderLib('lib');});
 document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible'){A.forEach(function(x){kbResumeAll(x.id);}); kbWake(); kbBarUpdate();}});
-if(window.__DB_TEST__)window.__DB_TEST__({celApply:celApply,renderSettings:renderSettings,renderInfo:renderInfo,celStore:celStore,celShFree:celShFree,celWineFree:celWineFree,celShTot:celShTot,SS:function(){return S;},kbBest:kbBest,kbClean:kbClean,kbBuild:kbBuild,studySend:studySend,rsPlan:rsPlan,tbDim:tbDim,tbShape:tbShape,tbMerge:tbMerge,tbSnap:tbSnap,tbSplit:tbSplit,wineAny:wineAny,mxInit:mxInit,mxLearn:mxLearn,wineOpen:wineOpen,photoOrOcr:photoOrOcr,gqCount:gqCount,kbSlot:kbSlot,libAll:libAll,renderLib:renderLib,libPicker:libPicker,kbShare:kbShare,celInvTotals:celInvTotals,stkPdfRes:stkPdfRes,stkReportRes:stkReportRes,bkStatus:bkStatus,openBackup:openBackup,todoPoke:todoPoke,save:save,barPlan:barPlan,celSale:celSale,wineOpen:wineOpen,chgLoad:chgLoad,openSettings:openSettings,chgStore:chgStore,chgDiff:chgDiff,stkRows:stkRows,stkCounts:stkCounts,stkParse:stkParse,stkApplyImport:stkApplyImport,stkAccept:stkAccept,stkSheets:stkSheets,stkStore:stkStore,celParseCsv:celParseCsv,celStore:celStore,celParseRows:celParseRows,celParseCsv:celParseCsv,celApplyImport:celApplyImport,celRows:celRows,celXlsx:celXlsx,celCollect:celCollect,celApply:celApply,celSwap:celSwap,rtSeed:rtSeed,evMenuItems:evMenuItems,evFind:evFind,evAddDish:evAddDish,rtGridArr:rtGridArr,rtXlsx:rtXlsx,rtDiff:rtDiff,rtPages:rtPages,rtGrid:rtGrid,rtParseGrid:rtParseGrid,rtHandle:rtHandle,rtApplyImport:rtApplyImport,fpImportBuf:fpImportBuf,fpPut:fpPut,fpPlan:fpPlan,fpHandle:fpHandle,fpTablesOf:fpTablesOf,getS:function(){return S;},cmGet:cmGet,fileRoute:fileRoute,costRefresh:costRefresh,pbL:pbL,pbSearch:pbSearch,cmRecipeSheets:cmRecipeSheets,cmDishCost:cmDishCost,pcTeam:pcTeam,cxList:cxList,pbSet:pbSet,cmTouch:cmTouch,emMenu:emMenu,emPick:emPick,emCount:emCount,emPages:emPages,emDoc:emDoc,emOpenDiff:emOpenDiff,emApply:emApply,emTeam:emTeam,emCmd:emCmd,evIntentRx:evIntentRx,save:save,send:send,openChat:openChat,teamFlow:teamFlow,foreignGuard:foreignGuard,kbDetail:kbDetail,baseApply:baseApply,BASE:BASE,kbAdd:kbAdd,kbEnqueue:kbEnqueue,kbSearch:kbSearch,kbLoad:kbLoad,kbRemove:kbRemove,kbCloze:kbCloze,kbSlot:kbSlot,kbAnswer:kbAnswer,readAny:readAny,exportRows:exportRows,xlsxBuild:xlsxBuild,pdfBuild:pdfBuild,csvBuild:csvBuild,handleExport:handleExport,exportStock:exportStock,needsRules:needsRules,buildPrompt:buildPrompt,teamSpeakersFor:teamSpeakersFor,dataBlock:dataBlock,stockRows:stockRows,parseCount:parseCount,splitCount:splitCount,idfWeights:idfWeights,rankMatches:rankMatches,aliasSet:aliasSet,handleMatches:handleMatches,respond:respond,respondTeam:respondTeam,parseList:parseList,applyList:applyList,avatarSVG:avatarSVG,glassCard:glassCard,parseMenuText:parseMenuText,looksMenu:looksMenu,autoMatch:autoMatch,searchPool:searchPool,scoreName:scoreName,sendGlassEdit:sendGlassEdit,guessType:guessType,getS:function(){return S;},A:A});
+if(window.__DB_TEST__)window.__DB_TEST__({modGo:modGo,mcRows:mcRows,celApply:celApply,renderSettings:renderSettings,renderInfo:renderInfo,celStore:celStore,celShFree:celShFree,celWineFree:celWineFree,celShTot:celShTot,SS:function(){return S;},kbBest:kbBest,kbClean:kbClean,kbBuild:kbBuild,studySend:studySend,rsPlan:rsPlan,tbDim:tbDim,tbShape:tbShape,tbMerge:tbMerge,tbSnap:tbSnap,tbSplit:tbSplit,wineAny:wineAny,mxInit:mxInit,mxLearn:mxLearn,wineOpen:wineOpen,photoOrOcr:photoOrOcr,gqCount:gqCount,kbSlot:kbSlot,libAll:libAll,renderLib:renderLib,libPicker:libPicker,kbShare:kbShare,celInvTotals:celInvTotals,stkPdfRes:stkPdfRes,stkReportRes:stkReportRes,bkStatus:bkStatus,openBackup:openBackup,todoPoke:todoPoke,save:save,barPlan:barPlan,celSale:celSale,wineOpen:wineOpen,chgLoad:chgLoad,openSettings:openSettings,chgStore:chgStore,chgDiff:chgDiff,stkRows:stkRows,stkCounts:stkCounts,stkParse:stkParse,stkApplyImport:stkApplyImport,stkAccept:stkAccept,stkSheets:stkSheets,stkStore:stkStore,celParseCsv:celParseCsv,celStore:celStore,celParseRows:celParseRows,celParseCsv:celParseCsv,celApplyImport:celApplyImport,celRows:celRows,celXlsx:celXlsx,celCollect:celCollect,celApply:celApply,celSwap:celSwap,rtSeed:rtSeed,evMenuItems:evMenuItems,evFind:evFind,evAddDish:evAddDish,rtGridArr:rtGridArr,rtXlsx:rtXlsx,rtDiff:rtDiff,rtPages:rtPages,rtGrid:rtGrid,rtParseGrid:rtParseGrid,rtHandle:rtHandle,rtApplyImport:rtApplyImport,fpImportBuf:fpImportBuf,fpPut:fpPut,fpPlan:fpPlan,fpHandle:fpHandle,fpTablesOf:fpTablesOf,getS:function(){return S;},cmGet:cmGet,fileRoute:fileRoute,costRefresh:costRefresh,pbL:pbL,pbSearch:pbSearch,cmRecipeSheets:cmRecipeSheets,cmDishCost:cmDishCost,pcTeam:pcTeam,cxList:cxList,pbSet:pbSet,cmTouch:cmTouch,emMenu:emMenu,emPick:emPick,emCount:emCount,emPages:emPages,emDoc:emDoc,emOpenDiff:emOpenDiff,emApply:emApply,emTeam:emTeam,emCmd:emCmd,evIntentRx:evIntentRx,save:save,send:send,openChat:openChat,teamFlow:teamFlow,foreignGuard:foreignGuard,kbDetail:kbDetail,baseApply:baseApply,BASE:BASE,kbAdd:kbAdd,kbEnqueue:kbEnqueue,kbSearch:kbSearch,kbLoad:kbLoad,kbRemove:kbRemove,kbCloze:kbCloze,kbSlot:kbSlot,kbAnswer:kbAnswer,readAny:readAny,exportRows:exportRows,xlsxBuild:xlsxBuild,pdfBuild:pdfBuild,csvBuild:csvBuild,handleExport:handleExport,exportStock:exportStock,needsRules:needsRules,buildPrompt:buildPrompt,teamSpeakersFor:teamSpeakersFor,dataBlock:dataBlock,stockRows:stockRows,parseCount:parseCount,splitCount:splitCount,idfWeights:idfWeights,rankMatches:rankMatches,aliasSet:aliasSet,handleMatches:handleMatches,respond:respond,respondTeam:respondTeam,parseList:parseList,applyList:applyList,avatarSVG:avatarSVG,glassCard:glassCard,parseMenuText:parseMenuText,looksMenu:looksMenu,autoMatch:autoMatch,searchPool:searchPool,scoreName:scoreName,sendGlassEdit:sendGlassEdit,guessType:guessType,getS:function(){return S;},A:A});
 })();
 </script>
 
