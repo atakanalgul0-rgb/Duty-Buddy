@@ -3137,6 +3137,18 @@ async function sendPendList(id,note){
   }
 }
 window.addEventListener('hashchange',function(){setPendPhoto(null);});
+var PHPEND={};
+function photoFollow(id,text){
+  var t=String(text||'').trim(); if(!t||t.length>48||/\d|\n/.test(t))return false;
+  var k=noteKind(t); if(k!=='delivery'&&k!=='sales')return false;
+  var lab=k==='sales'?'sales (I will take them off stock)':'a delivery (I will add them to stock)', c=S.chats[id]; if(!c)return false;
+  function say(x){push(id,{from:'bot',text:x}); save(); refreshChat(id); renderList();}
+  var pe=PHPEND[id]; if(pe&&Date.now()-pe.ts<600000){pe.kind=k; say('Got it. I will treat the picture as '+lab+'. Please wait, I am still reading it.'); return true;}
+  var ms=c.msgs||[], f=null; for(var i=ms.length-1;i>=Math.max(0,ms.length-10);i--){var m=ms[i]; if(m.plan&&m.plan.lines&&!m.plan.done&&m.plan.kind!=='count'){f=m; break;}}
+  if(!f)return false; var want=k==='sales'?'sub':'add', n=f.plan.lines.length;
+  f.plan.kind=want; f.text=want==='sub'?'This is a sales report with '+n+' lines. Did we sell these today? Check each line, then tap the button and I will take them off stock.':'This is a delivery with '+n+' lines. Should I add these to stock? Check each wine and number, change what is wrong, then tap the button.';
+  say('OK, this is '+lab+'. Check the lines on the card above, then tap the button.'); return true;
+}
 function noteKind(n){
   var t=String(n||'').toLowerCase();
   if(/stock\s*-?\s*count|stock\s*-?\s*take|inventory|month\s*-?\s*end|stok\s*say[ıi]m|envanter|invent[aá]rio|\bcount sheet|\bcounting\b/.test(t))return 'count';
@@ -5509,8 +5521,8 @@ function bubble0(m){
     else{
       var pb=el('div','btns');
       if(m.plan.kind==='count'){pb.appendChild(mkBtn('Save count','',function(){countSave(m.who||cur,m,pin);}));}
-      if(m.plan.kind!=='sub'&&m.plan.kind!=='count')pb.appendChild(mkBtn(m.plan.kind==='ask'?'It is a delivery: add to stock':'Yes, add to stock','',function(){planApply(m.who||cur,m,pin,'add');}));
-      if(m.plan.kind!=='add'&&m.plan.kind!=='count')pb.appendChild(mkBtn(m.plan.kind==='ask'?'It is sales: take off stock':'Yes, we sold these today','',function(){planApply(m.who||cur,m,pin,'sub');}));
+      if(m.plan.kind!=='sub'&&m.plan.kind!=='count')pb.appendChild(mkBtn(m.plan.kind==='ask'?'It is a delivery: add to stock':'Yes, add to stock','',function(){stockPlanApply(m.who||cur,m,pin,'add');}));
+      if(m.plan.kind!=='add'&&m.plan.kind!=='count')pb.appendChild(mkBtn(m.plan.kind==='ask'?'It is sales: take off stock':'Yes, we sold these today','',function(){stockPlanApply(m.who||cur,m,pin,'sub');}));
       pb.appendChild(mkBtn('Cancel','ghost',function(){planCancel(m.who||cur,m); closeCountPage();})); pc.appendChild(pb);
     }
     d.appendChild(pc);
@@ -5792,7 +5804,7 @@ try{setTimeout(function(){snapNow('Opened the app');},6000); document.addEventLi
   }
   window.addEventListener('resize',apply); window.addEventListener('orientationchange',function(){setTimeout(apply,60);}); apply();
 })();
-var APPVER='Sidekick 79';
+var APPVER='Sidekick 81';
 var KEYNAME='dutybuddy.apikey', inClaude=false;
 function storedKey(){try{return localStorage.getItem(KEYNAME)||'';}catch(e){return '';}}
 function keyOn(){try{return localStorage.getItem('dutybuddy.keyoff')!=='1';}catch(e){return true;}}
@@ -6085,7 +6097,7 @@ function foreignGuard(id,text){
 }
 function send(text){
   text=(text||'').trim(); if(!text||!cur)return;
-  var id=cur; push(id,{from:'me',text:text}); save(); renderMsgs(); showTyping();
+  var id=cur; push(id,{from:'me',text:text}); save(); renderMsgs(); if(id!=='team'&&photoFollow(id,text))return; showTyping();
   if(id==='team'){var tfo=null; try{tfo=teamRemind(text)||teamFlow(text);}catch(e){tfo=null;} if(tfo){setTimeout(function(){hideTyping(); tfo.forEach(function(m){m.from='bot'; push('team',m);}); save(); refreshChat('team'); renderList();},350); return;}}
   else{var fg=foreignGuard(id,text); if(fg){setTimeout(function(){hideTyping(); push(id,{from:'bot',text:fg}); save(); refreshChat(id); renderList();},300); return;}}
   picSend(id,text).catch(function(){return false;}).then(function(done){if(done)return; var gen=++AIGEN, fin=false, slow=setTimeout(function(){if(!fin&&typingEl&&!typingEl.querySelector('small')){var sm=el('small','',localOn()&&!apiKey()?'Thinking on this phone, it can take a minute or two\u2026':'Still thinking\u2026 Google may be busy.'); sm.style.cssText='font-size:11px;opacity:.65;margin-left:8px;align-self:center'; typingEl.appendChild(sm);}},15000);
@@ -6158,7 +6170,7 @@ function sendGlassEdit(owner,m,inputs){
 function sendPhoto(file,note){
   if(!file||!cur||cur==='team')return; var id=cur, c=S.chats[id];
   var url=URL.createObjectURL(file);
-  var pid='ph'+uid(); phPut(pid,file); push(id,{from:'me',text:note||'',img:url,photo:true,pid:pid}); save(); renderMsgs(); showTyping();
+  var pid='ph'+uid(); phPut(pid,file); push(id,{from:'me',text:note||'',img:url,photo:true,pid:pid}); PHPEND[id]={kind:noteKind(note),ts:Date.now()}; save(); renderMsgs(); showTyping();
   if(byId[id].seating){rsvPhotoFlow(id,file); return;}
   if(id==='karim'){cvFlow(id,file); return;} if(id==='leo'){gisFlow(id,file); return;} if(id==='victor'){salesPhotoFlow(id,file); return;}
   photoOrOcr(id,file,note); return;
@@ -6352,8 +6364,8 @@ async function limitWait(id,e,file,note,tries){
 }
 async function invoiceFlow(id,file,note,tries){
   var c=S.chats[id], r;
-  try{r=await readInvoice(file,note); var nk0=noteKind(note); if(r&&!r.err&&r.type!=='label'&&r.lines&&r.lines.length&&(nk0==='delivery'||nk0==='sales'||nk0==='count'))r.type=nk0;}catch(e){if(e&&e.code==='rate_limited'){await limitWait(id,e,file,note,tries); return;} r={err:(e&&e.code&&ERR[e.code])||'I could not read that picture. Try a flatter, brighter photo.'};}
-  hideTyping();
+  try{r=await readInvoice(file,note); var nk0=(PHPEND[id]&&PHPEND[id].kind!==undefined)?PHPEND[id].kind:noteKind(note); if(r&&!r.err&&r.type!=='label'&&r.lines&&r.lines.length&&(nk0==='delivery'||nk0==='sales'||nk0==='count'))r.type=nk0;}catch(e){if(e&&e.code==='rate_limited'){await limitWait(id,e,file,note,tries); return;} r={err:(e&&e.code&&ERR[e.code])||'I could not read that picture. Try a flatter, brighter photo.'};}
+  hideTyping(); delete PHPEND[id];
   if(r.err)push(id,{from:'bot',text:r.err});
   else if(r.type==='label'){hideTyping(); await labelFlow(id,file); return;}
   else if(r.type==='other'||!r.lines.length)push(id,{from:'bot',text:'I could not find any wine lines in that picture. Send a clearer photo, or type it, for example “Add 12 Sancerre”.'});
@@ -6368,7 +6380,7 @@ async function invoiceFlow(id,file,note,tries){
   }
   save(); refreshChat(id); renderList();
 }
-function planApply(id,m,sels,kind){
+function stockPlanApply(id,m,sels,kind){
   var a=byId[id], c=S.chats[id]; if(!m.plan||m.plan.done)return;
   snap(c); var rows=[], notes=[], n=0, logL=[];
   sels.forEach(function(s){
@@ -12918,7 +12930,7 @@ syncStart();
 A.forEach(function(x){kbLoad(x.id).then(function(){kbResumeAll(x.id); kbBarUpdate(); if((libId===x.id||libId==='lib')&&!$('libView').hidden)renderLib(libId);});});
 kbLoad('lib').then(function(){kbResumeAll('lib'); kbBarUpdate(); if(libId==='lib'&&!$('libView').hidden)renderLib('lib');});
 document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible'){A.forEach(function(x){kbResumeAll(x.id);}); kbWake(); kbBarUpdate();}});
-if(window.__DB_TEST__)window.__DB_TEST__({modGo:modGo,mcRows:mcRows,celOutIt:celOutIt,celIn:celIn,celLocs:celLocs,celApply:celApply,renderSettings:renderSettings,renderInfo:renderInfo,celStore:celStore,celShFree:celShFree,celWineFree:celWineFree,celShTot:celShTot,SS:function(){return S;},kbBest:kbBest,kbClean:kbClean,kbBuild:kbBuild,studySend:studySend,rsPlan:rsPlan,tbDim:tbDim,tbShape:tbShape,tbMerge:tbMerge,tbSnap:tbSnap,tbSplit:tbSplit,wineAny:wineAny,mxInit:mxInit,mxLearn:mxLearn,wineOpen:wineOpen,photoOrOcr:photoOrOcr,gqCount:gqCount,kbSlot:kbSlot,libAll:libAll,renderLib:renderLib,libPicker:libPicker,kbShare:kbShare,celInvTotals:celInvTotals,stkPdfRes:stkPdfRes,stkReportRes:stkReportRes,bkStatus:bkStatus,openBackup:openBackup,todoPoke:todoPoke,save:save,barPlan:barPlan,celSale:celSale,wineOpen:wineOpen,chgLoad:chgLoad,openSettings:openSettings,chgStore:chgStore,chgDiff:chgDiff,stkRows:stkRows,stkCounts:stkCounts,stkParse:stkParse,stkApplyImport:stkApplyImport,stkAccept:stkAccept,stkSheets:stkSheets,stkStore:stkStore,celParseCsv:celParseCsv,celStore:celStore,celParseRows:celParseRows,celParseCsv:celParseCsv,celApplyImport:celApplyImport,celRows:celRows,celXlsx:celXlsx,celCollect:celCollect,celApply:celApply,celSwap:celSwap,rtSeed:rtSeed,evMenuItems:evMenuItems,evFind:evFind,evAddDish:evAddDish,rtGridArr:rtGridArr,rtXlsx:rtXlsx,rtDiff:rtDiff,rtPages:rtPages,rtGrid:rtGrid,rtParseGrid:rtParseGrid,rtHandle:rtHandle,rtApplyImport:rtApplyImport,fpImportBuf:fpImportBuf,fpPut:fpPut,fpPlan:fpPlan,fpHandle:fpHandle,fpTablesOf:fpTablesOf,getS:function(){return S;},cmGet:cmGet,fileRoute:fileRoute,costRefresh:costRefresh,pbL:pbL,pbSearch:pbSearch,cmRecipeSheets:cmRecipeSheets,cmDishCost:cmDishCost,pcTeam:pcTeam,cxList:cxList,pbSet:pbSet,cmTouch:cmTouch,emMenu:emMenu,emPick:emPick,emCount:emCount,emPages:emPages,emDoc:emDoc,emOpenDiff:emOpenDiff,emApply:emApply,emTeam:emTeam,emCmd:emCmd,evIntentRx:evIntentRx,save:save,send:send,openChat:openChat,teamFlow:teamFlow,foreignGuard:foreignGuard,kbDetail:kbDetail,baseApply:baseApply,BASE:BASE,kbAdd:kbAdd,kbEnqueue:kbEnqueue,kbSearch:kbSearch,kbLoad:kbLoad,kbRemove:kbRemove,kbCloze:kbCloze,kbSlot:kbSlot,kbAnswer:kbAnswer,readAny:readAny,exportRows:exportRows,xlsxBuild:xlsxBuild,pdfBuild:pdfBuild,csvBuild:csvBuild,handleExport:handleExport,exportStock:exportStock,needsRules:needsRules,buildPrompt:buildPrompt,teamSpeakersFor:teamSpeakersFor,dataBlock:dataBlock,stockRows:stockRows,parseCount:parseCount,splitCount:splitCount,idfWeights:idfWeights,rankMatches:rankMatches,aliasSet:aliasSet,handleMatches:handleMatches,respond:respond,respondTeam:respondTeam,parseList:parseList,applyList:applyList,avatarSVG:avatarSVG,glassCard:glassCard,parseMenuText:parseMenuText,looksMenu:looksMenu,autoMatch:autoMatch,searchPool:searchPool,scoreName:scoreName,sendGlassEdit:sendGlassEdit,guessType:guessType,getS:function(){return S;},A:A});
+if(window.__DB_TEST__)window.__DB_TEST__({photoFollow:photoFollow,PHPEND:PHPEND,push:push,save:save,modGo:modGo,mcRows:mcRows,celOutIt:celOutIt,celIn:celIn,celLocs:celLocs,celApply:celApply,renderSettings:renderSettings,renderInfo:renderInfo,celStore:celStore,celShFree:celShFree,celWineFree:celWineFree,celShTot:celShTot,SS:function(){return S;},kbBest:kbBest,kbClean:kbClean,kbBuild:kbBuild,studySend:studySend,rsPlan:rsPlan,tbDim:tbDim,tbShape:tbShape,tbMerge:tbMerge,tbSnap:tbSnap,tbSplit:tbSplit,wineAny:wineAny,mxInit:mxInit,mxLearn:mxLearn,wineOpen:wineOpen,photoOrOcr:photoOrOcr,gqCount:gqCount,kbSlot:kbSlot,libAll:libAll,renderLib:renderLib,libPicker:libPicker,kbShare:kbShare,celInvTotals:celInvTotals,stkPdfRes:stkPdfRes,stkReportRes:stkReportRes,bkStatus:bkStatus,openBackup:openBackup,todoPoke:todoPoke,save:save,barPlan:barPlan,celSale:celSale,wineOpen:wineOpen,chgLoad:chgLoad,openSettings:openSettings,chgStore:chgStore,chgDiff:chgDiff,stkRows:stkRows,stkCounts:stkCounts,stkParse:stkParse,stkApplyImport:stkApplyImport,stkAccept:stkAccept,stkSheets:stkSheets,stkStore:stkStore,celParseCsv:celParseCsv,celStore:celStore,celParseRows:celParseRows,celParseCsv:celParseCsv,celApplyImport:celApplyImport,celRows:celRows,celXlsx:celXlsx,celCollect:celCollect,celApply:celApply,celSwap:celSwap,rtSeed:rtSeed,evMenuItems:evMenuItems,evFind:evFind,evAddDish:evAddDish,rtGridArr:rtGridArr,rtXlsx:rtXlsx,rtDiff:rtDiff,rtPages:rtPages,rtGrid:rtGrid,rtParseGrid:rtParseGrid,rtHandle:rtHandle,rtApplyImport:rtApplyImport,fpImportBuf:fpImportBuf,fpPut:fpPut,fpPlan:fpPlan,fpHandle:fpHandle,fpTablesOf:fpTablesOf,getS:function(){return S;},cmGet:cmGet,fileRoute:fileRoute,costRefresh:costRefresh,pbL:pbL,pbSearch:pbSearch,cmRecipeSheets:cmRecipeSheets,cmDishCost:cmDishCost,pcTeam:pcTeam,cxList:cxList,pbSet:pbSet,cmTouch:cmTouch,emMenu:emMenu,emPick:emPick,emCount:emCount,emPages:emPages,emDoc:emDoc,emOpenDiff:emOpenDiff,emApply:emApply,emTeam:emTeam,emCmd:emCmd,evIntentRx:evIntentRx,save:save,send:send,openChat:openChat,teamFlow:teamFlow,foreignGuard:foreignGuard,kbDetail:kbDetail,baseApply:baseApply,BASE:BASE,kbAdd:kbAdd,kbEnqueue:kbEnqueue,kbSearch:kbSearch,kbLoad:kbLoad,kbRemove:kbRemove,kbCloze:kbCloze,kbSlot:kbSlot,kbAnswer:kbAnswer,readAny:readAny,exportRows:exportRows,xlsxBuild:xlsxBuild,pdfBuild:pdfBuild,csvBuild:csvBuild,handleExport:handleExport,exportStock:exportStock,needsRules:needsRules,buildPrompt:buildPrompt,teamSpeakersFor:teamSpeakersFor,dataBlock:dataBlock,stockRows:stockRows,parseCount:parseCount,splitCount:splitCount,idfWeights:idfWeights,rankMatches:rankMatches,aliasSet:aliasSet,handleMatches:handleMatches,respond:respond,respondTeam:respondTeam,parseList:parseList,applyList:applyList,avatarSVG:avatarSVG,glassCard:glassCard,parseMenuText:parseMenuText,looksMenu:looksMenu,autoMatch:autoMatch,searchPool:searchPool,scoreName:scoreName,sendGlassEdit:sendGlassEdit,guessType:guessType,getS:function(){return S;},A:A});
 })();
 </script>
 
