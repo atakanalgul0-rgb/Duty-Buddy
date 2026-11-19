@@ -5804,7 +5804,7 @@ try{setTimeout(function(){snapNow('Opened the app');},6000); document.addEventLi
   }
   window.addEventListener('resize',apply); window.addEventListener('orientationchange',function(){setTimeout(apply,60);}); apply();
 })();
-var APPVER='Sidekick 81';
+var APPVER='Sidekick 84';
 var KEYNAME='dutybuddy.apikey', inClaude=false;
 function storedKey(){try{return localStorage.getItem(KEYNAME)||'';}catch(e){return '';}}
 function keyOn(){try{return localStorage.getItem('dutybuddy.keyoff')!=='1';}catch(e){return true;}}
@@ -6702,7 +6702,7 @@ function renderInfo(id,keepScroll){
       var ic=el('span'); ic.style.cssText='width:30px;height:30px;border-radius:9px;background:var(--tile,#eef3f1);flex:none;display:grid;place-items:center'; ic.innerHTML='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+(TILEICON[t.icon]||TILEICON.box)+'</svg>'; b.appendChild(ic);
       var mid=el('div'); mid.style.cssText='flex:1;min-width:0'; mid.appendChild(Object.assign(el('b',null,t.label),{style:'display:block;font-size:14px'})); if(t.sub)mid.appendChild(Object.assign(el('small',null,t.sub),{style:'line-height:1.2;color:var(--muted);font-size:11.5px;display:block'})); b.appendChild(mid);
       if(t.badge)b.appendChild(Object.assign(el('span',null,t.badge),{style:'background:#fff0c2;color:#7a5a00;border-radius:99px;font-size:11.5px;font-weight:800;padding:3px 9px;flex:none'}));
-      b.appendChild(Object.assign(el('span',null,'›'),{style:'color:#8a9a96;font-size:20px'})); b.addEventListener('click',t.fn); cd.appendChild(b);}); box.appendChild(cd);}
+      if(t.label==='Wine costs'){mid.querySelector('small')&&mid.removeChild(mid.querySelector('small')); mid.appendChild(Object.assign(el('small',null,'Coming soon'),{style:'line-height:1.2;color:var(--muted);font-size:11.5px;display:block'})); b.style.opacity='.55'; b.style.cursor='default'; b.setAttribute('aria-disabled','true'); b.addEventListener('click',function(e){e.preventDefault();});}else{b.appendChild(Object.assign(el('span',null,'›'),{style:'color:#8a9a96;font-size:20px'})); b.addEventListener('click',t.fn);} cd.appendChild(b);}); box.appendChild(cd);}
     grp(stkUI(a)?'Stock':(a.seating?'Reservations':(MODBTN[id]?'Records':'Library')),ga); grp(gw.length&&!ga.length?'Work':(gw.length?'Records':''),gw); grp('Cellar & orders',gb); grp('More',gc);
     var lr=el('div','kv'); lr.style.margin='16px 16px 24px'; lr.appendChild(el('span',null,'Low stock alert at (or fewer)'));
     var li0=el('input'); li0.type='number'; li0.min='1'; li0.max='99'; li0.inputMode='numeric'; li0.value=String(a.low); li0.setAttribute('aria-label','Low stock alert at or fewer');
@@ -11105,6 +11105,7 @@ function pbImport(def){
 /* ---- James / Sofia / Elena: costs page ---- */
 function cxMod(who,title,list){
   MODS[who+'costs']={who:who,title:title,render:function(id,sub,box){
+    if(who==='sofia'){var cs=el('div','card'); cs.appendChild(el('h3',null,title)); cs.appendChild(el('p',null,'Coming soon.')); box.appendChild(cs); return;}
     var c=S.chats[id], arr=cxList(c);
     if(sub==='edit'&&PBV.cx){var x=PBV.cx, ec=el('div','card'); ec.appendChild(el('h3',null,x.n)); ec.appendChild(el('p',null,'Price from the '+list+' list. Say how much of it one sale uses, or leave empty for one whole unit.'));
       fld(ec,'Quantity per sale',x.q,function(v){var n=parseFloat(String(v).replace(',','.')); x.q=n>0?n:'';},{inputMode:'decimal'}); fld(ec,'Unit (ml, cl, g, kg, l, pc) – empty = whole unit',x.u,function(v){x.u=v.trim();});
@@ -11893,6 +11894,33 @@ function celRowU(r,u,sub){
   b.addEventListener('click',function(){modGo('cellar',u.id);}); return b;
 }
 function celGrpHead(t){return Object.assign(el('div',null,t),{style:'font-size:12px;font-weight:800;letter-spacing:.07em;color:var(--accent,#0b6b5c);margin:16px 4px 8px'});}
+/* ----- differences of a cave pair: over stock and hand-written ----- */
+function celDiffs(c,r,k){
+  var us=['e'+k,'s'+k].map(function(id){return celU(r,id);}).filter(Boolean), by={}, order=[], hand=[];
+  us.forEach(function(u){u.sh.forEach(function(sh,si){sh.w.forEach(function(x){
+    var q=celEff(r,x), loc=celUName(u)+' shelf '+(si+1)+(q?': '+num(q):'');
+    if(!x.wid){hand.push({n:x.n,q:q,loc:loc,sh:sh}); return;}
+    var it=celItem(c,x); if(!it)return; if(!by[it.id]){by[it.id]={it:it,locs:[]}; order.push(it.id);} by[it.id].locs.push(loc);
+  });});});
+  var over=[]; order.forEach(function(id){var e=by[id], placed=0; celLocs(r,id).forEach(function(l){placed+=celEff(r,l.x);}); var st=celStockN(e.it)||0, d=Math.round((placed-st)*100)/100; if(d>0.001)over.push({it:e.it,placed:Math.round(placed*100)/100,stock:st,d:d,locs:e.locs});});
+  over.sort(function(a,b){return b.d-a.d;});
+  return {over:over,hand:hand,n:over.length+hand.length};
+}
+function celDiffPage(c,r,k,box){
+  var d=celDiffs(c,r,k), top=el('div','card'); top.appendChild(Object.assign(el('b',null,'Differences'),{style:'font-size:17px;display:block'})); top.appendChild(Object.assign(el('small',null,'EuroCave '+k+' and SwissCave '+k),{style:'color:var(--muted)'}));
+  var ch=el('div'); ch.style.cssText='margin-top:8px;display:flex;gap:6px;flex-wrap:wrap'; function chip(t,bg,co){var s2=el('span',null,t); s2.style.cssText='font-size:12px;font-weight:700;border-radius:99px;padding:3px 10px;background:'+bg+';color:'+co; ch.appendChild(s2);}
+  if(d.over.length)chip(d.over.length+' over stock','#fff4d6','#7a5400'); if(d.hand.length)chip(d.hand.length+' hand-written','#e1ecfb','#1d4f91'); if(!d.n)chip('No differences','#e1f0ec','#0a4d42'); top.appendChild(ch); box.appendChild(top);
+  var cd=el('div','card'); cd.style.cssText='margin-top:10px;padding:0 14px'; box.appendChild(cd);
+  function row(title,tag,tcol,l2,l3,fn,i){var b=el('button'); b.type='button'; b.style.cssText='display:block;width:100%;text-align:left;border:0;'+(i?'border-top:1px solid var(--line);':'')+'background:transparent;padding:11px 0;font:inherit;color:inherit;cursor:pointer;min-height:56px';
+    var t=el('div'); t.style.cssText='display:flex;justify-content:space-between;gap:8px'; t.appendChild(Object.assign(el('b',null,title),{style:'font-size:14.5px'})); t.appendChild(Object.assign(el('span',null,tag),{style:'font-size:13px;font-weight:700;white-space:nowrap;color:'+tcol})); b.appendChild(t);
+    b.appendChild(Object.assign(el('div',null,l2),{style:'font-size:12.5px;color:var(--muted);margin-top:2px'})); b.appendChild(Object.assign(el('div',null,l3),{style:'font-size:12px;color:#8a9a96;margin-top:2px'})); b.addEventListener('click',fn); cd.appendChild(b);}
+  var i=0;
+  d.over.forEach(function(o){row(o.it.name,'+'+num(o.d),'#b7791f','On shelves '+num(o.placed)+' · In stock '+num(o.stock),o.locs.join(' · '),function(){wineOpen(c,o.it,function(){renderMod();});},i++);});
+  d.hand.forEach(function(h){row(h.n,'Hand-written','#1d4f91',(h.q?'On shelves '+num(h.q):'No number yet')+' · Not in the stock list',h.loc,function(){modGo('cellar',h.sh.id);},i++);});
+  if(!d.n)cd.appendChild(Object.assign(el('p',null,'Every wine on these shelves is in the stock list and no shelf holds more than the stock.'),{style:'font-size:13px;color:var(--muted);padding:12px 0'}));
+  else box.appendChild(Object.assign(el('p',null,'Tap a wine to open it and fix the number.'),{style:'font-size:12px;color:var(--muted);margin:8px 4px'}));
+  var bk=mkBtn('‹ Cellar','ghost',function(){modGo('cellar');}); bk.style.cssText='width:100%;margin-top:10px'; box.appendChild(bk);
+}
 function celWallList(c,r,box){
   box.appendChild(celGrpHead('CELLARS · 8 PAIRS'));
   for(var k=1;k<=8;k++){(function(k){
@@ -11902,7 +11930,8 @@ function celWallList(c,r,box){
     hd.appendChild(Object.assign(el('b',null,'PAIR '+k),{style:'font-size:11.5px;letter-spacing:.07em;color:var(--accent,#0b6b5c);flex:1;text-align:left'})); hd.appendChild(Object.assign(el('span',null,'See both ›'),{style:'font-size:12px;font-weight:700;color:var(--muted)'}));
     hd.addEventListener('click',function(){modGo('cellar','p'+k);}); cd.appendChild(hd);
     if(sw)cd.appendChild(celRowU(r,sw,'top'+(sw.name?' · '+sw.name:''))); if(eu)cd.appendChild(celRowU(r,eu,'bottom'+(eu.name?' · '+eu.name:'')));
-    cd.firstChild.nextSibling&&(cd.firstChild.nextSibling.style.borderTop='0'); box.appendChild(cd);
+    cd.firstChild.nextSibling&&(cd.firstChild.nextSibling.style.borderTop='0');
+    var dn=celDiffs(c,r,k).n, db=el('button'); db.type='button'; db.style.cssText='display:flex;align-items:center;justify-content:space-between;width:calc(100% - 24px);margin:4px 12px 12px;padding:10px 12px;min-height:44px;border-radius:10px;font:inherit;cursor:pointer;'+(dn?'border:1px solid #e7c778;background:#fff4d6;color:#7a5400':'border:1px solid var(--line);background:transparent;color:var(--muted)'); db.appendChild(Object.assign(el('span',null,(dn?'\u26A0 ':'')+'Differences'),{style:'font-size:14px;font-weight:700'})); db.appendChild(Object.assign(el('span',null,dn?dn+(dn===1?' wine':' wines')+' \u203A':'None'),{style:'font-size:13px'})); db.addEventListener('click',function(){modGo('cellar','df'+k);}); cd.appendChild(db); box.appendChild(cd);
   })(k);}
   [['BAR FRIDGES',['d1','d2','f1']],['ULTRA LOUNGE',['u1','u2']],['MAIN BAR & OUT OF CHILLER',['u3','u4']],['WALK-IN CHILLER',['w1']]].forEach(function(g){
     var us=g[1].map(function(id){return celU(r,id);}).filter(Boolean); if(!us.length)return;
@@ -12406,17 +12435,38 @@ function stockAddSheet(id,c,pre,done){
     }); sv.style.cssText='width:100%;min-height:48px;margin-top:8px'; bx.appendChild(sv);
   });
 }
+function stockRows(c){
+  var sh=(c.sheets||[]).filter(function(x){return x.kind==='count'&&x.rows&&x.rows.length;}).sort(function(a,b){return (a.ts||0)-(b.ts||0);}).pop();
+  if(sh)return sh.rows.map(function(r){return {code:String(r[0]||''),name:String(r[1]||''),q:r[2]};});
+  return (typeof BASE!=='undefined'&&BASE.rows?BASE.rows:[]).map(function(r){return {code:String(r[0]||''),name:String(r[1]||''),q:r[2]};});
+}
+function stockFind(c,it,bx,sn,sc){
+  var si=sheetFld(bx,'Search the stock list (code or name)',''), wrap=si.parentNode, res=el('div'); res.style.cssText='margin:-2px 0 6px';
+  bx.insertBefore(wrap,sn.parentNode); bx.insertBefore(res,sn.parentNode);
+  var rows=stockRows(c), owner={}; c.inv.forEach(function(x){if(x.code)owner[normCode(x.code)]=x;});
+  function draw(){
+    res.textContent=''; var q=foldS(si.value).split(/\s+/).filter(Boolean); if(!q.length)return;
+    var hits=rows.filter(function(r){var h=foldS(r.code+' '+r.name); return q.every(function(t){return h.indexOf(t)>-1;});}).slice(0,6);
+    if(!hits.length){res.appendChild(Object.assign(el('p',null,'Nothing found. You can type the stock name and code by hand below.'),{style:'font-size:12.5px;color:var(--muted);margin:2px 2px'})); return;}
+    hits.forEach(function(h){
+      var ow=h.code&&owner[normCode(h.code)], b=el('button'); b.type='button'; b.style.cssText='display:block;width:100%;text-align:left;border:1px solid var(--line);border-radius:10px;background:var(--surface,#fff);padding:8px 10px;margin:0 0 5px;font:inherit;color:inherit;cursor:pointer;min-height:44px';
+      b.appendChild(Object.assign(el('b',null,h.name),{style:'display:block;font-size:13.5px'})); b.appendChild(Object.assign(el('small',null,(h.code||'no code')+(ow&&ow!==it?' · now on '+ow.name:'')),{style:'color:'+(ow&&ow!==it?'#b7791f':'var(--muted)')+';font-size:12px'}));
+      b.addEventListener('click',function(){sn.value=h.name; sc.value=h.code; si.value=''; res.textContent=''; toast('Stock name and code filled in. Tap Save.');}); res.appendChild(b);});
+  }
+  si.addEventListener('input',draw);
+}
 function wineEditSheet(c,it,done){
   var rb0=mxFind(c,it,'bt'), rg0=mxFind(c,it,'gl'), rb=rb0||{}, rg=rg0||{};
   fpSheet('Edit · '+it.name,function(bx,close){
     var mn=sheetFld(bx,'Menu name',it.name), pb=sheetFld(bx,'Menu price, bottle (AED)',it.price||'','decimal'), pg=sheetFld(bx,'Menu price, glass (AED)',it.gprice||'','decimal'),
         sn=sheetFld(bx,'Stock name',it.sheet||''), sc=sheetFld(bx,'Stock code',it.code||'','numeric'),
         bn=sheetFld(bx,'Micros name, bottle',rb.bt||''), bc=sheetFld(bx,'Micros code, bottle',rb.btc||'','numeric'), gn=sheetFld(bx,'Micros name, glass',rg.gl||''), gc=sheetFld(bx,'Micros code, glass',rg.glc||'','numeric');
+    stockFind(c,it,bx,sn,sc);
     var ty=typeSel('Type',it.type||'Other',function(){}), sz=sizeSel('Bottle size',it.size||750,function(v){sz.dataset.v=v;}); sz.dataset.v=String(it.size||750);
     var w1=el('div'); w1.style.cssText='display:flex;gap:8px;margin:8px 0'; ty.style.flex='1'; sz.style.flex='1'; w1.appendChild(ty); w1.appendChild(sz); bx.appendChild(w1);
     var sv=mkBtn('Save','',function(){
       var nmv=cap(mn.value.trim()); if(!nmv){toast('The menu name cannot be empty.'); return;}
-      var code=sc.value.replace(/\s/g,''); if(code&&c.inv.some(function(x){return x!==it&&x.code===code;})){toast('Stock code '+code+' is already used by another wine.'); return;}
+      var code=sc.value.replace(/\s/g,''); var cu=code&&c.inv.filter(function(x){return x!==it&&x.code===code;})[0]; if(cu){toast('Stock code '+code+' is used by '+cu.name+'. Open that wine and change its code first.'); return;}
       var a=bc.value.replace(/\s/g,''), b=gc.value.replace(/\s/g,'');
       if((a&&!/^\d{6,10}$/.test(a))||(b&&!/^\d{6,10}$/.test(b))){toast('A Micros code is only digits, like 37140063.'); return;}
       var oa=a&&mxOwner(c,a,rb0), ob=b&&mxOwner(c,b,rg0); if(oa&&oa.id!==it.id){toast('Code '+a+' is already used by '+oa.name+'.'); return;} if(ob&&ob.id!==it.id){toast('Code '+b+' is already used by '+ob.name+'.'); return;}
@@ -12606,6 +12656,7 @@ MODS.cellar={who:'sofia',title:'Wine cellar',render:function(id,sub,box){
   var c=S.chats[id], r=celStore(c), m=sub&&sub.match(/^([esdwfu]\d)(?:s(\d+))?$/);
   if(sub&&/^p[1-8]$/.test(sub)){celEditU=''; return celPair(c,r,+sub.slice(1),box);}
   if(sub==='res'){celEditU=''; return celResult(c,r,box);}
+  if(sub&&/^df[1-8]$/.test(sub)){celEditU=''; return celDiffPage(c,r,+sub.slice(2),box);}
   if(sub==='mc'){celEditU=''; return mcOverview(c,r,box);}
   if(sub&&/^mc[a-z0-9]+$/.test(sub)){celEditU=''; return mcUnit(c,r,sub.slice(2),box);}
   if(m){var u=celU(r,m[1]); if(u){if(m[2]){var sh=u.sh.filter(function(s){return s.id===sub;})[0]; if(sh){celEditU=''; return celShelf(c,r,u,sh,box);}} return celUnit(c,r,u,box);}}
@@ -12930,7 +12981,7 @@ syncStart();
 A.forEach(function(x){kbLoad(x.id).then(function(){kbResumeAll(x.id); kbBarUpdate(); if((libId===x.id||libId==='lib')&&!$('libView').hidden)renderLib(libId);});});
 kbLoad('lib').then(function(){kbResumeAll('lib'); kbBarUpdate(); if(libId==='lib'&&!$('libView').hidden)renderLib('lib');});
 document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible'){A.forEach(function(x){kbResumeAll(x.id);}); kbWake(); kbBarUpdate();}});
-if(window.__DB_TEST__)window.__DB_TEST__({photoFollow:photoFollow,PHPEND:PHPEND,push:push,save:save,modGo:modGo,mcRows:mcRows,celOutIt:celOutIt,celIn:celIn,celLocs:celLocs,celApply:celApply,renderSettings:renderSettings,renderInfo:renderInfo,celStore:celStore,celShFree:celShFree,celWineFree:celWineFree,celShTot:celShTot,SS:function(){return S;},kbBest:kbBest,kbClean:kbClean,kbBuild:kbBuild,studySend:studySend,rsPlan:rsPlan,tbDim:tbDim,tbShape:tbShape,tbMerge:tbMerge,tbSnap:tbSnap,tbSplit:tbSplit,wineAny:wineAny,mxInit:mxInit,mxLearn:mxLearn,wineOpen:wineOpen,photoOrOcr:photoOrOcr,gqCount:gqCount,kbSlot:kbSlot,libAll:libAll,renderLib:renderLib,libPicker:libPicker,kbShare:kbShare,celInvTotals:celInvTotals,stkPdfRes:stkPdfRes,stkReportRes:stkReportRes,bkStatus:bkStatus,openBackup:openBackup,todoPoke:todoPoke,save:save,barPlan:barPlan,celSale:celSale,wineOpen:wineOpen,chgLoad:chgLoad,openSettings:openSettings,chgStore:chgStore,chgDiff:chgDiff,stkRows:stkRows,stkCounts:stkCounts,stkParse:stkParse,stkApplyImport:stkApplyImport,stkAccept:stkAccept,stkSheets:stkSheets,stkStore:stkStore,celParseCsv:celParseCsv,celStore:celStore,celParseRows:celParseRows,celParseCsv:celParseCsv,celApplyImport:celApplyImport,celRows:celRows,celXlsx:celXlsx,celCollect:celCollect,celApply:celApply,celSwap:celSwap,rtSeed:rtSeed,evMenuItems:evMenuItems,evFind:evFind,evAddDish:evAddDish,rtGridArr:rtGridArr,rtXlsx:rtXlsx,rtDiff:rtDiff,rtPages:rtPages,rtGrid:rtGrid,rtParseGrid:rtParseGrid,rtHandle:rtHandle,rtApplyImport:rtApplyImport,fpImportBuf:fpImportBuf,fpPut:fpPut,fpPlan:fpPlan,fpHandle:fpHandle,fpTablesOf:fpTablesOf,getS:function(){return S;},cmGet:cmGet,fileRoute:fileRoute,costRefresh:costRefresh,pbL:pbL,pbSearch:pbSearch,cmRecipeSheets:cmRecipeSheets,cmDishCost:cmDishCost,pcTeam:pcTeam,cxList:cxList,pbSet:pbSet,cmTouch:cmTouch,emMenu:emMenu,emPick:emPick,emCount:emCount,emPages:emPages,emDoc:emDoc,emOpenDiff:emOpenDiff,emApply:emApply,emTeam:emTeam,emCmd:emCmd,evIntentRx:evIntentRx,save:save,send:send,openChat:openChat,teamFlow:teamFlow,foreignGuard:foreignGuard,kbDetail:kbDetail,baseApply:baseApply,BASE:BASE,kbAdd:kbAdd,kbEnqueue:kbEnqueue,kbSearch:kbSearch,kbLoad:kbLoad,kbRemove:kbRemove,kbCloze:kbCloze,kbSlot:kbSlot,kbAnswer:kbAnswer,readAny:readAny,exportRows:exportRows,xlsxBuild:xlsxBuild,pdfBuild:pdfBuild,csvBuild:csvBuild,handleExport:handleExport,exportStock:exportStock,needsRules:needsRules,buildPrompt:buildPrompt,teamSpeakersFor:teamSpeakersFor,dataBlock:dataBlock,stockRows:stockRows,parseCount:parseCount,splitCount:splitCount,idfWeights:idfWeights,rankMatches:rankMatches,aliasSet:aliasSet,handleMatches:handleMatches,respond:respond,respondTeam:respondTeam,parseList:parseList,applyList:applyList,avatarSVG:avatarSVG,glassCard:glassCard,parseMenuText:parseMenuText,looksMenu:looksMenu,autoMatch:autoMatch,searchPool:searchPool,scoreName:scoreName,sendGlassEdit:sendGlassEdit,guessType:guessType,getS:function(){return S;},A:A});
+if(window.__DB_TEST__)window.__DB_TEST__({wineEditSheet:wineEditSheet,celDiffs:celDiffs,photoFollow:photoFollow,PHPEND:PHPEND,push:push,save:save,modGo:modGo,mcRows:mcRows,celOutIt:celOutIt,celIn:celIn,celLocs:celLocs,celApply:celApply,renderSettings:renderSettings,renderInfo:renderInfo,celStore:celStore,celShFree:celShFree,celWineFree:celWineFree,celShTot:celShTot,SS:function(){return S;},kbBest:kbBest,kbClean:kbClean,kbBuild:kbBuild,studySend:studySend,rsPlan:rsPlan,tbDim:tbDim,tbShape:tbShape,tbMerge:tbMerge,tbSnap:tbSnap,tbSplit:tbSplit,wineAny:wineAny,mxInit:mxInit,mxLearn:mxLearn,wineOpen:wineOpen,photoOrOcr:photoOrOcr,gqCount:gqCount,kbSlot:kbSlot,libAll:libAll,renderLib:renderLib,libPicker:libPicker,kbShare:kbShare,celInvTotals:celInvTotals,stkPdfRes:stkPdfRes,stkReportRes:stkReportRes,bkStatus:bkStatus,openBackup:openBackup,todoPoke:todoPoke,save:save,barPlan:barPlan,celSale:celSale,wineOpen:wineOpen,chgLoad:chgLoad,openSettings:openSettings,chgStore:chgStore,chgDiff:chgDiff,stkRows:stkRows,stkCounts:stkCounts,stkParse:stkParse,stkApplyImport:stkApplyImport,stkAccept:stkAccept,stkSheets:stkSheets,stkStore:stkStore,celParseCsv:celParseCsv,celStore:celStore,celParseRows:celParseRows,celParseCsv:celParseCsv,celApplyImport:celApplyImport,celRows:celRows,celXlsx:celXlsx,celCollect:celCollect,celApply:celApply,celSwap:celSwap,rtSeed:rtSeed,evMenuItems:evMenuItems,evFind:evFind,evAddDish:evAddDish,rtGridArr:rtGridArr,rtXlsx:rtXlsx,rtDiff:rtDiff,rtPages:rtPages,rtGrid:rtGrid,rtParseGrid:rtParseGrid,rtHandle:rtHandle,rtApplyImport:rtApplyImport,fpImportBuf:fpImportBuf,fpPut:fpPut,fpPlan:fpPlan,fpHandle:fpHandle,fpTablesOf:fpTablesOf,getS:function(){return S;},cmGet:cmGet,fileRoute:fileRoute,costRefresh:costRefresh,pbL:pbL,pbSearch:pbSearch,cmRecipeSheets:cmRecipeSheets,cmDishCost:cmDishCost,pcTeam:pcTeam,cxList:cxList,pbSet:pbSet,cmTouch:cmTouch,emMenu:emMenu,emPick:emPick,emCount:emCount,emPages:emPages,emDoc:emDoc,emOpenDiff:emOpenDiff,emApply:emApply,emTeam:emTeam,emCmd:emCmd,evIntentRx:evIntentRx,save:save,send:send,openChat:openChat,teamFlow:teamFlow,foreignGuard:foreignGuard,kbDetail:kbDetail,baseApply:baseApply,BASE:BASE,kbAdd:kbAdd,kbEnqueue:kbEnqueue,kbSearch:kbSearch,kbLoad:kbLoad,kbRemove:kbRemove,kbCloze:kbCloze,kbSlot:kbSlot,kbAnswer:kbAnswer,readAny:readAny,exportRows:exportRows,xlsxBuild:xlsxBuild,pdfBuild:pdfBuild,csvBuild:csvBuild,handleExport:handleExport,exportStock:exportStock,needsRules:needsRules,buildPrompt:buildPrompt,teamSpeakersFor:teamSpeakersFor,dataBlock:dataBlock,stockRows:stockRows,parseCount:parseCount,splitCount:splitCount,idfWeights:idfWeights,rankMatches:rankMatches,aliasSet:aliasSet,handleMatches:handleMatches,respond:respond,respondTeam:respondTeam,parseList:parseList,applyList:applyList,avatarSVG:avatarSVG,glassCard:glassCard,parseMenuText:parseMenuText,looksMenu:looksMenu,autoMatch:autoMatch,searchPool:searchPool,scoreName:scoreName,sendGlassEdit:sendGlassEdit,guessType:guessType,getS:function(){return S;},A:A});
 })();
 </script>
 
