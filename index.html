@@ -1994,7 +1994,7 @@ function applyList(c,parsed,docId){
 function sellGlasses(it,g,pour){
   var sold=0; g=Math.floor(g);
   while(g>0){
-    if(!(it.open>0)){if(it.qty>0){it.qty-=1; it.open=pour;}else break;}
+    if(!(it.open>0)){if(it.qty>0){it.qty-=1; celOutIt(it,1); it.open=pour;}else break;}
     var take=Math.min(it.open,g); it.open-=take; g-=take; sold+=take;
   }
   return sold;
@@ -2488,7 +2488,7 @@ function doChange(a,c,text,mode){
         logL.push({code:it.code||'',name:it.name,qty:served,gl:1,why:why,flat:flatMode?1:0}); rows.push({label:it.name,code:it.code||'',delta:'\u2212'+num(served)+' gl',value:fmt(it),low:isLow(a,it),id:it.id,k:kd,raw:p.name});
       }else{
         if(q>it.qty){notes.push('I only had '+num(it.qty)+' of '+it.name+', so it is now 0.'); q=it.qty;}
-        it.qty-=q; logL.push({code:it.code||'',name:it.name,qty:q,why:why,flat:flatMode?1:0}); rows.push({label:it.name,code:it.code||'',delta:'\u2212'+num(q),value:fmt(it),low:isLow(a,it),id:it.id,k:kd,raw:p.name});
+        it.qty-=q; celOutIt(it,q); logL.push({code:it.code||'',name:it.name,qty:q,why:why,flat:flatMode?1:0}); rows.push({label:it.name,code:it.code||'',delta:'\u2212'+num(q),value:fmt(it),low:isLow(a,it),id:it.id,k:kd,raw:p.name});
       }
     }else{
       if(it.qty==null)it.qty=0;
@@ -5792,7 +5792,7 @@ try{setTimeout(function(){snapNow('Opened the app');},6000); document.addEventLi
   }
   window.addEventListener('resize',apply); window.addEventListener('orientationchange',function(){setTimeout(apply,60);}); apply();
 })();
-var APPVER='Sidekick 76';
+var APPVER='Sidekick 79';
 var KEYNAME='dutybuddy.apikey', inClaude=false;
 function storedKey(){try{return localStorage.getItem(KEYNAME)||'';}catch(e){return '';}}
 function keyOn(){try{return localStorage.getItem('dutybuddy.keyoff')!=='1';}catch(e){return true;}}
@@ -6383,7 +6383,7 @@ function planApply(id,m,sels,kind){
     }else{
       if(it.qty==null){notes.push(it.name+' has no count yet, so I left it.'); return;}
       if(q>it.qty){notes.push('Only '+num(it.qty)+' of '+it.name+' were in stock, so it is now 0.'); q=it.qty;}
-      logL.push({code:it.code||line.code||'',name:it.name,raw:line.raw||'',qty:q,why:'sold'}); it.qty-=q; rows.push({label:it.name,code:it.code||'',delta:'−'+num(q),value:fmt(it),low:isLow(a,it)});
+      logL.push({code:it.code||line.code||'',name:it.name,raw:line.raw||'',qty:q,why:'sold'}); it.qty-=q; celOutIt(it,q); rows.push({label:it.name,code:it.code||'',delta:'−'+num(q),value:fmt(it),low:isLow(a,it)});
     }
     if(v!=='new'&&line.code)aliasSet(c,{code:line.code,name:line.raw},it);
     n++;
@@ -11793,8 +11793,8 @@ function rtPrint(c,wk){
 
 /* ---------- WINE CELLAR (Sofia): 8 EuroCave + 8 Swisscave, fixed shelves ---------- */
 var CEL_SC=['By the glass','New World reds','Italian reds','Burgundy whites','Other whites','Burgundy + Bordeaux','World reds','Red glass + out of stock'];
-var CEL_ECN=11, CEL_SCN=5, CEL_MAXW=7, CEL_MAXE11=15, CEL_MAXS5=12, celEditU='';
-function celCap(u,sh){if(celFlex(u))return Infinity; var i=u.sh.indexOf(sh); if(u.b==='e'&&i===CEL_ECN-1)return CEL_MAXE11; if(u.b==='s'&&i===CEL_SCN-1)return CEL_MAXS5; return CEL_MAXW;}
+var CEL_ESH={e4:13,e5:14,e6:15,e7:13,e8:15}, CEL_ECN=11, CEL_SCN=5, CEL_MAXW=7, CEL_MAXE11=15, CEL_MAXS5=12, celEditU='';
+function celCap(u,sh){if(celFlex(u))return Infinity; if(CEL_ESH[u.id])return 6; var i=u.sh.indexOf(sh); if(u.b==='e'&&i===CEL_ECN-1)return CEL_MAXE11; if(u.b==='s'&&i===CEL_SCN-1)return CEL_MAXS5; return CEL_MAXW;}
 function celMax(u,sh){return celFlex(u)?99999:(sh?celCap(u,sh):CEL_MAXW);}
 function celEff(r,x){var v=(r.cnt&&r.cnt.cq)?r.cnt.cq[x.id]:null; return v!=null?v:(celQ(x)||0);}
 function celShTot(r,sh,skip){var s=0; sh.w.forEach(function(x){if(x!==skip)s+=celEff(r,x);}); return Math.round(s*100)/100;}
@@ -11837,6 +11837,7 @@ function celStore(c){
   r.units.forEach(function(u){if(u.b==='w'&&u.sh.length===6&&u.sh.every(function(h){return !h.w.length&&!h.tag&&!h.box;})){var nu=celMk('w',u.no); u.sh=nu.sh;}});
   r.units.forEach(function(u){if(u.b==='w'){var CB=['Left','Middle','Right']; u.sh.forEach(function(sh,i){if(!sh.cab)sh.cab=CB[Math.min(2,Math.floor(i/Math.max(1,Math.ceil(u.sh.length/3))))];});}});
   if(r.e11!==1){r.units.forEach(function(u){if(u.b==='e'){var l=u.sh[u.sh.length-1]; if(l&&l.nw&&!l.w.length)l.nw=false;}}); r.e11=1;}
+  if(r.e4!==2){Object.keys(CEL_ESH).forEach(function(k){var eu=celU(r,k); if(eu){while(eu.sh.length<CEL_ESH[k])celAddShelf(eu);}}); r.e4=2;}
   r.cnt=r.cnt||{}; r.cnt.cq=r.cnt.cq||{}; r.cnt.sd=r.cnt.sd||{}; r.hist=r.hist||[]; return r;
 }
 function celU(r,id){return r.units.filter(function(u){return u.id===id;})[0]||null;}
@@ -12013,6 +12014,23 @@ function celInvExport(c,r){
 }
 /* ----- find a wine in all places, move bottles, order ----- */
 var celFindQ='';
+/* ----- refill logic: shelves follow the stock ----- */
+function celRed(it){return /^red/i.test(String(it.type||''));}
+function celPrio(u,it){if(celRed(it))return (u.b==='e'||u.b==='s')?0:1; return u.b==='w'?0:(u.b==='u'?1:2);}
+function celAdj(r,x,d){x.q=Math.max(0,Math.round(((celQ(x)||0)+d)*10000)/10000); if(r.cnt&&r.cnt.cq&&r.cnt.cq[x.id]!=null)r.cnt.cq[x.id]=Math.max(0,Math.round((r.cnt.cq[x.id]+d)*10000)/10000);}
+function celTakeFrom(r,it,n,skipX){
+  var locs=celLocs(r,it.id).filter(function(l){return l.x!==skipX&&(celQ(l.x)||0)>0;}).sort(function(a,b){return celPrio(a.u,it)-celPrio(b.u,it)||(celQ(b.x)||0)-(celQ(a.x)||0);});
+  var left=n, got=[]; locs.forEach(function(l){if(left<=0)return; var q=celQ(l.x)||0, t=Math.min(q,left); celAdj(r,l.x,-t); left-=t; got.push({u:l.u,n:t});}); return got;
+}
+function celPlacedQ(r,wid){var t=0; celLocs(r,wid).forEach(function(l){t+=celQ(l.x)||0;}); return t;}
+function celOutIt(it,q){
+  try{Object.keys(S.chats).forEach(function(id){var c=S.chats[id], r=c&&c.cellar; if(!r||!Array.isArray(r.units)||!c.inv||c.inv.indexOf(it)<0||!(q>0))return;
+    var before=celStockN(it)+q, unpl=Math.max(0,before-celPlacedQ(r,it.id)), need=q-unpl; if(need>0)celTakeFrom(r,it,need,null);});}catch(e){}
+}
+function celIn(c,r,it,n,skipX){
+  try{var free=celWineFree(c,r,it,null), need=n-free; if(need<=0)return; var got=celTakeFrom(r,it,need,skipX);
+    if(got.length)toast('Taken from '+got.map(function(g){return celUName(g.u)+' '+num(g.n);}).join(', ')+'.');}catch(e){}
+}
 function celLocs(r,wid){var out=[]; r.units.forEach(function(u){u.sh.forEach(function(sh,si){sh.w.forEach(function(x){if(x.wid===wid)out.push({u:u,sh:sh,si:si,x:x});});});}); return out;}
 function celLocName(l){
   if(l.sh.cab){var k=0; for(var i=0;i<=l.si;i++){if(l.u.sh[i].cab===l.sh.cab)k++;} return celUName(l.u)+' · '+l.sh.cab+' · '+(l.sh.tag||'Shelf '+k);}
@@ -12174,6 +12192,7 @@ function celMoveSheet(c,r,it,mode,done){
       var dx=dsh.w.filter(function(x){return x.wid===it.id;})[0];
       if(mode==='move'){var f=from[+fs.value]; if(f.sh===dsh){toast('Choose a different shelf.'); return;} if(n>celShFree(du,r,dsh,null)){toast('That shelf holds '+celCap(du,dsh)+' bottles. Only '+num(celShFree(du,r,dsh,null))+' more fit.'); return;} f.x.q=(celQ(f.x)||0)-n;}
       else{if(maxN()<1||n>maxN()){toast('That shelf holds '+celCap(du,dsh)+' bottles. Only '+num(celShFree(du,r,dsh,null))+' more fit.'); return;}}
+      if(mode!=='move')celIn(c,r,it,n,dx||null);
       if(dx)dx.q=(celQ(dx)||0)+n; else dsh.w.push({id:uid(),wid:it.id,n:it.name,q:n});
       r.mv=r.mv||[]; r.mv.unshift({ts:Date.now(),wid:it.id,n:n,to:celUName(du)+' · shelf '+(du.sh.indexOf(dsh)+1),from:mode==='move'?celLocName(from[+fs.value]):''}); r.mv=r.mv.slice(0,40);
       save(); close(); toast((mode==='move'?'Moved ':'Put ')+n+(n===1?' bottle':' bottles')+' to '+celUName(du)+', shelf '+(du.sh.indexOf(dsh)+1)+'. Stock total is not changed.'); done();
@@ -12198,7 +12217,7 @@ function celFindBox(c,r,box){
       locs.forEach(function(l){
         var rw=el('div'); rw.style.cssText='display:flex;align-items:center;gap:8px;padding:7px 0;border-top:1px solid var(--line)';
         var lb=el('button',null,celLocName(l)); lb.type='button'; lb.style.cssText='flex:1;background:none;border:0;padding:0;font:inherit;font-size:13px;text-align:left;color:inherit;cursor:pointer'; lb.addEventListener('click',function(){modGo('cellar',l.sh.id);}); rw.appendChild(lb);
-        function stp(t,d){var b=el('button',null,t); b.type='button'; b.setAttribute('aria-label',(d>0?'One more in ':'One fewer in ')+celLocName(l)); b.style.cssText='width:36px;height:36px;border-radius:18px;border:1.5px solid #cfd8d3;background:var(--surface,#fff);color:inherit;font-size:19px;cursor:pointer'; b.addEventListener('click',function(){if(d>0){var sf=celShFree(l.u,r,l.sh,null); if(sf<1){toast('That shelf holds '+celCap(l.u,l.sh)+' bottles. It is full.'); return;}} l.x.q=Math.max(0,(celQ(l.x)||0)+d); if(r.cnt.cq[l.x.id]!=null)r.cnt.cq[l.x.id]=Math.max(0,r.cnt.cq[l.x.id]+d); save(); draw();}); return b;}
+        function stp(t,d){var b=el('button',null,t); b.type='button'; b.setAttribute('aria-label',(d>0?'One more in ':'One fewer in ')+celLocName(l)); b.style.cssText='width:36px;height:36px;border-radius:18px;border:1.5px solid #cfd8d3;background:var(--surface,#fff);color:inherit;font-size:19px;cursor:pointer'; b.addEventListener('click',function(){if(d>0){var sf=celShFree(l.u,r,l.sh,null); if(sf<1){toast('That shelf holds '+celCap(l.u,l.sh)+' bottles. It is full.'); return;}} if(d>0){var it_=celItem(c,l.x); if(it_)celIn(c,r,it_,d,l.x);} l.x.q=Math.max(0,(celQ(l.x)||0)+d); if(r.cnt.cq[l.x.id]!=null)r.cnt.cq[l.x.id]=Math.max(0,r.cnt.cq[l.x.id]+d); save(); draw();}); return b;}
         rw.appendChild(stp('−',-1)); rw.appendChild(Object.assign(el('b',null,String(celQ(l.x)==null?'–':num(celQ(l.x)))),{style:'min-width:26px;text-align:center;font-size:16px'})); rw.appendChild(stp('+',1)); k.appendChild(rw);
       });
       var bt=el('div','btns'); if(locs.some(function(l){return (celQ(l.x)||0)>0;}))bt.appendChild(mkBtn('Move bottles','',function(){celMoveSheet(c,r,it,'move',draw);})); bt.appendChild(mkBtn('Put on a shelf','ghost',function(){celMoveSheet(c,r,it,'add',draw);})); bt.appendChild(mkBtn('Add to order list','ghost',function(){toast(celOrderAdd(c,it.name)?it.name+' added to the Wine order list.':'Already on the Wine order list.'); save();})); k.appendChild(bt);
@@ -12601,7 +12620,7 @@ function wineQty(c,it,done){
     info.style.cssText='text-align:center;color:var(--muted);font-size:13px;margin-bottom:12px'; bx.appendChild(info);
     go=mkBtn('Save','',function(){
       var d=calc(); if(d.from===d.to)return; var diff=Math.round(Math.abs(d.to-d.from)*100)/100;
-      CHGSRC=cur[2]==='set'?'Count':'Wine page'; it.qty=d.to;
+      CHGSRC=cur[2]==='set'?'Count':'Wine page'; it.qty=d.to; if(cur[2]==='out')celOutIt(it,Math.round((d.from-d.to)*100)/100);
       if(cur[2]!=='set'){c.log=c.log||[]; c.log.push({id:uid(),po:'',date:tdy(),ts:Date.now(),kind:cur[2]==='in'?'in':'out',typed:1,lines:[{code:it.code||'',name:it.name,qty:diff,why:cur[0]==='in'?'received':(cur[0]==='flat'?'waste':cur[0]),flat:cur[0]==='flat'?1:undefined}],sn:(c.undo||[]).length});}
       save(); CHGSRC=''; close(); toast(it.name+': '+d.from+' → '+d.to+' · '+cur[1]); done();});
     go.style.cssText='width:100%;min-height:48px'; bx.appendChild(go); paint();
@@ -12638,7 +12657,7 @@ function wineOpen(c,it,done){
       locs.forEach(function(l){
         var rw=el('div'); rw.style.cssText='display:flex;align-items:center;gap:8px;padding:8px 14px;border-top:1px solid var(--line)';
         var lb=el('button',null,celLocName(l)); lb.type='button'; lb.style.cssText='flex:1;background:none;border:0;padding:0;font:inherit;font-size:13.5px;text-align:left;color:inherit;cursor:pointer'; lb.addEventListener('click',function(){wineClose(); location.hash=id+'-cellar-'+l.sh.id;}); rw.appendChild(lb);
-        function stp(t,d){var b=el('button',null,t); b.type='button'; b.setAttribute('aria-label',(d>0?'One more in ':'One fewer in ')+celLocName(l)); b.style.cssText='width:38px;height:38px;border-radius:19px;border:1.5px solid #cfd8d3;background:var(--surface,#fff);color:inherit;font-size:20px;cursor:pointer'; b.addEventListener('click',function(){var q0=celQ(l.x)||0, q1=Math.max(0,q0+d); if(q1===q0)return; l.x.q=q1; if(d<0){var nm=celLocName(l); mvN=(mvN&&mvN.from===nm)?{n:mvN.n+1,from:nm}:{n:1,from:nm};} save(); draw();}); return b;}
+        function stp(t,d){var b=el('button',null,t); b.type='button'; b.setAttribute('aria-label',(d>0?'One more in ':'One fewer in ')+celLocName(l)); b.style.cssText='width:38px;height:38px;border-radius:19px;border:1.5px solid #cfd8d3;background:var(--surface,#fff);color:inherit;font-size:20px;cursor:pointer'; b.addEventListener('click',function(){var q0=celQ(l.x)||0, q1=Math.max(0,q0+d); if(q1===q0)return; if(d>0){var it_=celItem(c,l.x); if(it_)celIn(c,r,it_,d,l.x);} l.x.q=q1; if(d<0){var nm=celLocName(l); mvN=(mvN&&mvN.from===nm)?{n:mvN.n+1,from:nm}:{n:1,from:nm};} save(); draw();}); return b;}
         rw.appendChild(stp('−',-1)); rw.appendChild(Object.assign(el('b',null,String(celQ(l.x)==null?'–':num(celQ(l.x)))),{style:'min-width:26px;text-align:center;font-size:16px'})); rw.appendChild(stp('+',1)); wc.appendChild(rw);
       });
       if(mvN){var bn=el('div'); bn.style.cssText='margin:8px 14px 12px;background:#fff7e0;border:1.5px solid #f0d98a;border-radius:14px;padding:11px 13px;font-size:13px;color:#6b5410'; bn.appendChild(Object.assign(el('div',null,'−'+mvN.n+' from '+mvN.from+'. Where do they go?'),{style:'font-weight:700;margin-bottom:8px'})); var bb=el('div','btns');
@@ -12899,7 +12918,7 @@ syncStart();
 A.forEach(function(x){kbLoad(x.id).then(function(){kbResumeAll(x.id); kbBarUpdate(); if((libId===x.id||libId==='lib')&&!$('libView').hidden)renderLib(libId);});});
 kbLoad('lib').then(function(){kbResumeAll('lib'); kbBarUpdate(); if(libId==='lib'&&!$('libView').hidden)renderLib('lib');});
 document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible'){A.forEach(function(x){kbResumeAll(x.id);}); kbWake(); kbBarUpdate();}});
-if(window.__DB_TEST__)window.__DB_TEST__({modGo:modGo,mcRows:mcRows,celApply:celApply,renderSettings:renderSettings,renderInfo:renderInfo,celStore:celStore,celShFree:celShFree,celWineFree:celWineFree,celShTot:celShTot,SS:function(){return S;},kbBest:kbBest,kbClean:kbClean,kbBuild:kbBuild,studySend:studySend,rsPlan:rsPlan,tbDim:tbDim,tbShape:tbShape,tbMerge:tbMerge,tbSnap:tbSnap,tbSplit:tbSplit,wineAny:wineAny,mxInit:mxInit,mxLearn:mxLearn,wineOpen:wineOpen,photoOrOcr:photoOrOcr,gqCount:gqCount,kbSlot:kbSlot,libAll:libAll,renderLib:renderLib,libPicker:libPicker,kbShare:kbShare,celInvTotals:celInvTotals,stkPdfRes:stkPdfRes,stkReportRes:stkReportRes,bkStatus:bkStatus,openBackup:openBackup,todoPoke:todoPoke,save:save,barPlan:barPlan,celSale:celSale,wineOpen:wineOpen,chgLoad:chgLoad,openSettings:openSettings,chgStore:chgStore,chgDiff:chgDiff,stkRows:stkRows,stkCounts:stkCounts,stkParse:stkParse,stkApplyImport:stkApplyImport,stkAccept:stkAccept,stkSheets:stkSheets,stkStore:stkStore,celParseCsv:celParseCsv,celStore:celStore,celParseRows:celParseRows,celParseCsv:celParseCsv,celApplyImport:celApplyImport,celRows:celRows,celXlsx:celXlsx,celCollect:celCollect,celApply:celApply,celSwap:celSwap,rtSeed:rtSeed,evMenuItems:evMenuItems,evFind:evFind,evAddDish:evAddDish,rtGridArr:rtGridArr,rtXlsx:rtXlsx,rtDiff:rtDiff,rtPages:rtPages,rtGrid:rtGrid,rtParseGrid:rtParseGrid,rtHandle:rtHandle,rtApplyImport:rtApplyImport,fpImportBuf:fpImportBuf,fpPut:fpPut,fpPlan:fpPlan,fpHandle:fpHandle,fpTablesOf:fpTablesOf,getS:function(){return S;},cmGet:cmGet,fileRoute:fileRoute,costRefresh:costRefresh,pbL:pbL,pbSearch:pbSearch,cmRecipeSheets:cmRecipeSheets,cmDishCost:cmDishCost,pcTeam:pcTeam,cxList:cxList,pbSet:pbSet,cmTouch:cmTouch,emMenu:emMenu,emPick:emPick,emCount:emCount,emPages:emPages,emDoc:emDoc,emOpenDiff:emOpenDiff,emApply:emApply,emTeam:emTeam,emCmd:emCmd,evIntentRx:evIntentRx,save:save,send:send,openChat:openChat,teamFlow:teamFlow,foreignGuard:foreignGuard,kbDetail:kbDetail,baseApply:baseApply,BASE:BASE,kbAdd:kbAdd,kbEnqueue:kbEnqueue,kbSearch:kbSearch,kbLoad:kbLoad,kbRemove:kbRemove,kbCloze:kbCloze,kbSlot:kbSlot,kbAnswer:kbAnswer,readAny:readAny,exportRows:exportRows,xlsxBuild:xlsxBuild,pdfBuild:pdfBuild,csvBuild:csvBuild,handleExport:handleExport,exportStock:exportStock,needsRules:needsRules,buildPrompt:buildPrompt,teamSpeakersFor:teamSpeakersFor,dataBlock:dataBlock,stockRows:stockRows,parseCount:parseCount,splitCount:splitCount,idfWeights:idfWeights,rankMatches:rankMatches,aliasSet:aliasSet,handleMatches:handleMatches,respond:respond,respondTeam:respondTeam,parseList:parseList,applyList:applyList,avatarSVG:avatarSVG,glassCard:glassCard,parseMenuText:parseMenuText,looksMenu:looksMenu,autoMatch:autoMatch,searchPool:searchPool,scoreName:scoreName,sendGlassEdit:sendGlassEdit,guessType:guessType,getS:function(){return S;},A:A});
+if(window.__DB_TEST__)window.__DB_TEST__({modGo:modGo,mcRows:mcRows,celOutIt:celOutIt,celIn:celIn,celLocs:celLocs,celApply:celApply,renderSettings:renderSettings,renderInfo:renderInfo,celStore:celStore,celShFree:celShFree,celWineFree:celWineFree,celShTot:celShTot,SS:function(){return S;},kbBest:kbBest,kbClean:kbClean,kbBuild:kbBuild,studySend:studySend,rsPlan:rsPlan,tbDim:tbDim,tbShape:tbShape,tbMerge:tbMerge,tbSnap:tbSnap,tbSplit:tbSplit,wineAny:wineAny,mxInit:mxInit,mxLearn:mxLearn,wineOpen:wineOpen,photoOrOcr:photoOrOcr,gqCount:gqCount,kbSlot:kbSlot,libAll:libAll,renderLib:renderLib,libPicker:libPicker,kbShare:kbShare,celInvTotals:celInvTotals,stkPdfRes:stkPdfRes,stkReportRes:stkReportRes,bkStatus:bkStatus,openBackup:openBackup,todoPoke:todoPoke,save:save,barPlan:barPlan,celSale:celSale,wineOpen:wineOpen,chgLoad:chgLoad,openSettings:openSettings,chgStore:chgStore,chgDiff:chgDiff,stkRows:stkRows,stkCounts:stkCounts,stkParse:stkParse,stkApplyImport:stkApplyImport,stkAccept:stkAccept,stkSheets:stkSheets,stkStore:stkStore,celParseCsv:celParseCsv,celStore:celStore,celParseRows:celParseRows,celParseCsv:celParseCsv,celApplyImport:celApplyImport,celRows:celRows,celXlsx:celXlsx,celCollect:celCollect,celApply:celApply,celSwap:celSwap,rtSeed:rtSeed,evMenuItems:evMenuItems,evFind:evFind,evAddDish:evAddDish,rtGridArr:rtGridArr,rtXlsx:rtXlsx,rtDiff:rtDiff,rtPages:rtPages,rtGrid:rtGrid,rtParseGrid:rtParseGrid,rtHandle:rtHandle,rtApplyImport:rtApplyImport,fpImportBuf:fpImportBuf,fpPut:fpPut,fpPlan:fpPlan,fpHandle:fpHandle,fpTablesOf:fpTablesOf,getS:function(){return S;},cmGet:cmGet,fileRoute:fileRoute,costRefresh:costRefresh,pbL:pbL,pbSearch:pbSearch,cmRecipeSheets:cmRecipeSheets,cmDishCost:cmDishCost,pcTeam:pcTeam,cxList:cxList,pbSet:pbSet,cmTouch:cmTouch,emMenu:emMenu,emPick:emPick,emCount:emCount,emPages:emPages,emDoc:emDoc,emOpenDiff:emOpenDiff,emApply:emApply,emTeam:emTeam,emCmd:emCmd,evIntentRx:evIntentRx,save:save,send:send,openChat:openChat,teamFlow:teamFlow,foreignGuard:foreignGuard,kbDetail:kbDetail,baseApply:baseApply,BASE:BASE,kbAdd:kbAdd,kbEnqueue:kbEnqueue,kbSearch:kbSearch,kbLoad:kbLoad,kbRemove:kbRemove,kbCloze:kbCloze,kbSlot:kbSlot,kbAnswer:kbAnswer,readAny:readAny,exportRows:exportRows,xlsxBuild:xlsxBuild,pdfBuild:pdfBuild,csvBuild:csvBuild,handleExport:handleExport,exportStock:exportStock,needsRules:needsRules,buildPrompt:buildPrompt,teamSpeakersFor:teamSpeakersFor,dataBlock:dataBlock,stockRows:stockRows,parseCount:parseCount,splitCount:splitCount,idfWeights:idfWeights,rankMatches:rankMatches,aliasSet:aliasSet,handleMatches:handleMatches,respond:respond,respondTeam:respondTeam,parseList:parseList,applyList:applyList,avatarSVG:avatarSVG,glassCard:glassCard,parseMenuText:parseMenuText,looksMenu:looksMenu,autoMatch:autoMatch,searchPool:searchPool,scoreName:scoreName,sendGlassEdit:sendGlassEdit,guessType:guessType,getS:function(){return S;},A:A});
 })();
 </script>
 
