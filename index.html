@@ -2072,6 +2072,7 @@ function helpMsg(a,c){
   t+='\n• Add a delivery: “Add 12 '+n+'”\n• Ask: “How many '+(it?short(it.name):'House Red')+' left?”, “Low stock”, “Show stock”';
   if(hasCodes)t+=', “Show codes”\n• Ask a code: “What is the code for '+short(it.name)+'?” or “Which one is '+(it.code||n)+'?”';
   if(a.pour||c.pour)t+='\n• “Show by the glass” gives you a list you can edit and send back. “Put Sancerre by the glass” or “Take Malbec off by the glass” changes it.';
+  t+='\n• Lists: “86 list”, “85 list”, “86 and 85 list”, “Order list” (everything at or below its par level)';
   t+='\n• Settings: “Set low stock alert to 6”'+((a.pour||c.pour)?', “Set red glass to 150 ml”':'')+'.';
   t+='\n• Undo the last change: “Undo”\n• Ask about my job: “What are your duties?”\n• Teach me a full list or notes: tap my name at the top.';
   return {text:t};
@@ -2081,7 +2082,7 @@ function jobMsg(a){
   return {text:a.role+'. '+r.mission+'\n\nMy main duties:\n'+r.duties.slice(0,6).map(function(d){return '• '+d;}).join('\n')+'\n\nWhat I do for you today:\n'+r.live.map(function(d){return '• '+d;}).join('\n')+'\n\nThe full job description is in my profile. Tap my name at the top.'};
 }
 function doImport(a,c,items){
-  snap(c);
+  snap(c); c.stkDay=tdy();
   var touched=[];
   items.forEach(function(p){
     var ex=null, lc=p.name.toLowerCase();
@@ -2303,19 +2304,35 @@ function recoMsg(a,c,glassOnly,pre,only){
   return {text:(pre||'')+'Recommended order'+(glassOnly?' (by the glass)':'')+'. Each amount brings the wine back up to its par level, after what is already waiting. Change an amount or remove a line, then tap Create PDF or Ordered.',chg:{mode:'order',lines:lines,done:0}};
 }
 /* ---------- 86 / 85 lists (only wines on the current menu) ---------- */
+function stOf8685(q){return q<=0?'86':q<=2?'85':'ok';}
+function since8685(c,it,w,q){
+  var run=q, lg=c.log||[];
+  for(var i=lg.length-1;i>=0;i--){var e=lg[i], ls=e.lines||[];
+    for(var j=ls.length-1;j>=0;j--){var l=ls[j];
+      if(!((l.code&&it.code&&l.code===it.code)||(l.name&&l.name===it.name)))continue;
+      var d=Math.abs(+l.qty||0); if(!d)continue; var before=run-(e.kind==='in'?d:-d);
+      if(stOf8685(before)!==w)return e.date||null; run=before;}
+  }
+  return null;
+}
 function list8685(c){
-  var rows=[]; menuItems(c).forEach(function(it){
-    if(it.qty==null)return; var q=Math.round(it.qty*100)/100;
+  var rows=[], byId={}; menuItems(c).forEach(function(it){
+    if(it.qty==null)return; var q=Math.round(it.qty*100)/100; byId[it.id]=it;
     if(q<=0&&!(it.open>0))rows.push({id:it.id,name:it.name,type:it.type||'Other',w:'86',qty:0,stock:0});
     else if(q>0&&q<=2)rows.push({id:it.id,name:it.name,type:it.type||'Other',w:'85',qty:q,stock:q});
   });
-  var seen=c.lstSeen=c.lstSeen||{}, t=tdy(), nw={};
-  rows.forEach(function(r){var o=seen[r.id]; nw[r.id]=(o&&o.w===r.w)?o:{w:r.w,d:t}; r.age=Math.max(0,dBetween(nw[r.id].d,t));});
-  c.lstSeen=nw;
+  var seen=c.lstSeen=c.lstSeen||{}, t=tdy(), nw={}, ch=false;
+  var base=c.stkDay||((c.log||[]).reduce(function(m,e){return e.date&&(!m||e.date<m)?e.date:m;},null))||t;
+  rows.forEach(function(r){var o=seen[r.id];
+    if(!(o&&o.w===r.w)){ch=true; var it=byId[r.id], d=since8685(c,it,r.w,r.qty); if(!d){var nx=new Date(base+'T12:00:00'); nx.setDate(nx.getDate()+1); d=isoL(nx); if(d>t)d=t;} o={w:r.w,d:d};}
+    nw[r.id]=o; r.d=o.d; r.age=Math.max(0,dBetween(o.d,t));});
+  if(Object.keys(seen).length!==Object.keys(nw).length)ch=true;
+  c.lstSeen=nw; if(ch){try{save();}catch(e){}}
   return rows;
 }
-function ageTxt(n){return n<=0?'today':n===1?'yesterday':n>=6?'week':(n+1)+(n===2?'rd':'th')+' day';}
-function ageCls(n){return n<=1?'#e1f0ec|#0a5a48':n>=6?'#f9dede|#8a1f1f':'#fff3d6|#7a5a00';}
+function rowAge(r){return r.d?Math.max(0,dBetween(r.d,tdy())):(r.age||0);}
+function ageTxt(n){if(n<=0)return 'today'; if(n===1)return 'yesterday'; if(n<7)return n+' days'; if(n<30){var w=Math.floor(n/7); return w+(w===1?' week':' weeks');} var m=Math.floor(n/30); return m+(m===1?' month':' months');}
+function ageCls(n){return n<=1?'#e1f0ec|#0a5a48':n>=7?'#f9dede|#8a1f1f':'#fff3d6|#7a5a00';}
 function lstGroups(rows,w){
   var out=[]; STK_ORD.forEach(function(t){var xs=rows.filter(function(r){return r.w===w&&r.type===t;}); if(xs.length)out.push([STK_LAB[t]||t,xs]);}); return out;
 }
@@ -2379,7 +2396,7 @@ function pdfShow(title,fname,res){
 function dayLongTxt(){var d=new Date(); return ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][d.getDay()]+' '+dmyLong();}
 async function lstPdf(rows,which){
   if(!rows.some(function(r){return which==='both'||r.w===which;})){toast('There is nothing in the list.'); return;}
-  var bl=[]; ['86','85'].forEach(function(w){if(which!=='both'&&which!==w)return; bl.push({t:'h',x:w}); var g=lstGroups(rows,w); if(!g.length)bl.push({t:'note',x:'None'}); g.forEach(function(x){bl.push({t:'cat',x:x[0]}); x[1].forEach(function(r){bl.push({t:'line',x:r.name,q:w==='85'?num(r.qty):'',tag:ageTxt(r.age||0),tc:ageCls(r.age||0)});});});});
+  var bl=[]; ['86','85'].forEach(function(w){if(which!=='both'&&which!==w)return; bl.push({t:'h',x:w}); var g=lstGroups(rows,w); if(!g.length)bl.push({t:'note',x:'None'}); g.forEach(function(x){bl.push({t:'cat',x:x[0]}); x[1].forEach(function(r){bl.push({t:'line',x:r.name,q:w==='85'?num(r.qty):'',tag:ageTxt(rowAge(r)),tc:ageCls(rowAge(r))});});});});
   var d=new Date();
   try{var res=await pdfFromBlocks(bl,dayLongTxt()+' · '+pad2(d.getHours())+':'+pad2(d.getMinutes())); pdfShow('86/85 list','86-85 list '+tdy()+'.pdf',res);}catch(e){toast('Could not make the PDF.');}
 }
@@ -2390,7 +2407,12 @@ async function orderPdf(c,lines){
 }
 function handle8685(a,c,text){
   if(!stkUI(a))return null;
-  var m=String(text).trim().match(/^(?:show\s+|send\s+|give\s+me\s+)?(?:the\s+)?(86\s*\/\s*85|85\s*\/\s*86|86|85)(?:\s*(?:list|lists))?\s*[?!.]*$/i); if(!m)return null;
+  var raw=String(text).trim().toLowerCase(), has86=/(^|[^0-9])86([^0-9]|$)/.test(raw), has85=/(^|[^0-9])85([^0-9]|$)/.test(raw);
+  if(!has86&&!has85)return null; if(raw.length>70||/\n/.test(raw))return null;
+  var rest=raw.replace(/(^|[^0-9])(86|85)(?=[^0-9]|$)/g,' ').replace(/[\/&+,.!?;:\-]/g,' ').split(/\s+/).filter(Boolean);
+  var FILL={list:1,lists:1,send:1,me:1,show:1,give:1,the:1,my:1,a:1,please:1,pls:1,plz:1,and:1,or:1,to:1,only:1,now:1,get:1,can:1,could:1,you:1,i:1,want:1,need:1,pdf:1,create:1,make:1,both:1,also:1,with:1,for:1,today:1,wine:1,wines:1,of:1,what:1,is:1,are:1,sofia:1,hey:1,hi:1,by:1,email:1,mail:1,share:1};
+  if(rest.some(function(w){return !FILL[w];}))return null;
+  var m=[null,has86&&has85?'86/85':has86?'86':'85'];
   var k=m[1].replace(/\s/g,''), which=k==='86'?'86':k==='85'?'85':'both', rows=list8685(c);
   if(!menuItems(c).length)return [{text:'There is no wine list yet, so I cannot make a '+k+' list. Add your wine list first.'}];
   var sel=rows.filter(function(r){return which==='both'||r.w===which;});
@@ -2436,9 +2458,13 @@ function dailyList(id,c,a){
   var n6=rows.filter(function(r){return r.w==='86';}).length, n5=rows.length-n6;
   push(id,{from:'bot',who:id,text:'16:00 · 86 and 85 list is ready: '+n6+' at 86, '+n5+' at 85. Open the PDF to see it, or edit the list first.',l85:{which:'both',lines:rows,collapsed:true}}); return true;
 }
+function isPureOrderAsk(t){
+  t=String(t).trim().toLowerCase(); if(/\n/.test(t)||t.length>80)return false;
+  return /^(?:please\s+)?(?:(?:send|show|give|get)\s+(?:me\s+)?)?(?:the\s+|my\s+|a\s+)?(?:suggest(?:ed|ing|ion)?\s+)?(?:re)?order(?:ing)?\s*(?:list|suggest\w*)?(?:\s+(?:please|now|today|send\s+me|to\s+me|for\s+(?:the\s+)?glass(?:es)?|by\s+the\s+glass))?\s*[?!.]*$/.test(t)&&/list|suggest/.test(t)||/^(?:suggest(?:ed|ing)?\s+order|order\s+suggest\w*)/.test(t);
+}
 function handleOrder(a,c,text){
   if(!stkUI(a))return null; var low=text.toLowerCase();
-  if(!/\b(order list|what (should|do|shall|must) (i|we) order|what to order|which\b.*\border|reorder list|need to order|ordering list|what.*\bto order)\b/.test(low))return null;
+  if(!/\b(order\s*list|what (should|do|shall|must) (i|we) order|what to order|which\b.*\border|reorder\s*list|need to order|ordering list|what.*\bto order|suggest(?:ed|ing|ion|ions)?\s+(?:an?\s+)?order|order\s*suggest\w*|(?:below|under|beneath|less than)\s+(?:my\s+|the\s+)?par|par\s*(?:level\s*)?list|(?:wines?|bottles?|items?)\s+(?:that\s+)?(?:are\s+)?(?:low|running low|short))\b/.test(low))return null;
   var glassOnly=/\bglass/.test(low);
   if(!c.inv.some(function(i){return isLow(a,i)&&(!glassOnly||i.glass);}))return [{text:'Nothing is at its par level or below'+(glassOnly?' among the by-the-glass wines':'')+', so there is nothing to order. Default level is '+a.low+'. Write “par level” to set your own.'}];
   return [recoMsg(a,c,glassOnly,'')];
@@ -2973,7 +2999,7 @@ function profileSearch(id,q){
   c.inv.forEach(function(it){
     if(!hit(it.name+' '+(it.code||'')))return;
     var bits=[]; if(it.code)bits.push(it.code); if(it.qty!=null)bits.push(num(it.qty)+' in stock'); else bits.push('no count'); if(pnum(it.price)>0)bits.push('price '+fm2(pnum(it.price))+' AED'); if(it.cost>0)bits.push('cost '+fm2(it.cost)+' AED'+(it.cunit?' / '+it.cunit:''));
-    out.push({tag:(a.pour>0?(it.menu?'Wine list':'Off menu'):'Stock'),name:it.name,sub:bits.join(' · '),go:function(){stockQ=q; location.hash=id+(a.pour>0?(it.menu?'-wines':'-off'):'-stock'); if(a.pour>0&&it.menu){WQ[id]=q;}}});
+    out.push({tag:(a.pour>0?(it.menu?'Wine list':'Off menu'):'Stock'),name:it.name,sub:bits.join(' · '),go:function(){if(id==='sofia'&&typeof wineOpen==='function'){wineOpen(c,it,function(){});return;} stockQ=q; location.hash=id+(a.pour>0?(it.menu?'-wines':'-off'):'-stock'); if(a.pour>0&&it.menu){WQ[id]=q;}}});
   });
   (c.extra||[]).forEach(function(x){if(hit(x.name))out.push({tag:'Extra wine',name:x.name,sub:num(x.qty)+' left (outside stock)',go:function(){location.hash=id+'-off';}});});
   (c.recipes||[]).forEach(function(r){if(hit(r.name+' '+(r.ingr||[]).map(function(i){return i.n;}).join(' ')+' '+(r.cat||''))){var k=rcpCost(c,r); out.push({tag:'Recipe',name:r.name,sub:r.cat+' · '+(r.ingr||[]).length+' ingredients'+(k.known?' · cost '+fm2(k.per)+' AED'+(k.pct!=null?' · '+fm2(k.pct)+'%':''):''),go:function(){rv.q=''; rv.cat='All'; rv.open=r.id; rv.edit=null; location.hash=id+'-recipes';}});}});
@@ -4075,6 +4101,7 @@ function respondInner(id,text){
   if(/^(undo|revert)\b/i.test(first))return [doUndo(a,c)];
   var pu0=puHandle(a,c,text); if(pu0)return pu0;
   var fp0=fpHandle(a,c,text)||rtHandle(a,c,text); if(fp0)return fp0;
+  if(stkUI(a)&&isPureOrderAsk(text)){var od0=handleOrder(a,c,text); if(od0)return od0;}
   var td1=handleTodoCmd(a,c,id,text,lines); if(td1)return td1;
   if(stkUI(a)){var mc1=handleMatchCmd(a,c,id,text,lines); if(mc1)return mc1;}
   if(/^(help|commands|what can you do)\b/i.test(first)||first==='?')return [helpMsg(a,c)];
@@ -5306,7 +5333,7 @@ function bubble0(m){
       g.forEach(function(x){
         var ch=el('div',null,x[0]); ch.style.cssText='font-size:11px;font-weight:800;letter-spacing:.08em;color:var(--muted);padding:6px 12px 0;text-transform:uppercase'; lbx.appendChild(ch);
         x[1].forEach(function(r){
-          var row=el('div','ri cgr'), left=el('div','pl'); left.appendChild(el('div','nm',r.name)); left.appendChild(el('div','s1',(w==='85'?'PDF only · stock '+num(r.stock)+' · ':'')+ageTxt(r.age||0))); row.appendChild(left);
+          var row=el('div','ri cgr'), left=el('div','pl'); left.appendChild(el('div','nm',r.name)); left.appendChild(el('div','s1',(w==='85'?'PDF only · stock '+num(r.stock)+' · ':'')+ageTxt(rowAge(r)))); row.appendChild(left);
           var right=el('span','r cgq');
           if(w==='85'){var mn=mkBtn('−','ghost sm',function(){r.qty=Math.max(0,Math.round((r.qty-1)*100)/100); save(); refreshChat(cur);}), pl=mkBtn('+','ghost sm',function(){r.qty=Math.round((r.qty+1)*100)/100; save(); refreshChat(cur);}), qv=el('span',null,num(r.qty)); qv.style.cssText='min-width:30px;text-align:center;font-weight:700'; right.appendChild(mn); right.appendChild(qv); right.appendChild(pl);}
           var rm=mkBtn('✕','ghost sm',function(){L5.lines=L5.lines.filter(function(y){return y!==r;}); save(); refreshChat(cur);}); rm.setAttribute('aria-label','Remove '+r.name); right.appendChild(rm); row.appendChild(right); lbx.appendChild(row);
@@ -5805,7 +5832,7 @@ try{setTimeout(function(){snapNow('Opened the app');},6000); document.addEventLi
   }
   window.addEventListener('resize',apply); window.addEventListener('orientationchange',function(){setTimeout(apply,60);}); apply();
 })();
-var APPVER='Sidekick 85';
+var APPVER='Sidekick 88';
 var KEYNAME='dutybuddy.apikey', inClaude=false;
 function storedKey(){try{return localStorage.getItem(KEYNAME)||'';}catch(e){return '';}}
 function keyOn(){try{return localStorage.getItem('dutybuddy.keyoff')!=='1';}catch(e){return true;}}
@@ -9620,6 +9647,7 @@ function mmCard(box,x,id){
   ln('MENU',menu,'\u2014');
   ln('STOCK',x.it?(x.it.sheet||'(no stock name)'):'',x.row&&x.row.near?'closest: '+x.row.near:'tap Edit to choose');
   ln('STOCK CODE',x.it?(x.it.code||''):'','\u2014',1);
+  if(x.it){var pp=[]; if(pnum(x.it.price)>0)pp.push('bottle '+fm2(pnum(x.it.price))); if(pnum(x.it.gprice)>0)pp.push('glass '+fm2(pnum(x.it.gprice))); ln('PRICE',pp.length?pp.join(' · ')+' AED':'','\u2014');}
   var r0=x.row||{};
   if(r0.bt&&r0.gl){ln('BOTTLE',r0.bt,'\u2014'); ln('BOTTLE CODE',r0.btc||'','\u2014',1); ln('GLASS',r0.gl,'\u2014'); ln('GLASS CODE',r0.glc||'','\u2014',1);}
   else if(r0.gl){ln('MICROS',r0.gl,'\u2014'); ln('MICROS CODE',r0.glc||'','\u2014',1);}
@@ -12707,10 +12735,10 @@ function wineOpen(c,it,done){
     hd.style.paddingLeft='62px'; hd.appendChild(Object.assign(el('b',null,it.name),{style:'font-size:17px;line-height:1.25;flex:1'})); var bk=el('button',null,'Done'); bk.type='button'; bk.style.cssText='border:0;background:#e1f0ec;color:#0a4d42;font:inherit;font-weight:800;border-radius:99px;padding:8px 14px;cursor:pointer'; bk.addEventListener('click',function(){wineClose(); done&&done();}); hd.appendChild(bk); pg.appendChild(hd);
     var cd=el('div','card'); cd.style.cssText='padding:0;overflow:hidden;margin:12px 16px';
     function ln(k,v,last){if(v==null||v==='')return; var w=el('div'); w.style.cssText='display:flex;justify-content:space-between;gap:12px;padding:11px 14px;border-bottom:1px solid var(--line);font-size:14px'; w.appendChild(Object.assign(el('span',null,k),{style:'color:var(--muted)'})); w.appendChild(Object.assign(el('b',null,String(v)),{style:'text-align:right;max-width:62%;word-break:break-word'})); cd.appendChild(w);}
-    ln('Menu name',it.menu?it.name:'\u2014'); ln('Menu price, bottle',it.menu?winePrice(it):'\u2014'); if(it.glass)ln('Menu price, glass',it.menu&&pnum(it.gprice)>0?fm2(pnum(it.gprice))+' AED':'\u2014'); ln('Stock name',it.sheet||'(no stock name)'); ln('Stock code',it.code||'\u2014');
+    ln('Menu name',it.menu?it.name:'\u2014'); ln('Price, bottle',pnum(it.price)>0?winePrice(it):'\u2014'); if(it.glass||pnum(it.gprice)>0)ln('Price, glass',pnum(it.gprice)>0?fm2(pnum(it.gprice))+' AED':'\u2014'); ln('Stock name',it.sheet||'(no stock name)'); ln('Stock code',it.code||'\u2014');
     (mx.bt.length?mx.bt:[['\u2014','']]).forEach(function(p){ln('Micros name, bottle',p[0]); ln('Micros code, bottle',p[1]||'\u2014');}); (mx.gl.length?mx.gl:[['\u2014','']]).forEach(function(p){ln('Micros name, glass',p[0]); ln('Micros code, glass',p[1]||'\u2014');});
     var pr=[]; if(it.type)pr.push(it.type); pr.push((it.size||750)+' ml'); ln('Details',pr.join(' · '));
-    if(!it.menu&&pnum(it.price)>0)ln('Price',winePrice(it)); ln('Bottles',celStockN(it)+(it.open?' · '+it.open+' open':'')); pg.appendChild(cd);
+    ln('Bottles',celStockN(it)+(it.open?' · '+it.open+' open':'')); pg.appendChild(cd);
     function row(t,s,fn,ct){var b=el('button'); b.type='button'; b.style.cssText='display:flex;align-items:center;gap:12px;width:100%;text-align:left;border:0;border-top:1px solid var(--line);background:transparent;padding:13px 14px;font:inherit;color:inherit;cursor:pointer;min-height:56px'; var m=el('div'); m.style.flex='1'; m.appendChild(Object.assign(el('b',null,t),{style:'display:block;font-size:15px'})); if(s)m.appendChild(Object.assign(el('small',null,s),{style:'color:var(--muted);font-size:12px;display:block'})); b.appendChild(m); if(ct!=null){b.appendChild(Object.assign(el('span',null,String(ct)),{style:'background:#e1f0ec;color:#0a4d42;border-radius:99px;font-size:12px;font-weight:800;padding:3px 10px'}));} b.appendChild(Object.assign(el('span',null,'›'),{style:'color:#8a9a96;font-size:20px'})); b.addEventListener('click',fn); return b;}
     var locs=celLocs(r,it.id), ac=el('div','card'); ac.style.cssText='padding:0;overflow:hidden;margin:0 16px 12px';
     var wc=el('div','card'); wc.style.cssText='padding:0;overflow:hidden;margin:0 16px 12px';
