@@ -5842,7 +5842,7 @@ try{setTimeout(function(){snapNow('Opened the app');},6000); document.addEventLi
   }
   window.addEventListener('resize',apply); window.addEventListener('orientationchange',function(){setTimeout(apply,60);}); apply();
 })();
-var APPVER='Sidekick 99';
+var APPVER='Sidekick 101';
 var KEYNAME='dutybuddy.apikey', inClaude=false;
 function storedKey(){try{return localStorage.getItem(KEYNAME)||'';}catch(e){return '';}}
 function keyOn(){try{return localStorage.getItem('dutybuddy.keyoff')!=='1';}catch(e){return true;}}
@@ -11609,6 +11609,24 @@ async function cmExportRecipes(){
 var JSZIPL='https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
 function fpStore(c){if(!c.fp||!c.fp.days)c.fp={days:{},cur:''}; return c.fp;}
 function fpPlan(c){var f=fpStore(c); return f.days[f.cur]||null;}
+/* ---- Floor plan follows Reception Manager's table layout ---- */
+function fpHanaFloors(){var h=S.chats.hana, R=h&&h.rsv; if(!R||!R.tables||!R.tables.length)return null; tbAuto(R); var out=[];
+  rsFloors(R).forEach(function(F){var items=[]; R.tables.filter(function(t){return tbFl(R,t)===F.id;}).forEach(function(t){var d=tbDim(t), sh=tbShape(t)==='c'?'c':'r', x=t.x, y=t.y, w=d.w, hh=d.h, rr=((t.r||0)%180+180)%180;
+      if(sh==='r'&&rr>2&&rr<178){if(Math.abs(rr-90)<3){x=t.x+d.w/2-d.h/2; y=t.y+d.h/2-d.w/2; w=d.h; hh=d.w;} else {var b=tbBox(t); x=b.l; y=b.t; w=b.r-b.l; hh=b.b-b.t;}}
+      items.push({k:'t',n:String(t.name),x:Math.round(x),y:Math.round(y),w:Math.round(w),h:Math.round(hh),s:sh,r:0});});
+    (F.zones||[]).forEach(function(z){items.push({k:'z',n:z.n,x:z.x,y:z.y,w:z.w,h:z.h});});
+    out.push({name:F.name,sub:F.sub||'',hid:F.id||'main',items:items,bg:(F.bg||[]).map(function(b){var o={},k; for(k in b)o[k]=b[k]; return o;}),blocks:[]});});
+  return out;}
+function fpAddDay(d,n){var x=new Date(d+'T12:00:00'); x.setDate(x.getDate()+n); return isoL(x);}
+function fpGoDay(c,d){var f=fpStore(c); f.cur=d; fpHanaSync(c); save();}
+function fpHanaSync(c){var nf=fpHanaFloors(); if(!nf)return false; var f=fpStore(c); if(!f.cur)f.cur=tdy(); var d=f.cur, plan=f.days[d], fresh=!plan;
+  if(fresh){var ks0=Object.keys(f.days).sort(), prev=ks0.filter(function(k){return k<d;}).pop()||ks0[0]; plan={date:d,meal:'Dinner',src:'Reception Manager',ts:Date.now(),floors:[],tags:[]}; if(prev){var pp=f.days[prev]; plan.meal=pp.meal||'Dinner'; plan.tags=JSON.parse(JSON.stringify(pp.tags||[])); plan.secs=JSON.parse(JSON.stringify(pp.secs||{})); plan.floors=JSON.parse(JSON.stringify(pp.floors||[]));} f.days[d]=plan; f.cur=d;}
+  var old=plan.floors||[]; plan.floors=nf.map(function(F,i){var o=old.filter(function(x){return x.name===F.name;})[0]||old[i]&&old.length===nf.length&&old[i]||null, id=o?o.id:(F.hid==='main'?'f'+(i+1):F.hid); return {id:id,name:F.name,sub:F.sub,items:F.items,bg:F.bg,blocks:[],notes:o?(o.notes||[]):[]};});
+  var ids={}; plan.floors.forEach(function(x){ids[x.id]=1;}); plan.tags=(plan.tags||[]).filter(function(t){return ids[t.fl];}); if(plan.secs)Object.keys(plan.secs).forEach(function(k){if(!ids[k])delete plan.secs[k];});
+  /* tables that disappeared leave their sections */
+  plan.floors.forEach(function(fl){var have={}; fl.items.forEach(function(i){if(i.k==='t')have[String(i.n)]=1;}); if(plan.secs&&plan.secs[fl.id])plan.secs[fl.id].forEach(function(x){x.tables=x.tables.filter(function(n){return have[n];});});});
+  var w0=fresh&&plan.secs?fpWorking(c,plan):null; if(w0){var w=w0, ok={}; w.forEach(function(x){ok[x.sid]=1;}); Object.keys(plan.secs).forEach(function(k){plan.secs[k].forEach(function(x){x.staff=(x.staff||[]).filter(function(m){return ok[m.sid];});});});}
+  plan.src='Reception Manager'; return true;}
 function fpFirst(n){return String(n||'').trim().split(/\s+/)[0]||'';}
 function fpParseSlide(xml){
   var doc=new DOMParser().parseFromString(xml,'application/xml'), tree=doc.getElementsByTagName('p:spTree')[0], out=[];
@@ -11672,7 +11690,7 @@ function fpSecs(plan,fid){if(!plan.secs)plan.secs={}; if(!plan.secs[fid])plan.se
 function fpSecOf(plan,fid,n){var r=null; fpSecs(plan,fid).forEach(function(x){if(x.tables.indexOf(String(n))>-1)r=x;}); return r;}
 function fpSecPut(plan,fid,sec,n){fpSecs(plan,fid).forEach(function(x){x.tables=x.tables.filter(function(t){return t!==String(n);});}); if(sec)sec.tables.push(String(n));}
 function fpHull(pts){pts=pts.slice().sort(function(a,b){return a[0]-b[0]||a[1]-b[1];}); if(pts.length<3)return pts; function cr(o,a,b){return (a[0]-o[0])*(b[1]-o[1])-(a[1]-o[1])*(b[0]-o[0]);} var lo=[],up=[],i; for(i=0;i<pts.length;i++){while(lo.length>1&&cr(lo[lo.length-2],lo[lo.length-1],pts[i])<=0)lo.pop(); lo.push(pts[i]);} for(i=pts.length-1;i>=0;i--){while(up.length>1&&cr(up[up.length-2],up[up.length-1],pts[i])<=0)up.pop(); up.push(pts[i]);} lo.pop(); up.pop(); return lo.concat(up);}
-function fpSecGeom(fl,sec){var its=fl.items.filter(function(i){return i.k==='t'&&sec.tables.indexOf(String(i.n))>-1;}); if(!its.length)return null; var pts=[],cx=0,cy=0; its.forEach(function(i){pts.push([i.x-4,i.y-4],[i.x+i.w+4,i.y-4],[i.x+i.w+4,i.y+i.h+4],[i.x-4,i.y+i.h+4]); cx+=i.x+i.w/2; cy+=i.y+i.h/2;}); return {hull:fpHull(pts),cx:cx/its.length,cy:cy/its.length};}
+function fpSecGeom(fl,sec){var its=fl.items.filter(function(i){return i.k==='t'&&sec.tables.indexOf(String(i.n))>-1;}); if(!its.length)return null; var pts=[],cx=0,cy=0; its.forEach(function(i){if(i.s==='c'){for(var k=0;k<16;k++){var an=k*Math.PI/8; pts.push([i.x+i.w/2+Math.cos(an)*(i.w/2+4),i.y+i.h/2+Math.sin(an)*(i.h/2+4)]);}} else pts.push([i.x-4,i.y-4],[i.x+i.w+4,i.y-4],[i.x+i.w+4,i.y+i.h+4],[i.x-4,i.y+i.h+4]); cx+=i.x+i.w/2; cy+=i.y+i.h/2;}); return {hull:fpHull(pts),cx:cx/its.length,cy:cy/its.length};}
 function fpSecDefs(df){var h=''; SEC_COL.forEach(function(c,i){var d=SEC_PD[i]; h+='<pattern id="sp'+i+'" width="8" height="8" patternUnits="userSpaceOnUse"><rect width="8" height="8" fill="'+c+'" fill-opacity=".55"/>'+(d==='dots'?'<circle cx="4" cy="4" r="1.3" fill="#333"/>':'<path d="'+d+'" stroke="#444" stroke-width=".7" fill="none"/>')+'</pattern>';}); df.innerHTML+=h;}
 function fpSecLayers(plan,fl,o,L){var area=sv('g'), lab=sv('g'), secs=fpSecs(plan,fl.id); secs.forEach(function(x){var g=fpSecGeom(fl,x); if(!g)return; var col=SEC_COL[x.ci%SEC_COL.length], on=o.secOn&&o.secOn===x.id;
   var pts=g.hull.map(function(q){return q[0]+','+q[1];}).join(' ');
@@ -11859,7 +11877,7 @@ MODS.seatplan={who:'lina',title:'Seating plan',render:function(id,sub,box){
   if(wide){grid.appendChild(lc); var rc=el('div'); rc.appendChild(pc); rc.appendChild(dc); grid.appendChild(rc);} else if(SP.tab==='list'){grid.appendChild(lc); if(SP.sel)grid.appendChild(dc);} else {grid.appendChild(pc); grid.appendChild(dc);}
 }};
 MODS.floorplan={who:'elena',title:'Floor plan',render:function(id,sub,box){
-  var c=S.chats[id], f=fpStore(c), plan=fpPlan(c), edit=!!MODS.floorplan.edit;
+  var c=S.chats[id]; var synced=fpHanaSync(c); var f=fpStore(c), plan=fpPlan(c), edit=!!MODS.floorplan.edit;
   function again(){renderMod();}
   var hd=el('div','card'); hd.appendChild(el('h3',null,'Floor plan'));
   var imp=function(){var fi=document.createElement('input'); fi.type='file'; fi.accept='.pptx'; fi.style.display='none'; document.body.appendChild(fi);
@@ -11868,9 +11886,9 @@ MODS.floorplan={who:'elena',title:'Floor plan',render:function(id,sub,box){
         if(f.days[np.date])mmAsk('A plan for '+dmyShort(np.date)+' already exists. Replace it?','Replace','Keep',go); else go();}
       catch(e){toast('Could not read this file. Send it as .pptx.');}});
     fi.click();};
-  if(!plan){hd.appendChild(el('p',null,'Import the daily PowerPoint plan. I read the tables, the name tags and the notes, and keep each day. Staff then see where they work.')); var b0=el('div','btns'); b0.appendChild(mkBtn('Import PowerPoint','',imp)); hd.appendChild(b0); box.appendChild(hd); return;}
-  hd.appendChild(el('p',null,plan.meal+' · '+dmyShort(plan.date)+(plan.src?' · from '+plan.src:'')));
-  var ks=Object.keys(f.days).sort().reverse(); if(ks.length>1){selFld(hd,'Day',f.cur,ks.map(function(k){return [k,dmyShort(k)];}),function(v){f.cur=v; save(); again();});}
+  if(!plan){hd.appendChild(el('p',null,'The tables come from Reception Manager (Hana). Set up the seating layout there first and they appear here by themselves. You can also import the daily PowerPoint plan. I read the tables, the name tags and the notes, and keep each day. Staff then see where they work.')); var b0=el('div','btns'); b0.appendChild(mkBtn('Import PowerPoint','',imp)); hd.appendChild(b0); box.appendChild(hd); return;}
+  if(synced){hd.appendChild(dnavEl(function(){fpGoDay(c,fpAddDay(plan.date,-1)); again();},(plan.date===tdy()?'Today · ':'')+dmyShort(plan.date),function(){fpGoDay(c,fpAddDay(plan.date,1)); again();})); var hp0=el('p',null,'Tables follow the Reception Manager layout. Sections stay the same every day; only the team changes.'); hp0.style.marginTop='6px'; hd.appendChild(hp0);} else hd.appendChild(el('p',null,plan.meal+' · '+dmyShort(plan.date)+(plan.src?' · from '+plan.src:'')));
+  var ks=Object.keys(f.days).sort().reverse(); if(!synced&&ks.length>1){selFld(hd,'Day',f.cur,ks.map(function(k){return [k,dmyShort(k)];}),function(v){f.cur=v; save(); again();});}
   box.appendChild(hd);
   var fid=sub&&plan.floors.some(function(x){return x.id===sub;})?sub:plan.floors[0].id, fl=plan.floors.filter(function(x){return x.id===fid;})[0];
   var tb=el('div'); tb.style.cssText='display:flex;gap:6px;margin-top:8px;overflow-x:auto'; plan.floors.forEach(function(x){var ch=el('button','chip',x.name+(x.sub?' · '+x.sub:'')); ch.type='button'; if(x.id===fid)ch.style.cssText='background:var(--accent,#0b6b5c);color:#fff;border-color:transparent'; ch.addEventListener('click',function(){modGo('floorplan',x.id);}); tb.appendChild(ch);}); box.appendChild(tb);
@@ -11901,11 +11919,11 @@ MODS.floorplan={who:'elena',title:'Floor plan',render:function(id,sub,box){
   var ac=el('div','card'), bs=el('div','btns'); bs.style.marginTop='0';
   bs.appendChild(mkBtn(edit?'Done editing':'Edit plan','',function(){MODS.floorplan.edit=!edit; again();}));
   if(edit)bs.appendChild(mkBtn('Add empty slot','ghost',function(){var b=fpBox(fl,plan.tags.filter(function(t){return t.fl===fid;})); plan.tags.push({id:uid(),fl:fid,x:Math.round(b[0]+b[2]/2-61),y:Math.round(b[1]+b[3]/2),w:122,h:28,name:'',L:'C',lead:false,note:''}); save(); again();}));
-  bs.appendChild(mkBtn('New day from this plan','ghost',function(){var d=el('input'); mmAsk('Copy this layout to the next day with all names cleared?','Copy','Cancel',function(){var nd=JSON.parse(JSON.stringify(plan)), dt=new Date(plan.date+'T12:00:00'); do{dt.setDate(dt.getDate()+1);}while(f.days[isoL(dt)]); nd.date=isoL(dt); nd.src=''; nd.ts=Date.now(); nd.tags.forEach(function(t){t.name=''; t.note='';}); nd.floors.forEach(function(x){x.notes=[];}); fpPut(c,nd); toast('New plan for '+dmyShort(nd.date)+'. Tap the empty slots to place people.'); again();});}));
+  if(!synced)bs.appendChild(mkBtn('New day from this plan','ghost',function(){var d=el('input'); mmAsk('Copy this layout to the next day with all names cleared?','Copy','Cancel',function(){var nd=JSON.parse(JSON.stringify(plan)), dt=new Date(plan.date+'T12:00:00'); do{dt.setDate(dt.getDate()+1);}while(f.days[isoL(dt)]); nd.date=isoL(dt); nd.src=''; nd.ts=Date.now(); nd.tags.forEach(function(t){t.name=''; t.note='';}); nd.floors.forEach(function(x){x.notes=[];}); fpPut(c,nd); toast('New plan for '+dmyShort(nd.date)+'. Tap the empty slots to place people.'); again();});}));
   bs.appendChild(mkBtn('PDF · '+fl.name,'ghost',function(){fpSecPdf(c,plan,fl);}));
   bs.appendChild(mkBtn('Print / PDF (names)','ghost',function(){fpPrint(c,plan);}));
-  bs.appendChild(mkBtn('Import PowerPoint','ghost',imp));
-  bs.appendChild(mkBtn('Delete this day','ghost',function(){mmAsk('Delete the plan for '+dmyShort(plan.date)+'?','Delete','Keep',function(){delete f.days[f.cur]; var k=Object.keys(f.days).sort(); f.cur=k.length?k[k.length-1]:''; save(); again();});}));
+  if(!synced)bs.appendChild(mkBtn('Import PowerPoint','ghost',imp));
+  if(!synced)bs.appendChild(mkBtn('Delete this day','ghost',function(){mmAsk('Delete the plan for '+dmyShort(plan.date)+'?','Delete','Keep',function(){delete f.days[f.cur]; var k=Object.keys(f.days).sort(); f.cur=k.length?k[k.length-1]:''; save(); again();});}));
   ac.appendChild(bs); box.appendChild(ac);
 }};
 /* chat */
@@ -11919,7 +11937,7 @@ function fpParse(text){
   return null;
 }
 function fpHandle(a,c,text){
-  if(a.id!=='elena')return null; var q=fpParse(text); if(!q)return null; var plan=fpPlan(c);
+  if(a.id!=='elena')return null; var q=fpParse(text); if(!q)return null; fpHanaSync(c); var plan=fpPlan(c);
   if(!plan)return [{text:'There is no floor plan yet. Open the Floor plan tile on my info page and import the PowerPoint.'}];
   var fn=function(id){var f=plan.floors.filter(function(x){return x.id===id;})[0]; return f?f.name:'';};
   var find=function(n){var l=n.toLowerCase(); return plan.tags.filter(function(t){return t.name&&(t.name.toLowerCase()===l||t.name.toLowerCase().indexOf(l)===0);});};
