@@ -1346,7 +1346,7 @@ async function syncStart(){
   }catch(e){syncMsg='Sync off: '+((e&&(e.message||e.code))||'error'); syncLabel(); settle();}
 }
 async function refreshData(){
-  if(!DBX){toast('Automatic sync is not available in this browser. Copy the data from your main computer and paste it here.'); openXfer(); return;}
+  if(!DBX){toast('Up to date. Your data is saved on this device.'); return;}
   try{
     var snap=await DBX.collection('app').get(), n=0, force=!isMain();
     snap.docs.forEach(function(d){var data=d.data(); if(/^chat_/.test(d.id)&&data.by!==DEVICE&&applyRemote(d.id.slice(5),data,force))n++;});
@@ -5985,7 +5985,7 @@ try{setTimeout(function(){snapNow('Opened the app');},6000); document.addEventLi
   }
   window.addEventListener('resize',apply); window.addEventListener('orientationchange',function(){setTimeout(apply,60);}); apply();
 })();
-var APPVER='Sidekick 113'; try{themeApply();}catch(e){}
+var APPVER='Sidekick 114'; try{themeApply();}catch(e){}
 var KEYNAME='dutybuddy.apikey', inClaude=false;
 function storedKey(){try{return localStorage.getItem(KEYNAME)||'';}catch(e){return '';}}
 function keyOn(){try{return localStorage.getItem('dutybuddy.keyoff')!=='1';}catch(e){return true;}}
@@ -10734,6 +10734,7 @@ function renderSettings0(){
     sGrp('This device',[
       sRow('\u260E','gy','Role',isMain()?'Main computer':'Phone',null,function(){SETVIEW={name:'device'}; renderSettings();}),
       sRow('\u21C4','g','Backup','Save a file, restore it, or go back in time',null,function(){closeSettings(); openBackup();}),
+      sRow('\u2398','gy','Copy or paste as text','Move your data to another device as text',null,function(){closeSettings(); openXfer();}),
       sRow('\u24D8','gy','About and privacy','Version '+((typeof APPVER!=='undefined'&&APPVER!=='__'+'VER__')?APPVER:'web'),null,function(){SETVIEW={name:'about'}; renderSettings();})],body);
   } else if(v.name==='problems'){
     function fmtT(t){var d=new Date(t); return d.toLocaleDateString(undefined,{day:'numeric',month:'short'})+' '+d.toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit'});}
