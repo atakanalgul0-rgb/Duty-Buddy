@@ -5985,7 +5985,7 @@ try{setTimeout(function(){snapNow('Opened the app');},6000); document.addEventLi
   }
   window.addEventListener('resize',apply); window.addEventListener('orientationchange',function(){setTimeout(apply,60);}); apply();
 })();
-var APPVER='Sidekick 114'; try{themeApply();}catch(e){}
+var APPVER='Sidekick 115'; try{themeApply();}catch(e){}
 var KEYNAME='dutybuddy.apikey', inClaude=false;
 function storedKey(){try{return localStorage.getItem(KEYNAME)||'';}catch(e){return '';}}
 function keyOn(){try{return localStorage.getItem('dutybuddy.keyoff')!=='1';}catch(e){return true;}}
@@ -12308,15 +12308,76 @@ MODS.orders={who:'omar',title:'Orders',render:function(id,sub,box){
 }};
 /* ---- Sidekick 111: bottle scan, allergy alerts, glass rotation, close shift, welcome card ---- */
 /* 31 bottle scan (barcode) */
-var SCAN={stream:null,timer:0};
+
+/* 36 label scan: read the front label with the camera and match it to the stock list */
+function labelMatch(c,rec){
+  var vin=rec.vintage&&rec.vintage!=='NV'?rec.vintage:'', sz=rec.size?+rec.size:undefined, W=idfWeights(c.inv);
+  function tny(n){return invToks(n).filter(function(w){return !/^(19|20)\d\d$/.test(w)&&w!=='nv';});}
+  var rt=tny(rec.name); function valid(i){return invJac(tny(i.name),rt)>=0.34;}
+  var am=autoMatch(c.inv,rec.name+(vin?' '+vin:''),W,sz), it=am.item&&valid(am.item)?am.item:null, strong=!!(it&&am.strong);
+  if(!it){var rk=rankMatches(c.inv,rec.name,W,8,sz).filter(function(x){return valid(x.it);}); if(vin){var sv=rk.filter(function(x){return yearOf(x.it.name)===vin;})[0]; it=(sv||rk[0]||{}).it||null;} else it=(rk[0]||{}).it||null; strong=false;}
+  var kind='none';
+  if(it){if(vin&&yearOf(it.name)&&yearOf(it.name)!==vin)kind='vintage'; else if(sz&&(it.size||750)!==sz)kind='size'; else kind=strong?'yes':'maybe';}
+  return {it:it,kind:kind,vin:vin,sz:sz};
+}
+function scanLabelPanel(lab,a,c){
+  var vid=el('video'), cam=el('div'), res=el('div'), inp=el('input'), busy=false;
+  inp.type='file'; inp.accept='image/*'; inp.setAttribute('capture','environment'); inp.style.display='none';
+  cam.style.cssText='position:relative;margin:6px var(--gr) 8px var(--gl);border-radius:18px;overflow:hidden;background:#0b0f0e;height:300px;display:none'; vid.setAttribute('playsinline',''); vid.muted=true; vid.style.cssText='width:100%;height:100%;object-fit:cover'; cam.appendChild(vid);
+  var fr=el('div'); fr.style.cssText='position:absolute;left:10%;right:10%;top:8%;bottom:8%;border:3px solid #6fe0c4;border-radius:14px;pointer-events:none'; cam.appendChild(fr);
+  var hint=el('div',null,'Fill the frame with the front label'); hint.style.cssText='position:absolute;left:0;right:0;top:12px;text-align:center;color:#fff;font-size:13px;text-shadow:0 1px 4px #000'; cam.appendChild(hint); lab.appendChild(cam);
+  var bw=el('div','btns'); bw.style.margin='4px var(--gr) 8px var(--gl)'; lab.appendChild(bw);
+  var bOpen=mkBtn('Open camera','',openCam), bShot=mkBtn('Scan label','',shoot), bFile=mkBtn('Take or choose a photo','ghost',function(){inp.click();});
+  function btns(live){bw.textContent=''; if(live){bw.appendChild(bShot); bw.appendChild(mkBtn('Stop','ghost',function(){scanStop(); cam.style.display='none'; btns(false);}));} else {bw.appendChild(bOpen); bw.appendChild(bFile);}} btns(false);
+  lab.appendChild(inp); lab.appendChild(res);
+  inp.addEventListener('change',function(){var f=inp.files&&inp.files[0]; inp.value=''; if(f)read(f);});
+  function openCam(){res.textContent=''; if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){toast('The camera cannot open inside this view. Use Take or choose a photo.'); return;} navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}}).then(function(st){scanStop(); SCAN.stream=st; vid.srcObject=st; vid.play(); cam.style.display='block'; btns(true);}).catch(function(){toast('The camera did not open. Use Take or choose a photo instead.');});}
+  function shoot(){if(!vid.videoWidth){toast('Wait a second for the camera to start.'); return;} var cv=document.createElement('canvas'); cv.width=vid.videoWidth; cv.height=vid.videoHeight; cv.getContext('2d').drawImage(vid,0,0); cv.toBlob(function(b){scanStop(); cam.style.display='none'; btns(false); if(b)read(b); else toast('Could not take the photo.');},'image/jpeg',0.92);}
+  function card(){var r=el('div','card'); r.style.animation='tdin .4s both'; return r;}
+  async function read(file){
+    if(busy)return; busy=true; res.textContent=''; var r=card(), t0=Date.now(), sp=el('div'); sp.style.cssText='width:22px;height:22px;border-radius:50%;border:4px solid #cfe6df;border-top-color:#0b6b5c;animation:spin .8s linear infinite;flex:none'; var row=el('div'); row.style.cssText='display:flex;gap:12px;align-items:center'; var tx=el('b',null,'Reading the label…'); row.appendChild(sp); row.appendChild(tx); r.appendChild(row); res.appendChild(r);
+    var tm=setInterval(function(){tx.textContent='Reading the label… '+Math.round((Date.now()-t0)/1000)+' s';},500), out=null;
+    try{out=await imgVote(file,LABELPROMPT,parseLabelText,LABEL_CFG);}catch(e){out={err:'I could not read that picture. Try a flatter, brighter photo.'};}
+    clearInterval(tm); busy=false; res.textContent='';
+    if(out.err){var e1=card(); e1.appendChild(el('b',null,out.err)); var b1=el('div','btns'); b1.style.marginTop='10px'; b1.appendChild(mkBtn('Try again','',function(){res.textContent=''; openCam();})); e1.appendChild(b1); res.appendChild(e1); return;}
+    if(!out.recs||!out.recs.length){var e2=card(); e2.appendChild(el('b',null,'I could not read a wine label in that photo.')); e2.appendChild(el('p',null,'Try a closer, brighter photo of the front label, or type the wine name in the Barcode tab.')); var b2=el('div','btns'); b2.appendChild(mkBtn('Try again','',function(){res.textContent=''; openCam();})); e2.appendChild(b2); res.appendChild(e2); return;}
+    if(out.recs.length>1){var n1=el('small',null,'I can see '+out.recs.length+' different wines. Showing the first.'); n1.style.cssText='display:block;margin:0 var(--gr) 6px var(--gl)'; res.appendChild(n1);}
+    showRec(out.recs[0]);
+  }
+  function title(rec){var r=card(); r.appendChild(el('small','','I READ')); r.firstChild.style.cssText='color:#0b6b5c;font-weight:800;letter-spacing:.08em;font-size:11px'; var b=el('b',null,rec.name+(rec.vintage?' '+rec.vintage:'')+(rec.size&&+rec.size!==750?' ('+rec.size+' ml)':'')); b.style.cssText='display:block;font-size:17px;margin-top:2px'; r.appendChild(b); if(rec.chk){var w=el('div',null,'⚠ '+rec.chk+'. Please check the label.'); w.style.cssText='color:#8a4b00;font-size:13px;margin-top:6px'; r.appendChild(w);} return r;}
+  function stockCard(it){
+    var r=card(), pr=pnum(it.price), cost=wnCost(it), mg=(pr>0&&cost>0)?Math.round((pr-cost)/pr*100):null;
+    var p=el('span',null,'In stock'); p.style.cssText='display:inline-block;padding:3px 10px;border-radius:12px;background:#d8f0e6;color:#0b6b5c;font-weight:800;font-size:12px;margin-bottom:6px'; r.appendChild(p);
+    var b=el('b',null,it.name); b.style.cssText='display:block;font-size:16px'; r.appendChild(b);
+    var q=el('div',null,num(it.qty==null?0:it.qty)); q.style.cssText='font-size:42px;font-weight:800;margin:4px 0 0'; r.appendChild(q); var u=el('small',null,'bottles'); u.style.color='var(--muted)'; r.appendChild(u);
+    [['Price',pr>0?fm2(pr)+' AED':'–'],['Cost',cost>0?fm2(cost)+' AED':'–'],['Margin',mg==null?'–':mg+'%']].forEach(function(x){var k=el('div'); k.style.cssText='display:flex;justify-content:space-between;border-top:1px solid var(--line);padding:8px 0;margin-top:0'; k.appendChild(el('span',null,x[0])); var v=el('b',null,x[1]); if(x[0]==='Margin'&&mg!=null)v.style.color=mgColor(mg); k.appendChild(v); r.appendChild(k);});
+    var row=el('div','btns'); row.style.marginTop='8px';
+    row.appendChild(mkBtn('Sold 1','',function(){doChange(a,c,'Sold 1 '+(it.code||it.name),'sub'); save(); toast('Sold 1 · '+num(it.qty||0)+' left'); drawStock(it);}));
+    row.appendChild(mkBtn('Received 1','ghost',function(){doChange(a,c,'Received 1 '+(it.code||it.name),'add'); save(); toast('Received 1 · '+num(it.qty||0)+' now'); drawStock(it);}));
+    row.appendChild(mkBtn('Scan next','ghost',function(){res.textContent=''; openCam();})); r.appendChild(row); return r;
+  }
+  function drawStock(it){var old=res.querySelector('.stk'); var n=stockCard(it); n.className+=' stk'; n.style.animation='none'; if(old)res.replaceChild(n,old); else res.appendChild(n);}
+  function showRec(rec){
+    var m=labelMatch(c,rec), it=m.it; res.textContent=''; res.appendChild(title(rec));
+    if(m.kind==='yes'){var s=stockCard(it); s.className+=' stk'; res.appendChild(s); return;}
+    var r=card(); r.style.borderLeft='6px solid #e8a317';
+    if(m.kind==='none'){r.appendChild(el('b',null,'I could not find it in the stock list.')); r.appendChild(el('p',null,'It may be a wine you do not stock yet.'));}
+    else{var why=m.kind==='vintage'?'I do not have the '+m.vin+'. Closest in the list:':m.kind==='size'?'The label says '+m.sz+' ml. The closest in the list:':'I am not sure it is the same wine. Closest in the list:'; var h=el('b',null,why); h.style.color='#8a4b00'; r.appendChild(h); var w=el('div',null,it.name+' · '+(it.qty==null?'no count':num(it.qty)+' in stock')); w.style.cssText='margin:6px 0 10px;font-size:14px'; r.appendChild(w);
+      var row=el('div','btns'); row.appendChild(mkBtn(m.kind==='maybe'?'Yes, this one':'Use this one','',function(){res.textContent=''; res.appendChild(title(rec)); var s=stockCard(it); s.className+=' stk'; res.appendChild(s);})); row.appendChild(mkBtn('Not this one','ghost',function(){res.textContent=''; var c2=card(); c2.appendChild(el('b',null,'Okay. Try another photo, or search the name in the Barcode tab.')); res.appendChild(c2);})); r.appendChild(row);}
+    var rb=el('div','btns'); rb.style.marginTop='8px'; rb.appendChild(mkBtn('Scan next','ghost',function(){res.textContent=''; openCam();})); r.appendChild(rb); res.appendChild(r);
+  }
+}
+var SCAN={stream:null,timer:0,tab:'bar'};
 function scanStop(){clearInterval(SCAN.timer); SCAN.timer=0; if(SCAN.stream){try{SCAN.stream.getTracks().forEach(function(t){t.stop();});}catch(e){} SCAN.stream=null;}}
 function scanFind(v){v=String(v||'').trim().toLowerCase(); if(!v)return null; return wnList().filter(function(i){return (i.bc&&String(i.bc).toLowerCase()===v)||(i.code&&String(i.code).toLowerCase()===v);})[0]||null;}
 MODS.scan={who:'sofia',title:'Scan bottle',render:function(id,sub,box){
   scanStop(); var c=S.chats.sofia, a=byId.sofia, found=el('div'), vid=el('video'), cur=null, onHash=function(){if(!/-scan/.test(location.hash)){scanStop(); window.removeEventListener('hashchange',onHash);}}; window.addEventListener('hashchange',onHash);
-  var cd=el('div','card'); cd.appendChild(el('h3',null,'Scan bottle')); cd.appendChild(el('p',null,'Point the camera at the barcode on the bottle. The wine opens with its stock, and you can mark one sold or received. A new barcode is linked to a wine once, then it is remembered.')); box.appendChild(cd);
-  var cam=el('div'); cam.style.cssText='position:relative;margin:6px var(--gr) 8px var(--gl);border-radius:18px;overflow:hidden;background:#0b0f0e;height:220px;display:none'; vid.setAttribute('playsinline',''); vid.muted=true; vid.style.cssText='width:100%;height:100%;object-fit:cover'; cam.appendChild(vid); var br=el('div'); br.style.cssText='position:absolute;left:12%;right:12%;top:24%;bottom:24%;border:3px solid #6fe0c4;border-radius:14px'; cam.appendChild(br); var ln=el('div'); ln.style.cssText='position:absolute;left:12%;right:12%;height:3px;background:#6fe0c4;box-shadow:0 0 12px #6fe0c4;animation:scanln 1.6s ease-in-out infinite alternate'; cam.appendChild(ln); var stl=el('style'); stl.textContent='@keyframes scanln{from{top:26%}to{top:72%}}'; cam.appendChild(stl); box.appendChild(cam);
-  var bw=el('div','btns'); bw.style.margin='4px var(--gr) 8px var(--gl)'; var sb=mkBtn('Start camera','',start); bw.appendChild(sb); box.appendChild(bw);
-  var q=el('input'); q.type='search'; q.placeholder='Or type a code or wine name'; q.style.cssText='width:calc(100% - var(--gl) - var(--gr));margin:0 var(--gr) 8px var(--gl);padding:11px 14px;border-radius:14px;border:1px solid var(--line);font:inherit;box-sizing:border-box;background:var(--surface);color:var(--ink)'; box.appendChild(q); box.appendChild(found);
+  var cd=el('div','card'); cd.appendChild(el('h3',null,'Scan bottle')); cd.appendChild(el('p',null,'Point the camera at the barcode on the bottle. The wine opens with its stock, and you can mark one sold or received. A new barcode is linked to a wine once, then it is remembered. Or switch to Label and photograph the front label: I read it and find the wine.')); box.appendChild(cd);
+  var bar=el('div'), lab=el('div'), tbx=el('div'), tbs={}; tbx.style.cssText='display:flex;margin:6px var(--gr) 8px var(--gl);background:var(--soft);border-radius:14px;padding:4px'; [['bar','Barcode'],['lab','Label']].forEach(function(x){var b=el('button',null,x[1]); b.type='button'; b.style.cssText='flex:1;border:0;border-radius:11px;padding:10px;font:inherit;font-weight:800;color:var(--ink)'; b.addEventListener('click',function(){setTab(x[0]);}); tbs[x[0]]=b; tbx.appendChild(b);}); box.appendChild(tbx); box.appendChild(bar); box.appendChild(lab); scanLabelPanel(lab,a,c);
+  function setTab(t){SCAN.tab=t; scanStop(); try{cam.style.display='none';}catch(e){} bar.style.display=t==='bar'?'':'none'; lab.style.display=t==='lab'?'':'none'; ['bar','lab'].forEach(function(k){tbs[k].style.background=k===t?'var(--surface)':'transparent'; tbs[k].style.boxShadow=k===t?'0 1px 3px rgba(0,0,0,.15)':'none';});}
+  var cam=el('div'); cam.style.cssText='position:relative;margin:6px var(--gr) 8px var(--gl);border-radius:18px;overflow:hidden;background:#0b0f0e;height:220px;display:none'; vid.setAttribute('playsinline',''); vid.muted=true; vid.style.cssText='width:100%;height:100%;object-fit:cover'; cam.appendChild(vid); var br=el('div'); br.style.cssText='position:absolute;left:12%;right:12%;top:24%;bottom:24%;border:3px solid #6fe0c4;border-radius:14px'; cam.appendChild(br); var ln=el('div'); ln.style.cssText='position:absolute;left:12%;right:12%;height:3px;background:#6fe0c4;box-shadow:0 0 12px #6fe0c4;animation:scanln 1.6s ease-in-out infinite alternate'; cam.appendChild(ln); var stl=el('style'); stl.textContent='@keyframes scanln{from{top:26%}to{top:72%}}'; cam.appendChild(stl); bar.appendChild(cam);
+  var bw=el('div','btns'); bw.style.margin='4px var(--gr) 8px var(--gl)'; var sb=mkBtn('Start camera','',start); bw.appendChild(sb); bar.appendChild(bw);
+  var q=el('input'); q.type='search'; q.placeholder='Or type a code or wine name'; q.style.cssText='width:calc(100% - var(--gl) - var(--gr));margin:0 var(--gr) 8px var(--gl);padding:11px 14px;border-radius:14px;border:1px solid var(--line);font:inherit;box-sizing:border-box;background:var(--surface);color:var(--ink)'; bar.appendChild(q); bar.appendChild(found); setTab(SCAN.tab||'bar');
   function show(it,bc){found.textContent=''; cur=it; var r=el('div','card'); r.style.animation='tdin .4s both'; var b=el('b',null,it.name); b.style.fontSize='17px'; r.appendChild(b); var s=el('div',null,num(it.qty==null?0:it.qty)+' in stock'+(pnum(it.price)>0?' · '+fm2(pnum(it.price))+' AED':'')); s.style.cssText='color:var(--muted);margin:4px 0 12px'; r.appendChild(s); var row=el('div','btns');
     row.appendChild(mkBtn('Sold 1','',function(){var res=doChange(a,c,'Sold 1 '+(it.code||it.name),'sub'); save(); toast('Sold 1 · '+it.name); show(it);})); row.appendChild(mkBtn('Received 1','ghost',function(){doChange(a,c,'Received 1 '+(it.code||it.name),'add'); save(); toast('Received 1 · '+it.name); show(it);})); row.appendChild(mkBtn('Scan next','ghost',function(){found.textContent=''; start();})); r.appendChild(row); found.appendChild(r);}
   function link(bc){found.textContent=''; var r=el('div','card'); r.appendChild(el('h3',null,'New barcode')); r.appendChild(el('p',null,bc+' is not linked yet. Search the wine it belongs to.')); var s=el('input'); s.type='search'; s.placeholder='Wine name'; s.style.cssText='width:100%;padding:10px;border-radius:12px;border:1px solid var(--line);font:inherit;box-sizing:border-box;background:var(--surface);color:var(--ink)'; r.appendChild(s); var l=el('div'); r.appendChild(l); function d(){l.textContent=''; var t=s.value.trim().toLowerCase(); if(t.length<2)return; wnList().filter(function(i){return i.name.toLowerCase().indexOf(t)>-1;}).slice(0,6).forEach(function(i){var x=el('div',null,i.name); x.style.cssText='padding:10px 0;border-top:1px solid var(--line);cursor:pointer;font-weight:700'; x.addEventListener('click',function(){i.bc=bc; save(); toast('Barcode linked.'); show(i);}); l.appendChild(x);});} s.addEventListener('input',d); found.appendChild(r);}
