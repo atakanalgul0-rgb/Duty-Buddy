@@ -1364,23 +1364,62 @@ async function backupSave(ids){
   if(ok&&!ids){try{localStorage.setItem('dutybuddy.lastfile',String(Date.now()));}catch(e){}}
   return ok;
 }
+async function backupAll(){
+  var o=serial(); Object.keys(o.chats).forEach(function(id){o.chats[id].undo=[];}); o.app='dutybuddy'; o.saved=Date.now(); try{o.chg=chgLoad();}catch(e){}
+  var files=[{name:'backup.json',data:u8(JSON.stringify(o))}], nb=0;
+  try{
+    if(!KBDB)KBDB=await idbOpen();
+    var docs=(await idbDo('docs','readonly',function(st){return st.getAll();}))||[];
+    if(docs.length){
+      files.push({name:'library/docs.json',data:u8(JSON.stringify(docs))});
+      for(var i=0;i<docs.length;i++){var d=docs[i], bl=await kbBlob(d.id);
+        if(bl){files.push({name:'library/files/'+d.id,data:new Uint8Array(await bl.arrayBuffer())}); nb++;}
+        var pgs=(await idbDo('pages','readonly',function(st){return st.getAll(IDBKeyRange.bound(d.id+':',d.id+':\uffff'));}))||[];
+        for(var j=0;j<pgs.length;j++){if(pgs[j].blob)files.push({name:'library/pages/'+d.id+'__'+pgs[j].p,data:new Uint8Array(await pgs[j].blob.arrayBuffer())});}
+      }
+    }
+  }catch(e){}
+  var dt=new Date(), fname='Duty Buddy backup '+today()+' '+two(dt.getHours())+'-'+two(dt.getMinutes())+'.zip', blob=new Blob([zipStore(files)],{type:'application/zip'}), ok=null;
+  try{var f=new File([blob],fname,{type:'application/zip'}); if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:fname}); ok=true; toast('Choose Save to Files, then pick where to keep it.');}}catch(e){if(e&&e.name==='AbortError')return false;}
+  if(ok===null)ok=await saveFile(fname,blob);
+  if(ok){try{localStorage.setItem('dutybuddy.lastfile',String(Date.now()));}catch(e){}}
+  return ok;
+}
+async function restoreLibrary(z){
+  var en=z.filter(function(e){return /^library\//.test(e.name);}), n=0; if(!en.length)return 0;
+  if(!KBDB)KBDB=await idbOpen(); if(!KBDB)return 0;
+  var ds=en.filter(function(e){return e.name==='library/docs.json';})[0], docs=[];
+  if(ds){try{docs=JSON.parse(new TextDecoder().decode(await z.read(ds)));}catch(e){}}
+  var ids={}; docs.forEach(function(d){ids[d.id]=1;});
+  for(var i=0;i<docs.length;i++){var d=docs[i]; await idbDo('docs','readwrite',function(st){return st.put(d);}); n++;}
+  for(i=0;i<en.length;i++){var e=en[i], m;
+    if((m=/^library\/files\/(.+)$/.exec(e.name))&&ids[m[1]]){var b=new Blob([await z.read(e)]); await idbDo('blobs','readwrite',function(st){return st.put({id:m[1],blob:b});});}
+    else if((m=/^library\/pages\/(.+)__(\d+)$/.exec(e.name))&&ids[m[1]]){var pb=new Blob([await z.read(e)],{type:'image/jpeg'}); await idbDo('pages','readwrite',function(st){return st.put({k:m[1]+':'+m[2],doc:m[1],p:+m[2],blob:pb});});}
+  }
+  var owners={}; docs.forEach(function(d){owners[d.owner]=1;}); for(var k in owners){try{await kbLoad(k);}catch(e){}}
+  return n;
+}
 function applyBackup(o,ids,label){
   snapNow(label||'Before restore',true);
   var n=0; Object.keys(S.chats).forEach(function(id){if(ids&&ids.indexOf(id)<0)return; var c=o.chats[id]; if(!c)return; var nc=normChat(id,c,null); if(!nc)return; nc.undo=[]; nc.rev=Date.now(); S.chats[id]=nc; DIRTY[id]=1; n++;});
   persistLocal(); sigInit(); syncLow(); renderList(); schedulePush(); return n;
 }
-function restoreFromFile(file,ids,after){
-  var r=new FileReader();
-  r.onload=function(){
-    var o; try{o=JSON.parse(String(r.result)); if(!o||o.v!==2||!o.chats)throw new Error('x');}catch(e){toast('That file is not a Duty Buddy backup.'); return;}
-    var have=Object.keys(o.chats).filter(function(id){return byId[id]&&(!ids||ids.indexOf(id)>=0);});
-    if(!have.length){toast(ids?'This file has nothing for '+(byId[ids[0]]?byId[ids[0]].name:'this assistant')+'.':'This file has no assistants.'); return;}
-    var when=o.saved?fmtTime(o.saved):'an unknown time', who=ids?byId[ids[0]].name:'everything ('+have.length+' assistants)';
-    confirm3({title:'Restore '+who,steps:['Replace '+who+' in the app with the backup from '+when+'?','Are you sure? What is in the app now for '+who+' will be replaced.','Last question. Restore now?'],yes:'Restore'},function(){
-      var n=applyBackup(o,ids,'Before restoring a file'); try{if(o.chg&&Array.isArray(o.chg.e)){var CL=chgLoad(), rid=ids||Object.keys(o.chats); CL.e=CL.e.filter(function(e){return rid.indexOf(e[1])<0;}).concat(o.chg.e.filter(function(e){return rid.indexOf(e[1])>=0;})).sort(function(x,y){return x[0]-y[0];}); Object.keys(o.chg.g||{}).forEach(function(k){CL.g[k]=o.chg.g[k];}); chgStore(); chgSnapAll();}}catch(e){} toast('Restored '+n+(n===1?' assistant':' assistants')+'.'); if(after)after(); try{if(ids)renderInfo(ids[0]);}catch(e){}
-    });
-  };
-  r.readAsText(file);
+async function restoreFromFile(file,ids,after){
+  var o, z=null;
+  try{
+    var buf=await file.arrayBuffer(), u=new Uint8Array(buf);
+    if(u[0]===0x50&&u[1]===0x4b){z=await zipEntries(buf); var bj=z.filter(function(e){return e.name==='backup.json';})[0]; if(!bj)throw new Error('x'); o=JSON.parse(new TextDecoder().decode(await z.read(bj)));}
+    else o=JSON.parse(new TextDecoder().decode(u));
+    if(!o||o.v!==2||!o.chats)throw new Error('x');
+  }catch(e){toast('That file is not a Duty Buddy backup.'); return;}
+  var have=Object.keys(o.chats).filter(function(id){return byId[id]&&(!ids||ids.indexOf(id)>=0);});
+  if(!have.length){toast(ids?'This file has nothing for '+(byId[ids[0]]?byId[ids[0]].name:'this assistant')+'.':'This file has no assistants.'); return;}
+  var when=o.saved?fmtTime(o.saved):'an unknown time', who=ids?byId[ids[0]].name:'everything ('+have.length+' assistants)';
+  confirm3({title:'Restore '+who,steps:['Replace '+who+' in the app with the backup from '+when+'?','Are you sure? What is in the app now for '+who+' will be replaced.','Last question. Restore now?'],yes:'Restore'},async function(){
+    var n=applyBackup(o,ids,'Before restoring a file'); try{if(o.chg&&Array.isArray(o.chg.e)){var CL=chgLoad(), rid=ids||Object.keys(o.chats); CL.e=CL.e.filter(function(e){return rid.indexOf(e[1])<0;}).concat(o.chg.e.filter(function(e){return rid.indexOf(e[1])>=0;})).sort(function(x,y){return x[0]-y[0];}); Object.keys(o.chg.g||{}).forEach(function(k){CL.g[k]=o.chg.g[k];}); chgStore(); chgSnapAll();}}catch(e){}
+    var nl=0; if(z&&!ids){try{nl=await restoreLibrary(z);}catch(e){}}
+    toast('Restored '+n+(n===1?' assistant':' assistants')+(nl?' and '+nl+(nl===1?' library book':' library books'):'')+'.'); if(after)after(); try{if(ids)renderInfo(ids[0]);}catch(e){}
+  });
 }
 function backupRestore(file){restoreFromFile(file,null);}
 /* three questions in a row before anything is deleted or replaced */
@@ -1477,7 +1516,7 @@ async function bkRun(dir){
   files.forEach(function(f){m[f.x.path]=f.x.hash;}); try{localStorage.setItem('dutybuddy.bkh',JSON.stringify(m)); localStorage.setItem('dutybuddy.bklast',String(Date.now()));}catch(e){} return files.length;
 }
 function bkCard(bx){
-  var cd=el('div','card'); cd.appendChild(el('h3',null,'Backup folder'));
+  var cd=el('div','card'); cd.appendChild(el('h3',null,'Backup folder (advanced, many files)'));
   cd.appendChild(el('p',null,'Saves your files into a folder on this phone. After the first time, only the files that changed are written again. Month reports go into Archive, one folder per year. Every book in the Library goes into the Library folder.'));
   var last=0; try{last=+localStorage.getItem('dutybuddy.bklast')||0;}catch(e){}
   var lt=el('p',null,last?'Last backup: '+fmtTime(last):'No folder backup yet'); lt.style.cssText='font-weight:600;font-size:14px'; cd.appendChild(lt);
@@ -1508,18 +1547,18 @@ function openBackup(){
   var c0=el('div','card'); c0.style.marginTop='0'; c0.appendChild(el('h3',null,'Saved on this phone'));
   c0.appendChild(el('p',null,'Every message and every action is saved on this phone by itself, also Undo. If you delete the app, this is gone, so save a backup file too.'));
   var st=el('p',null,'Saved just now'); st.style.cssText='font-weight:700;color:var(--ok,#1a7f4b);margin:0'; c0.appendChild(st); bx.appendChild(c0);
-  bkCard(bx);
-  var c1=el('div','card'); c1.appendChild(el('h3',null,'Backup file'));
-  c1.appendChild(el('p',null,'Saves everything in one file: all assistants, stock, stock sheets, reports, notes and chats. Pictures are not included. Your phone asks where to keep it; for example Files, Duty Buddy, backup. Do this before you delete the app.'));
+  var c1=el('div','card'); c1.appendChild(el('h3',null,'Backup file (one ZIP)'));
+  c1.appendChild(el('p',null,'Saves everything in ONE file: all assistants, stock, stock sheets, reports, notes, chats and the Library books. Your phone asks where to keep it; for example Files, Duty Buddy. Do this before you delete the app.'));
   var lt=el('p',null,last?'Last file: '+fmtTime(last):'No file saved yet'); lt.style.cssText='font-weight:600;font-size:14px'; c1.appendChild(lt);
-  var b1=el('div','btns'); b1.appendChild(mkBtn('Save backup file','',async function(){var ok=await backupSave(null); if(ok)lt.textContent='Last file: '+fmtTime(Date.now());})); c1.appendChild(b1); bx.appendChild(c1);
+  var b1=el('div','btns'); b1.appendChild(mkBtn('Save backup file','',async function(){var ok=await backupAll(); if(ok)lt.textContent='Last file: '+fmtTime(Date.now());})); c1.appendChild(b1); bx.appendChild(c1);
   var c2=el('div','card'); c2.appendChild(el('h3',null,'Upload a backup'));
-  c2.appendChild(el('p',null,'After you installed the app again, or on a new phone: choose your backup file and everything comes back, as if you never deleted the app. Your Google key is not in the file; paste it once again.'));
-  var fi=el('input'); fi.type='file'; fi.accept='.json,application/json'; fi.hidden=true; fi.addEventListener('change',function(){var f=fi.files&&fi.files[0]; fi.value=''; if(f)restoreFromFile(f,null,function(){ov.hidden=true; document.body.classList.remove('printing');});});
+  c2.appendChild(el('p',null,'After you installed the app again, or on a new phone: choose your ONE backup file (.zip) and everything comes back, as if you never deleted the app. Your Google key is not in the file; paste it once again.'));
+  var fi=el('input'); fi.type='file'; fi.hidden=true; fi.addEventListener('change',function(){var f=fi.files&&fi.files[0]; fi.value=''; if(f)restoreFromFile(f,null,function(){ov.hidden=true; document.body.classList.remove('printing');});});
   var b2=el('div','btns'); b2.appendChild(mkBtn('Upload backup file','',function(){fi.click();})); c2.appendChild(b2); c2.appendChild(fi); bx.appendChild(c2);
   var c3=el('div','card'); c3.appendChild(el('h3',null,'Go back in time'));
   c3.appendChild(el('p',null,'If you made a mistake, go back to an earlier moment. The phone keeps your last 60 actions, plus one moment for each of the last 2 weeks. They disappear if you delete the app.'));
   var b3=el('div','btns'); b3.appendChild(mkBtn('Restore points','ghost',function(){openRestorePoints(null);})); c3.appendChild(b3); bx.appendChild(c3);
+  bkCard(bx);
   snapList().then(function(l){if(l&&l[0])st.textContent='Saved '+ago(l[0].t);});
 }
 
@@ -5985,7 +6024,7 @@ try{setTimeout(function(){snapNow('Opened the app');},6000); document.addEventLi
   }
   window.addEventListener('resize',apply); window.addEventListener('orientationchange',function(){setTimeout(apply,60);}); apply();
 })();
-var APPVER='Sidekick 116'; try{themeApply();}catch(e){}
+var APPVER='Sidekick 117'; try{themeApply();}catch(e){}
 var KEYNAME='dutybuddy.apikey', inClaude=false;
 function storedKey(){try{return localStorage.getItem(KEYNAME)||'';}catch(e){return '';}}
 function keyOn(){try{return localStorage.getItem('dutybuddy.keyoff')!=='1';}catch(e){return true;}}
