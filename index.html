@@ -6024,7 +6024,7 @@ try{setTimeout(function(){snapNow('Opened the app');},6000); document.addEventLi
   }
   window.addEventListener('resize',apply); window.addEventListener('orientationchange',function(){setTimeout(apply,60);}); apply();
 })();
-var APPVER='Sidekick 117'; try{themeApply();}catch(e){}
+var APPVER='Sidekick 118'; try{themeApply();}catch(e){}
 var KEYNAME='dutybuddy.apikey', inClaude=false;
 function storedKey(){try{return localStorage.getItem(KEYNAME)||'';}catch(e){return '';}}
 function keyOn(){try{return localStorage.getItem('dutybuddy.keyoff')!=='1';}catch(e){return true;}}
@@ -6122,7 +6122,7 @@ function getSample(){
   return samplePromise.then(function(s0){
     if(s0){inClaude=true; return s0;}
     var off=typeof navigator!=='undefined'&&navigator.onLine===false, k=apiKey();
-    if(!off&&k)return makeSampleFor(k);
+    if(k&&(!off||!localOn()))return makeSampleFor(k);
     if(localOn())return makeLocalSample();
     return null;
   });
@@ -6139,7 +6139,7 @@ var AINOTE='', AILAST=null, AIGEN=0;
 async function smartRetry(id,text,gen){
   for(var i=0;i<2;i++){
     var ok=await smartSend(id,text,gen); if(gen!=null&&gen!==AIGEN)return true; if(ok){AILAST=null; return true;}
-    if(!AINOTE||!apiKey()||navigator.onLine===false)return false;
+    if(!AINOTE||!apiKey())return false;
     AILAST={t:Date.now(),msg:AINOTE}; logErr('AI',AINOTE,'answer to a question'); if(aiOff)return false;
     await new Promise(function(r){setTimeout(r,1800*(i+1));});
   }
@@ -10754,7 +10754,7 @@ function activeAI(){
   var off=(navigator.onLine===false);
   if(inClaude)return ['Online','on'];
   if(!smartOn||aiOff)return ['Simple answers (AI is paused)','off'];
-  if(!off&&apiKey())return ['Online (Google)','on'];
+  if(apiKey()&&(!off||!localOn()))return ['Online (Google)','on'];
   if(localOn())return [off?'Offline (on this phone)':'Offline (on this phone). Online has no key or is off','on'];
   return ['Simple answers, no AI','off'];
 }
@@ -14183,7 +14183,7 @@ syncStart();
 A.forEach(function(x){kbLoad(x.id).then(function(){kbResumeAll(x.id); kbBarUpdate(); if((libId===x.id||libId==='lib')&&!$('libView').hidden)renderLib(libId);});});
 kbLoad('lib').then(function(){kbResumeAll('lib'); kbBarUpdate(); if(libId==='lib'&&!$('libView').hidden)renderLib('lib');});
 document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible'){A.forEach(function(x){kbResumeAll(x.id);}); kbWake(); kbBarUpdate();}});
-if(window.__DB_TEST__)window.__DB_TEST__({beginDraft:beginDraft,dsave:dsave,getDraft:function(){return draft;},KEY:KEY,wineEditSheet:wineEditSheet,celDiffs:celDiffs,photoFollow:photoFollow,PHPEND:PHPEND,push:push,save:save,modGo:modGo,mcRows:mcRows,celOutIt:celOutIt,celIn:celIn,celLocs:celLocs,celApply:celApply,renderSettings:renderSettings,renderInfo:renderInfo,celStore:celStore,celShFree:celShFree,celWineFree:celWineFree,celShTot:celShTot,SS:function(){return S;},kbBest:kbBest,kbClean:kbClean,kbBuild:kbBuild,studySend:studySend,rsPlan:rsPlan,tbDim:tbDim,tbShape:tbShape,tbMerge:tbMerge,tbSnap:tbSnap,tbSplit:tbSplit,wineAny:wineAny,mxInit:mxInit,mxLearn:mxLearn,wineOpen:wineOpen,photoOrOcr:photoOrOcr,gqCount:gqCount,kbSlot:kbSlot,libAll:libAll,renderLib:renderLib,libPicker:libPicker,kbShare:kbShare,celInvTotals:celInvTotals,stkPdfRes:stkPdfRes,stkReportRes:stkReportRes,bkStatus:bkStatus,openBackup:openBackup,todoPoke:todoPoke,save:save,barPlan:barPlan,celSale:celSale,wineOpen:wineOpen,chgLoad:chgLoad,openSettings:openSettings,chgStore:chgStore,chgDiff:chgDiff,stkRows:stkRows,stkCounts:stkCounts,stkParse:stkParse,stkApplyImport:stkApplyImport,stkAccept:stkAccept,stkSheets:stkSheets,stkStore:stkStore,celParseCsv:celParseCsv,celStore:celStore,celParseRows:celParseRows,celParseCsv:celParseCsv,celApplyImport:celApplyImport,celRows:celRows,celXlsx:celXlsx,celCollect:celCollect,celApply:celApply,celSwap:celSwap,rtSeed:rtSeed,evMenuItems:evMenuItems,evFind:evFind,evAddDish:evAddDish,rtGridArr:rtGridArr,rtXlsx:rtXlsx,rtDiff:rtDiff,rtPages:rtPages,rtGrid:rtGrid,rtParseGrid:rtParseGrid,rtHandle:rtHandle,rtApplyImport:rtApplyImport,fpImportBuf:fpImportBuf,fpPut:fpPut,fpPlan:fpPlan,fpHandle:fpHandle,fpTablesOf:fpTablesOf,getS:function(){return S;},cmGet:cmGet,fileRoute:fileRoute,costRefresh:costRefresh,pbL:pbL,pbSearch:pbSearch,cmRecipeSheets:cmRecipeSheets,cmDishCost:cmDishCost,pcTeam:pcTeam,cxList:cxList,pbSet:pbSet,cmTouch:cmTouch,emMenu:emMenu,emPick:emPick,emCount:emCount,emPages:emPages,emDoc:emDoc,emOpenDiff:emOpenDiff,emApply:emApply,emTeam:emTeam,emCmd:emCmd,evIntentRx:evIntentRx,save:save,send:send,openChat:openChat,teamFlow:teamFlow,foreignGuard:foreignGuard,kbDetail:kbDetail,baseApply:baseApply,BASE:BASE,kbAdd:kbAdd,kbEnqueue:kbEnqueue,kbSearch:kbSearch,kbLoad:kbLoad,kbRemove:kbRemove,kbCloze:kbCloze,kbSlot:kbSlot,kbAnswer:kbAnswer,readAny:readAny,exportRows:exportRows,xlsxBuild:xlsxBuild,pdfBuild:pdfBuild,csvBuild:csvBuild,handleExport:handleExport,exportStock:exportStock,needsRules:needsRules,buildPrompt:buildPrompt,teamSpeakersFor:teamSpeakersFor,dataBlock:dataBlock,stockRows:stockRows,parseCount:parseCount,splitCount:splitCount,idfWeights:idfWeights,rankMatches:rankMatches,aliasSet:aliasSet,handleMatches:handleMatches,respond:respond,respondTeam:respondTeam,parseList:parseList,applyList:applyList,avatarSVG:avatarSVG,glassCard:glassCard,parseMenuText:parseMenuText,looksMenu:looksMenu,autoMatch:autoMatch,searchPool:searchPool,scoreName:scoreName,sendGlassEdit:sendGlassEdit,guessType:guessType,getS:function(){return S;},A:A});
+if(window.__DB_TEST__)window.__DB_TEST__({getSample:getSample,beginDraft:beginDraft,dsave:dsave,getDraft:function(){return draft;},KEY:KEY,wineEditSheet:wineEditSheet,celDiffs:celDiffs,photoFollow:photoFollow,PHPEND:PHPEND,push:push,save:save,modGo:modGo,mcRows:mcRows,celOutIt:celOutIt,celIn:celIn,celLocs:celLocs,celApply:celApply,renderSettings:renderSettings,renderInfo:renderInfo,celStore:celStore,celShFree:celShFree,celWineFree:celWineFree,celShTot:celShTot,SS:function(){return S;},kbBest:kbBest,kbClean:kbClean,kbBuild:kbBuild,studySend:studySend,rsPlan:rsPlan,tbDim:tbDim,tbShape:tbShape,tbMerge:tbMerge,tbSnap:tbSnap,tbSplit:tbSplit,wineAny:wineAny,mxInit:mxInit,mxLearn:mxLearn,wineOpen:wineOpen,photoOrOcr:photoOrOcr,gqCount:gqCount,kbSlot:kbSlot,libAll:libAll,renderLib:renderLib,libPicker:libPicker,kbShare:kbShare,celInvTotals:celInvTotals,stkPdfRes:stkPdfRes,stkReportRes:stkReportRes,bkStatus:bkStatus,openBackup:openBackup,todoPoke:todoPoke,save:save,barPlan:barPlan,celSale:celSale,wineOpen:wineOpen,chgLoad:chgLoad,openSettings:openSettings,chgStore:chgStore,chgDiff:chgDiff,stkRows:stkRows,stkCounts:stkCounts,stkParse:stkParse,stkApplyImport:stkApplyImport,stkAccept:stkAccept,stkSheets:stkSheets,stkStore:stkStore,celParseCsv:celParseCsv,celStore:celStore,celParseRows:celParseRows,celParseCsv:celParseCsv,celApplyImport:celApplyImport,celRows:celRows,celXlsx:celXlsx,celCollect:celCollect,celApply:celApply,celSwap:celSwap,rtSeed:rtSeed,evMenuItems:evMenuItems,evFind:evFind,evAddDish:evAddDish,rtGridArr:rtGridArr,rtXlsx:rtXlsx,rtDiff:rtDiff,rtPages:rtPages,rtGrid:rtGrid,rtParseGrid:rtParseGrid,rtHandle:rtHandle,rtApplyImport:rtApplyImport,fpImportBuf:fpImportBuf,fpPut:fpPut,fpPlan:fpPlan,fpHandle:fpHandle,fpTablesOf:fpTablesOf,getS:function(){return S;},cmGet:cmGet,fileRoute:fileRoute,costRefresh:costRefresh,pbL:pbL,pbSearch:pbSearch,cmRecipeSheets:cmRecipeSheets,cmDishCost:cmDishCost,pcTeam:pcTeam,cxList:cxList,pbSet:pbSet,cmTouch:cmTouch,emMenu:emMenu,emPick:emPick,emCount:emCount,emPages:emPages,emDoc:emDoc,emOpenDiff:emOpenDiff,emApply:emApply,emTeam:emTeam,emCmd:emCmd,evIntentRx:evIntentRx,save:save,send:send,openChat:openChat,teamFlow:teamFlow,foreignGuard:foreignGuard,kbDetail:kbDetail,baseApply:baseApply,BASE:BASE,kbAdd:kbAdd,kbEnqueue:kbEnqueue,kbSearch:kbSearch,kbLoad:kbLoad,kbRemove:kbRemove,kbCloze:kbCloze,kbSlot:kbSlot,kbAnswer:kbAnswer,readAny:readAny,exportRows:exportRows,xlsxBuild:xlsxBuild,pdfBuild:pdfBuild,csvBuild:csvBuild,handleExport:handleExport,exportStock:exportStock,needsRules:needsRules,buildPrompt:buildPrompt,teamSpeakersFor:teamSpeakersFor,dataBlock:dataBlock,stockRows:stockRows,parseCount:parseCount,splitCount:splitCount,idfWeights:idfWeights,rankMatches:rankMatches,aliasSet:aliasSet,handleMatches:handleMatches,respond:respond,respondTeam:respondTeam,parseList:parseList,applyList:applyList,avatarSVG:avatarSVG,glassCard:glassCard,parseMenuText:parseMenuText,looksMenu:looksMenu,autoMatch:autoMatch,searchPool:searchPool,scoreName:scoreName,sendGlassEdit:sendGlassEdit,guessType:guessType,getS:function(){return S;},A:A});
 })();
 </script>
 
