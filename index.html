@@ -6024,7 +6024,7 @@ try{setTimeout(function(){snapNow('Opened the app');},6000); document.addEventLi
   }
   window.addEventListener('resize',apply); window.addEventListener('orientationchange',function(){setTimeout(apply,60);}); apply();
 })();
-var APPVER='Sidekick 118'; try{themeApply();}catch(e){}
+var APPVER='Sidekick 119'; try{themeApply();}catch(e){}
 var KEYNAME='dutybuddy.apikey', inClaude=false;
 function storedKey(){try{return localStorage.getItem(KEYNAME)||'';}catch(e){return '';}}
 function keyOn(){try{return localStorage.getItem('dutybuddy.keyoff')!=='1';}catch(e){return true;}}
@@ -12428,14 +12428,41 @@ function scanLabelPanel(lab,a,c){
     row.appendChild(mkBtn('Scan next','ghost',function(){res.textContent=''; openCam();})); r.appendChild(row); return r;
   }
   function drawStock(it){var old=res.querySelector('.stk'); var n=stockCard(it); n.className+=' stk'; n.style.animation='none'; if(old)res.replaceChild(n,old); else res.appendChild(n);}
+  function pickIt(rec,it){res.textContent=''; res.appendChild(title(rec)); var s=stockCard(it); s.className+=' stk'; res.appendChild(s);}
+  function candidates(rec,first){
+    var W=idfWeights(c.inv), sz=rec.size?+rec.size:undefined, out=[], seen={};
+    function add(it){if(it&&!seen[it.id]){seen[it.id]=1; out.push(it);}}
+    add(first); rankMatches(c.inv,rec.name,W,5,sz).forEach(function(x){add(x.it);});
+    invToks(rec.name).filter(function(w){return w.length>=4&&!/^(19|20)\d\d$/.test(w);}).forEach(function(w){searchPool(c.inv,w,40).forEach(function(it){if(!seen[it.id]){seen[it.id]=1; it.__sc=scoreName(rec.name,it.name); out.push(it);}});});
+    var head=out.slice(0,1+(first?0:0)), rest=out.slice(head.length).sort(function(x,y){return (y.__sc||0)-(x.__sc||0);});
+    return head.concat(rest).slice(0,4);
+  }
+  function rows(list,box,rec){
+    box.textContent='';
+    if(!list.length){var e=el('small',null,'Nothing matches. Try other letters, or add it as a new wine.'); e.style.cssText='display:block;margin-top:8px;color:var(--muted)'; box.appendChild(e); return;}
+    list.forEach(function(x){
+      var r=el('div'); r.style.cssText='display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 12px;border-radius:12px;background:rgba(127,127,127,.14);margin-top:8px;cursor:pointer'; r.setAttribute('role','button'); r.tabIndex=0;
+      var w=el('div'), b=el('b',null,x.name), q=el('small',null,(x.qty==null?'no count':num(x.qty)+' in stock')+(x.size&&x.size!==750?' · '+x.size+' ml':'')); b.style.cssText='display:block;font-size:14px'; q.style.color='var(--muted)'; w.appendChild(b); w.appendChild(q);
+      var pk=el('b',null,'Pick'); pk.style.color='#2b9c82'; r.appendChild(w); r.appendChild(pk);
+      var go=function(){pickIt(rec,x);}; r.addEventListener('click',go); r.addEventListener('keydown',function(ev){if(ev.key==='Enter')go();}); box.appendChild(r);
+    });
+  }
+  function addNew(rec){
+    res.textContent=''; res.appendChild(title(rec));
+    var r=card(); r.appendChild(el('b',null,'Add this wine to your stock list?')); var nm=el('input'); nm.type='text'; nm.value=cap(rec.name)+(rec.vintage&&rec.vintage!=='NV'?' '+rec.vintage:''); nm.style.cssText='width:100%;margin:10px 0;padding:12px;border-radius:12px;border:2px solid #2b9c82;background:transparent;color:inherit;font:inherit;font-size:15px'; r.appendChild(nm);
+    var n=el('small',null,'It starts with 0 bottles. You can change the name now. Then tap Received to add bottles.'); n.style.cssText='display:block;color:var(--muted);margin-bottom:10px'; r.appendChild(n);
+    var row=el('div','btns'); row.appendChild(mkBtn('Add wine','',function(){var name=nm.value.trim(); if(!name){toast('Type the wine name first.'); return;} var w=newWine(name,null,false,'','',0,0); w.size=rec.size?+rec.size:750; c.inv.push(w); save(); toast('Added '+name); pickIt(rec,w);})); row.appendChild(mkBtn('Cancel','ghost',function(){showRec(rec);})); r.appendChild(row); res.appendChild(r);
+  }
   function showRec(rec){
     var m=labelMatch(c,rec), it=m.it; res.textContent=''; res.appendChild(title(rec));
     if(m.kind==='yes'){var s=stockCard(it); s.className+=' stk'; res.appendChild(s); return;}
-    var r=card(); r.style.borderLeft='6px solid #e8a317';
-    if(m.kind==='none'){r.appendChild(el('b',null,'I could not find it in the stock list.')); r.appendChild(el('p',null,'It may be a wine you do not stock yet.'));}
-    else{var why=m.kind==='vintage'?'I do not have the '+m.vin+'. Closest in the list:':m.kind==='size'?'The label says '+m.sz+' ml. The closest in the list:':'I am not sure it is the same wine. Closest in the list:'; var h=el('b',null,why); h.style.color='#8a4b00'; r.appendChild(h); var w=el('div',null,it.name+' · '+(it.qty==null?'no count':num(it.qty)+' in stock')); w.style.cssText='margin:6px 0 10px;font-size:14px'; r.appendChild(w);
-      var row=el('div','btns'); row.appendChild(mkBtn(m.kind==='maybe'?'Yes, this one':'Use this one','',function(){res.textContent=''; res.appendChild(title(rec)); var s=stockCard(it); s.className+=' stk'; res.appendChild(s);})); row.appendChild(mkBtn('Not this one','ghost',function(){res.textContent=''; var c2=card(); c2.appendChild(el('b',null,'Okay. Try another photo, or search the name in the Barcode tab.')); res.appendChild(c2);})); r.appendChild(row);}
-    var rb=el('div','btns'); rb.style.marginTop='8px'; rb.appendChild(mkBtn('Scan next','ghost',function(){res.textContent=''; openCam();})); r.appendChild(rb); res.appendChild(r);
+    var r=card(), base=candidates(rec,it); r.style.borderLeft='6px solid #e8a317';
+    var why=m.kind==='vintage'?'I do not have the '+m.vin+'. Closest in your list:':m.kind==='size'?'The label says '+m.sz+' ml. Closest in your list:':m.kind==='maybe'?'I am not sure it is the same wine. Closest in your list:':'I am not sure which wine this is. Closest in your list:';
+    if(!base.length)why='I could not find it in the stock list.';
+    var h=el('b',null,why); h.style.color='#e8a317'; r.appendChild(h);
+    var box=el('div'); r.appendChild(box); rows(base,box,rec);
+    var sr=el('input'); sr.type='search'; sr.placeholder='Search the stock list'; sr.style.cssText='width:100%;margin-top:10px;padding:12px;border-radius:12px;border:2px solid #2b9c82;background:transparent;color:inherit;font:inherit;font-size:15px'; sr.addEventListener('input',function(){var q=sr.value.trim(); rows(q?searchPool(c.inv,q,6):base,box,rec);}); r.appendChild(sr);
+    var rb=el('div','btns'); rb.style.marginTop='10px'; rb.appendChild(mkBtn('Add as new wine','',function(){addNew(rec);})); rb.appendChild(mkBtn('Scan next','ghost',function(){res.textContent=''; openCam();})); r.appendChild(rb); res.appendChild(r);
   }
 }
 var SCAN={stream:null,timer:0,tab:'bar'};
