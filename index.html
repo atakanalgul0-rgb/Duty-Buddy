@@ -2137,6 +2137,52 @@ function doImport(a,c,items){
 }
 function dmy(d){var m=String(d||'').match(/^(\d{4})-(\d{2})-(\d{2})/); return m?m[3]+'/'+m[2]+'/'+m[1]:String(d||'');}
 var MONTHS=['january','february','march','april','may','june','july','august','september','october','november','december'];
+/* ---------- sales: outlet + day ---------- */
+var SXOUT=['Ling','Ling Bar','Ling Ultra Lounge'], SXCTX=null;
+var SXWD=['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
+function sxOutlet(low){low=String(low||'').toLowerCase(); if(/\bultra\b/.test(low))return 'Ling Ultra Lounge'; if(/\bling\s*bar\b|\bbar\s+lounge\b/.test(low))return 'Ling Bar'; if(/\bling\b/.test(low))return 'Ling'; return null;}
+var SXDRX=[/(?:\b(?:on|for|from|at)\s+)?\bday before yesterday\b/i,/(?:\b(?:on|for|from|at)\s+)?\b(?:yesterday|d[uü]n)\b/i,/(?:\b(?:on|for|from|at)\s+)?\b\d{1,2}\s+days?\s+ago\b/i,/(?:\b(?:on|for|from|at)\s+)?\btoday\b/i,/(?:\b(?:on|for|from|at)\s+)?\b\d{4}-\d{1,2}-\d{1,2}\b/,/(?:\b(?:on|for|from|at)\s+)?\b\d{1,2}[\/.\-]\d{1,2}[\/.\-]\d{2,4}\b/,/(?:\b(?:on|for|from|at)\s+)?\b\d{1,2}(?:st|nd|rd|th)?\s+(?:of\s+)?(?:jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*\.?(?:,?\s*\d{4})?\b/i,/(?:\b(?:on|for|from|at)\s+)?\b(?:jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*\.?\s+\d{1,2}(?:st|nd|rd|th)?\b(?:,?\s*\d{4})?/i,/(?:\b(?:on|for|from|at)\s+)?\b(?:last\s+)?(?:sunday|monday|tuesday|wednesday|thursday|friday|saturday)\b/i,/\b(?:on|last)\s+(?:sun|mon|tues?|wed|thu|thur|thurs|fri|sat)\b/i];
+function sxToday(){return isoL(new Date(Date.now()-SVC_CUT*3600000));}
+function sxDateOf(str){
+  str=String(str||'').toLowerCase(); var t=sxToday(), m;
+  if(/\bday before yesterday\b/.test(str))return addDays(t,-2);
+  if(/\byesterday\b|\bd[uü]n\b/.test(str))return addDays(t,-1);
+  if((m=str.match(/\b(\d{1,2})\s+days?\s+ago\b/)))return addDays(t,-(+m[1]));
+  if(/\btoday\b|\bbug[uü]n\b/.test(str))return t;
+  var d=parseDateAny(str,false); if(d)return d;
+  m=str.match(/\b(last\s+)?(sunday|monday|tuesday|wednesday|thursday|friday|saturday)\b/)||str.match(/\b(?:on|(last))\s+(sun|mon|tues?|wed|thu|thur|thurs|fri|sat)\b/);
+  if(m){var nm=m[2].slice(0,3), wi=['sun','mon','tue','wed','thu','fri','sat'].indexOf(nm); if(wi>-1){var cd=new Date(t+'T12:00:00'), diff=(cd.getDay()-wi+7)%7; if(!diff&&m[1])diff=7; return addDays(t,-diff);}}
+  return null;
+}
+function sxExtract(text){
+  var lines=String(text).split('\n'), first=lines[0], date=null, outlet=sxOutlet(first), i;
+  for(i=0;i<SXDRX.length;i++){var mm=first.match(SXDRX[i]); if(mm){var d=sxDateOf(mm[0]); if(d){date=d; first=first.replace(SXDRX[i],' '); break;}}}
+  if(outlet)first=first.replace(/\b(?:on|for|from|at)?\s*\bling\s*bar\b|\bbar\s+lounge\b|\b(?:ling\s+)?ultra(?:\s+lounge)?\b|\b(?:on|for|from|at)\s+ling\b|\bling\b/ig,' ');
+  first=first.replace(/\s{2,}/g,' ').replace(/^\s+|\s+$/g,'');
+  lines[0]=first; return {text:lines.join('\n'),date:date,outlet:outlet};
+}
+function sxIsCmd(text){
+  if(!/^\s*(?:sold|sales?)\b/i.test(text))return false; var e=sxExtract(text); if(!(e.date||e.outlet))return false;
+  var rest=e.text.replace(/^\s*(?:sold|sales?)\b[:\s\-]*/i,'').trim(); return !!rest&&/\d/.test(rest)&&!/\b(?:last|past|previous|this)\b/i.test(rest)&&!/\b(?:report|summary)\b/i.test(rest);
+}
+function sxQty(lines){return (lines||[]).reduce(function(t,l){return t+(parseFloat(l.qty)||0);},0);}
+function sxDaySummary(c,date){
+  var es=(c.log||[]).filter(function(e){return e.kind==='out'&&e.date===date;}), by={}, none=0;
+  es.forEach(function(e){var q=sxQty(e.lines); if(e.outlet)by[e.outlet]=(by[e.outlet]||0)+q; else none+=q;});
+  var out=SXOUT.map(function(o){return '• '+o+': '+(by[o]?num(by[o])+' items':'no report yet');}); if(none)out.push('• Without an outlet: '+num(none)+' items');
+  return 'Sold on '+dmy(date)+', all outlets:\n'+out.join('\n');
+}
+function sxBar(o,redraw,noDate){
+  var w=el('div','ec'); w.style.cssText='padding:10px 12px;margin:0 0 10px;border:1px solid var(--line);border-radius:12px';
+  if(o.done){var t=el('b',null,(o.outlet||'No outlet')+(noDate?'':' · '+dmy(o.date))); w.appendChild(t); return w;}
+  var l1=el('div','s1','Which outlet?'+(o.sxOpt?' (optional)':'')); w.appendChild(l1); var r1=el('div','btns'); r1.style.margin='6px 0 8px';
+  SXOUT.forEach(function(n){r1.appendChild(mkBtn(n,o.outlet===n?'on sm':'ghost sm',function(){o.outlet=n; redraw();}));}); w.appendChild(r1);
+  if(noDate)return w;
+  var l2=el('div','s1','Which day was this?'); w.appendChild(l2); var r2=el('div','btns'); r2.style.margin='6px 0 0'; var t0=sxToday(), y0=addDays(t0,-1);
+  r2.appendChild(mkBtn('Today',o.date===t0?'on sm':'ghost sm',function(){o.date=t0; redraw();})); r2.appendChild(mkBtn('Yesterday',o.date===y0?'on sm':'ghost sm',function(){o.date=y0; redraw();}));
+  var di=el('input','eq'); di.type='date'; di.value=o.date||t0; di.setAttribute('aria-label','Sales day'); di.style.cssText='min-width:0;width:150px'; di.addEventListener('change',function(){if(/^\d{4}-\d{2}-\d{2}$/.test(di.value)){o.date=di.value; redraw();}}); r2.appendChild(di);
+  w.appendChild(r2); w.appendChild(el('div','s1','Selected: '+dmy(o.date||t0))); return w;
+}
 function handleLog(a,c,text){
   var low=text.toLowerCase();
   if(!/\b(which|what|list|show|give|tell|any|did we|have we|how many|how much|report|summary)\b/.test(low))return null;
@@ -2149,27 +2195,29 @@ function handleLog(a,c,text){
   function mk(yy,mm){from=iso(new Date(Date.UTC(yy,mm,1))); to=iso(new Date(Date.UTC(yy,mm+1,0))); label=MONTHS[mm]+' '+yy;}
   if(/\blast month\b/.test(low))mk(mo?y:y-1,mo?mo-1:11);
   else if(/\bthis month\b/.test(low))mk(y,mo);
+  else if(kind==='out'&&sxDateOf(low)&&!/\b(this|last) (week|month|year)\b/.test(low)){from=to=sxDateOf(low); label=dmy(from);}
   else if(mi>-1)mk(y,mi);
   else if(/\b(this year|year)\b/.test(low)){from=y+'-01-01'; to=y+'-12-31'; label=String(y);}
   else if(/\btoday\b/.test(low)){from=to=today(); label='today';}
   else if(/\byesterday\b/.test(low)){var yd=new Date(Date.now()-864e5); from=to=iso(yd); label='yesterday';}
   else if(/\bthis week\b/.test(low)){from=iso(new Date(Date.now()-6*864e5)); to=today(); label='the last 7 days';}
-  var stop=/^(which|what|wines?|wine|bottles?|received|receive|delivered|delivery|deliveries|ordered|orders?|order|month|week|year|this|last|list|show|give|tell|picklists?|pick|invoices?|did|have|sold|sales|items?|stock|were|from|into|did|the|and|for|how|many|much|report|summary|any|our|all|came|taken|any|small|that|with|can|you|please|today|yesterday|ling|ay|bu|po)$/;
+  var stop=/^(which|what|wines?|wine|bottles?|received|receive|delivered|delivery|deliveries|ordered|orders?|order|month|week|year|this|last|list|show|give|tell|picklists?|pick|invoices?|did|have|sold|sales|items?|stock|were|from|into|did|the|and|for|how|many|much|report|summary|any|our|all|came|taken|any|small|that|with|can|you|please|today|yesterday|ling|ay|bu|po|ago|days|day|ultra|lounge|bar|sunday|monday|tuesday|wednesday|thursday|friday|saturday|last|on)$/;
   var words=low.replace(/[^a-z0-9\u00e0-\u00ff ]/g,' ').split(/\s+/).filter(function(w){return w.length>2&&!stop.test(w)&&!/^\d+$/.test(w)&&!MONTHS.some(function(m){return w===m||w===m.slice(0,3)||w==='sept';});});
-  var ents=log.filter(function(e){return e.kind===kind&&(!po||String(e.po).indexOf(po)>-1)&&(!from||(e.date>=from&&e.date<=to));}).sort(function(x,y2){return x.date<y2.date?-1:(x.date>y2.date?1:x.ts-y2.ts);});
+  var ox=kind==='out'?sxOutlet(low):null, ents=log.filter(function(e){return e.kind===kind&&(!po||String(e.po).indexOf(po)>-1)&&(!from||(e.date>=from&&e.date<=to))&&(!ox||e.outlet===ox);}).sort(function(x,y2){return x.date<y2.date?-1:(x.date>y2.date?1:x.ts-y2.ts);});
   if(!log.length)return [{text:'I have no saved '+(kind==='in'?'deliveries':'sales reports')+' yet. Send me a photo of a pick list or an invoice and confirm it, and I will keep it as text.'}];
   var out=[], tot=0, nl=0, shown=0;
   ents.forEach(function(e){
     var ls=e.lines; if(words.length)ls=ls.filter(function(l){var n=(l.name+' '+(l.raw||'')+' '+l.code).toLowerCase(); return words.some(function(w){return n.indexOf(w)>-1;});});
     if(!ls.length)return;
     var sub=ls.reduce(function(t,l){return t+(parseFloat(l.qty)||0);},0); tot+=sub; nl+=ls.length;
-    out.push((e.po?'PO '+e.po+' · ':'')+dmy(e.date)+' · '+ls.length+(ls.length===1?' line':' lines')+' · '+num(sub)+' '+a.units);
+    out.push((e.po?'PO '+e.po+' · ':'')+dmy(e.date)+(e.outlet?' · '+e.outlet:'')+' · '+ls.length+(ls.length===1?' line':' lines')+' · '+num(sub)+' '+a.units);
     ls.forEach(function(l){if(shown++<70)out.push('• '+num(parseFloat(l.qty)||0)+' × '+l.name+(l.code?' ('+l.code+')':''));});
     out.push('');
   });
   if(!out.length)return [{text:'I found nothing '+(kind==='in'?'received':'sold')+(label?' in '+label:'')+(po?' for PO '+po:'')+(words.length?' matching “'+words.join(' ')+'”':'')+'.'}];
   if(shown>70)out.push('…and '+(shown-70)+' more lines. Ask for one PO or one wine to see them.');
-  return [{text:(kind==='in'?'Received':'Sold')+(label?' in '+label:'')+': '+tot+' '+a.units+' on '+nl+(nl===1?' line.':' lines.')+'\n\n'+out.join('\n').trim()}];
+  var grid=''; if(kind==='out'&&!words.length&&from&&from!==to){var days={}; ents.forEach(function(e){var d=days[e.date]=days[e.date]||{}; var k=e.outlet||'No outlet'; d[k]=(d[k]||0)+sxQty(e.lines);}); grid='By day:\n'+Object.keys(days).sort().map(function(dd){return dmy(dd)+': '+SXOUT.map(function(o){return o+' '+(days[dd][o]?num(days[dd][o]):'\u2013');}).join(' \u00b7 ')+(days[dd]['No outlet']?' \u00b7 No outlet '+num(days[dd]['No outlet']):'');}).join('\n')+'\n\n';}
+  return [{text:(kind==='in'?'Received':'Sold')+(ox?' at '+ox:'')+(label?' in '+label:'')+': '+tot+' '+a.units+' on '+nl+(nl===1?' line.':' lines.')+'\n\n'+grid+out.join('\n').trim()}];
 }
 var JNAME={inv:'stock',recipes:'recipes',log:'history',costBook:'costs',extra:'extra wines',pool:'wine list',alias:'learned names',notes:'notes',feedback:'notes',staff:'staff',events:'events',guests:'guests',rsv:'reservations',evmenus:'event menus',cmenu:'chef menu'};
 function doUndo(a,c){
@@ -2199,8 +2247,8 @@ function applyChg(id,m){
   ls.forEach(function(l){if(l.nw&&l.nwOk&&!l.id){var nw=l.nw, it0={id:uid(),code:nw.code||'',name:nw.name,sheet:nw.sheet||'',qty:0,open:0,pour:0,src:null,type:nw.type||guessType(nw.name),glass:false,menu:nw.where==='menu',size:nw.size||750,price:'',gprice:''}; c.inv.push(it0); l.id=it0.id; l.code=it0.code; l.name=it0.name;}});
   if(cg.mode==='sub'){c.micros=c.micros||{}; ls.forEach(function(l){if(l.mx&&l.id){c.micros[l.mx]=l.id; var it9=c.inv.filter(function(x){return x.id===l.id;})[0]; if(it9&&l.raw)try{mxLearn(c,l.mx,l.raw,it9);}catch(e){}}});}
   cg.done='ok'; try{dropPhotoFor(c,m);}catch(e){} var txt=(cg.mode==='sub'?(cg.why==='flat'?'Flat\n':cg.why==='waste'?'Wasted\n':cg.why==='used'?'Used\n':'Sold\n'):'Add in stock\n')+ls.map(function(l){return l.qty+' '+(l.code||String(l.name).replace(/,/g,' '))+(l.gl?' glasses':(cg.why==='flat'?' bottles':''));}).join('\n');
-  JDEPTH++; var r; try{r=doChange(a,c,txt,cg.mode);}finally{JDEPTH--;} var shT='', topP=null; if(cg.mode==='sub'&&a.pour>0&&['sold','flat','waste','used'].indexOf(cg.why||'sold')>-1){var sm=[]; ls.forEach(function(l){var it1=c.inv.filter(function(x){return x.id===l.id;})[0]; if(!it1||!(l.qty>0))return; var gl1=!!l.gl; var rs=celSale(c,it1,l.qty,gl1,l.src); var tx=celSaleMsg(it1,rs,l.qty,gl1); if(tx)sm.push(tx);}); if(sm.length)shT='Shelves updated:\n'+sm.join('\n'); var pl=barPlan(c); if(pl.length)topP=pl;}
-  jCommit(c,jb,jul); push(id,{from:'bot',text:r.text,rows:r.rows}); if(shT)push(id,{from:'bot',text:shT}); if(topP)push(id,{from:'bot',text:'Tonight the bar needs '+topP.reduce(function(a,b){return a+b.qty;},0)+' bottles to get back to its level (5 for each wine, 2 for reds). Moving them does not change the stock.',top:{lines:topP,done:0}}); if(cg.mode==='add'&&a.pour>0){var rvT=recvTrack(c,ls); if(rvT)push(id,{from:'bot',text:rvT});} if(cg.mode==='sub'&&cg.why==='sold'&&stkUI(a)&&ls.some(function(l){return l.mx;})){var sid={}; ls.forEach(function(l){if(l.id)sid[l.id]=1;}); push(id,Object.assign({from:'bot'},recoMsg(a,c,false,'',sid)));} save(); refreshChat(id); renderList();
+  var sxDt=(cg.sx&&cg.mode==='sub'&&(cg.why||'sold')==='sold')?(cg.date||sxToday()):null; if(sxDt)SXCTX={date:sxDt,outlet:cg.outlet||'',card:1}; JDEPTH++; var r; try{r=doChange(a,c,txt,cg.mode);}finally{JDEPTH--; if(sxDt)SXCTX=null;} var shT='', topP=null; if(cg.mode==='sub'&&a.pour>0&&['sold','flat','waste','used'].indexOf(cg.why||'sold')>-1){var sm=[]; ls.forEach(function(l){var it1=c.inv.filter(function(x){return x.id===l.id;})[0]; if(!it1||!(l.qty>0))return; var gl1=!!l.gl; var rs=celSale(c,it1,l.qty,gl1,l.src); var tx=celSaleMsg(it1,rs,l.qty,gl1); if(tx)sm.push(tx);}); if(sm.length)shT='Shelves updated:\n'+sm.join('\n'); var pl=barPlan(c); if(pl.length)topP=pl;}
+  jCommit(c,jb,jul); push(id,{from:'bot',text:r.text,rows:r.rows}); if(sxDt)push(id,{from:'bot',text:sxDaySummary(c,sxDt)}); if(shT)push(id,{from:'bot',text:shT}); if(topP)push(id,{from:'bot',text:'Tonight the bar needs '+topP.reduce(function(a,b){return a+b.qty;},0)+' bottles to get back to its level (5 for each wine, 2 for reds). Moving them does not change the stock.',top:{lines:topP,done:0}}); if(cg.mode==='add'&&a.pour>0){var rvT=recvTrack(c,ls); if(rvT)push(id,{from:'bot',text:rvT});} if(cg.mode==='sub'&&cg.why==='sold'&&stkUI(a)&&ls.some(function(l){return l.mx;})){var sid={}; ls.forEach(function(l){if(l.id)sid[l.id]=1;}); push(id,Object.assign({from:'bot'},recoMsg(a,c,false,'',sid)));} save(); refreshChat(id); renderList();
 }
 
 var GTYPES={sparkling:'Sparkling',champagne:'Sparkling',white:'White',red:'Red',rose:'Rosé','rosé':'Rosé',sweet:'Sweet',dessert:'Sweet',fortified:'Fortified',sake:'Sake'};
@@ -2250,9 +2298,10 @@ function microsRank(c,r,W){
 function handleMicros(a,c,text){
   if(!(a.pour>0||a.stock)||!c.inv||!c.inv.length)return null;
   var rows=parseMicros(text); if(!looksMicros(rows))return null;
-  return [microsCard(a,c,rows,'')];
+  var hd=String(text).split('\n').slice(0,3).join(' '); return [microsCard(a,c,rows,'',{outlet:sxOutlet(hd),date:sxDateOf(hd)})];
 }
-function microsCard(a,c,rows,pre){
+function microsCard(a,c,rows,pre,sxc){
+  sxc=sxc||{};
   c.micros=c.micros||{}; var W=idfWeights(c.inv), lines=[], skipped=[], neg=0;
   rows.forEach(function(r){
     if(r.qty<=0){if(r.qty<0)neg++; skipped.push(r.raw+' ('+r.qty+')'); return;}
@@ -2268,7 +2317,7 @@ function microsCard(a,c,rows,pre){
   });
   lines.sort(function(x,y){return (x.k==='ok'?1:0)-(y.k==='ok'?1:0);});
   var nok=lines.filter(function(l){return l.k==='ok';}).length, nrem=lines.length-nok;
-  return {text:pre+'This is a Micros sales report with '+lines.length+' items to take out of stock'+(nrem?': '+nok+' matched, '+nrem+' for you to check (at the top)':', all matched')+'. Glass lines come off as glasses, bottle lines as bottles. I match to your stock list names first, then the wine list. When you confirm, I remember each Micros number, so next time it matches by itself. The report has no date, so this is saved for today.'+(skipped.length?'\nLeft out (zero or negative): '+skipped.slice(0,6).join('; ')+(skipped.length>6?' …':'')+'.':''),chg:{mode:'sub',lines:lines,done:0,why:'sold'}};
+  return {text:pre+'This is a Micros sales report with '+lines.length+' items to take out of stock'+(nrem?': '+nok+' matched, '+nrem+' for you to check (at the top)':', all matched')+'. Glass lines come off as glasses, bottle lines as bottles. I match to your stock list names first, then the wine list. When you confirm, I remember each Micros number, so next time it matches by itself. Choose the outlet and the day below before you confirm.'+(skipped.length?'\nLeft out (zero or negative): '+skipped.slice(0,6).join('; ')+(skipped.length>6?' …':'')+'.':''),chg:{mode:'sub',lines:lines,done:0,why:'sold',sx:1,outlet:sxc.outlet||'',date:sxc.date||sxToday()}};
 }
 function handleGlassSize(a,c,text){
   if(!(a.pour>0))return null;
@@ -2518,6 +2567,10 @@ function handleOrder(a,c,text){
 }
 var LENIENT=false;
 function previewChange(a,c,text,mode){
+  var sxm=null; if(mode==='sub'&&/\b(?:sold|sales?)\b/i.test(String(text).split('\n')[0])){var ex0=sxExtract(text); if(ex0.date||ex0.outlet){text=ex0.text; sxm={outlet:ex0.outlet||'',date:ex0.date||''};}}
+  var pv=previewChange0(a,c,text,mode); if(mode==='sub'&&pv&&pv.chg&&pv.chg.why==='sold'){pv.chg.sx=1; pv.chg.sxOpt=1; pv.chg.outlet=(sxm&&sxm.outlet)||''; pv.chg.date=(sxm&&sxm.date)||sxToday();} return pv;
+}
+function previewChange0(a,c,text,mode){
   var nl=text.split(/\n+/).filter(Boolean).length; if(nl>80||text.length>6000)return doChange(a,c,text,mode);
   var snap=JSON.stringify(c.inv), ul=c.undo.length, ll=(c.log||[]).length, r; LENIENT=true; try{r=doChange(a,c,text,mode);}finally{LENIENT=false;}
   c.inv=JSON.parse(snap); c.undo.length=ul; if(c.log)c.log.length=ll;
@@ -2533,6 +2586,10 @@ function previewChange(a,c,text,mode){
   return {text:(mode==='sub'?'Please check these before I take them out of stock. Change an amount or remove a line if needed.':'Please check these before I add them to stock. Change an amount or remove a line if needed.')+(notes?'\n'+notes:''),chg:{mode:mode,lines:lines,done:0,why:(mode==='sub'?(/\bflat\b/i.test(text.split('\n')[0])?'flat':/\b(wasted|removed?)\b/i.test(text.split('\n')[0])?'waste':/\b(used|served|consumed)\b/i.test(text.split('\n')[0])?'used':'sold'):'')}};
 }
 function doChange(a,c,text,mode){
+  var own=false; if(mode==='sub'&&!SXCTX&&/\b(?:sold|sales?)\b/i.test(String(text).split('\n')[0])){var ex=sxExtract(text); if(ex.date||ex.outlet){text=ex.text; SXCTX={date:ex.date,outlet:ex.outlet||''}; own=true;}}
+  try{return doChange0(a,c,text,mode);}finally{if(own)SXCTX=null;}
+}
+function doChange0(a,c,text,mode){
   (function(){var m=String(text).trim().match(/^([^\n]*?\S)\s+(add(?:ed)?|received?|delivered|restock(?:ed)?|arrived|sold|used|served|consumed|wasted|flat|removed?)\b[:\s]*(\d+(?:[.,]\d+)?)?\s*(?:bottles?|btls?|glass(?:es)?|gls?)?\s*(?:(?:to|in|into|from|out of|off)\s+)?(?:the\s+)?(?:stock)?\s*$/i);
     if(m&&!/^(?:add|added|received?|delivery|delivered|restock|arrived|sold|sales?|used|served|consumed|wasted|flat|removed?)\b/i.test(m[1])&&/[a-z]{2}|\d{5,}/i.test(m[1])){text=m[2]+' '+(m[3]?m[3]+' '+m[1]:m[1]);}})();
   var vre=mode==='sub'?/^[^\n]*?\b(?:sold|sales?|used|served|consumed|wasted|flat|removed?)\b[:\s\-]*/i:/^[^\n]*?\b(?:add(?:ed)?|received?|delivery|delivered|restock(?:ed)?|arrived)\b[:\s\-]*/i;
@@ -2571,7 +2628,7 @@ function doChange(a,c,text,mode){
   });
   var parts=[];
   if(rows.length){
-    if(JSON.stringify(c.inv)!==pre){c.undo.push(pre); if(c.undo.length>10)c.undo.shift(); if(logL.length){c.log=c.log||[]; c.log.push({id:uid(),po:'',date:tdy(),ts:Date.now(),kind:mode==='sub'?'out':'in',typed:1,lines:logL,sn:c.undo.length-1});}}
+    if(JSON.stringify(c.inv)!==pre){c.undo.push(pre); if(c.undo.length>10)c.undo.shift(); if(logL.length){c.log=c.log||[]; c.log.push({id:uid(),po:'',date:(mode==='sub'&&SXCTX&&SXCTX.date)||tdy(),outlet:(mode==='sub'&&SXCTX&&SXCTX.outlet)||'',bd:(mode==='sub'&&SXCTX&&SXCTX.date)?1:0,card:(mode==='sub'&&SXCTX&&SXCTX.card)?1:0,ts:Date.now(),kind:mode==='sub'?'out':'in',typed:1,lines:logL,sn:c.undo.length-1});}}
     var after=total(c.inv);
     parts.push((mode==='sub'?'Stock updated. ':'Delivery added. ')+'Total: '+num(before)+' \u2192 '+num(after)+' '+plural(a,after)+'.');
   }
@@ -3213,15 +3270,24 @@ async function sendPendList(id,note){
 window.addEventListener('hashchange',function(){setPendPhoto(null);});
 var PHPEND={};
 function photoFollow(id,text){
-  var t=String(text||'').trim(); if(!t||t.length>48||/\d|\n/.test(t))return false;
-  var k=noteKind(t); if(k!=='delivery'&&k!=='sales')return false;
-  var lab=k==='sales'?'sales (I will take them off stock)':'a delivery (I will add them to stock)', c=S.chats[id]; if(!c)return false;
+  var t=String(text||'').trim(); if(!t||t.length>60||/\n/.test(t))return false;
+  var sxo=sxOutlet(t), sxd=sxDateOf(t); if(/\d/.test(t)&&!sxd)return false;
+  if(sxo||sxd){var rs0=sxExtract(t).text.replace(/\b(?:sold|sales?|sale|report|the|this|these|it|was|were|for|on|at|of|from)\b/ig,' ').replace(/[^a-z0-9]/ig,''); if(rs0)return false;}
+  var k=noteKind(t), only=false;
+  if(k!=='delivery'&&k!=='sales'){if(!k&&(sxo||sxd)&&t.length<=40)only=true; else return false;}
+  var c=S.chats[id]; if(!c)return false;
+  var lab=k==='sales'?'sales (I will take them off stock)':'a delivery (I will add them to stock)';
   function say(x){push(id,{from:'bot',text:x}); save(); refreshChat(id); renderList();}
-  var pe=PHPEND[id]; if(pe&&Date.now()-pe.ts<600000){pe.kind=k; say('Got it. I will treat the picture as '+lab+'. Please wait, I am still reading it.'); return true;}
-  var ms=c.msgs||[], f=null; for(var i=ms.length-1;i>=Math.max(0,ms.length-10);i--){var m=ms[i]; if(m.plan&&m.plan.lines&&!m.plan.done&&m.plan.kind!=='count'){f=m; break;}}
-  if(!f)return false; var want=k==='sales'?'sub':'add', n=f.plan.lines.length;
-  f.plan.kind=want; f.text=want==='sub'?'This is a sales report with '+n+' lines. Did we sell these today? Check each line, then tap the button and I will take them off stock.':'This is a delivery with '+n+' lines. Should I add these to stock? Check each wine and number, change what is wrong, then tap the button.';
-  say('OK, this is '+lab+'. Check the lines on the card above, then tap the button.'); return true;
+  function setCtx(o){if(sxo)o.outlet=sxo; if(sxd)o.date=sxd;}
+  function ctxTxt(){var p=[]; if(sxo)p.push(sxo); if(sxd)p.push(dmy(sxd)); return p.length?' ('+p.join(', ')+')':'';}
+  var pe=PHPEND[id];
+  if(pe&&Date.now()-pe.ts<600000){if(!only)pe.kind=k; if(sxo||sxd){pe.sx=pe.sx||{}; setCtx(pe.sx);} say('Got it'+ctxTxt()+'.'+(only?'':' I will treat the picture as '+lab+'.')+' Please wait, I am still reading it.'); return true;}
+  var ms=c.msgs||[], f=null, g=null; for(var i=ms.length-1;i>=Math.max(0,ms.length-10);i--){var m=ms[i]; if(!g&&m.chg&&m.chg.sx&&!m.chg.done)g=m; if(!f&&m.plan&&m.plan.lines&&!m.plan.done&&m.plan.kind!=='count')f=m; if(f||g)break;}
+  if(g&&(k==='sales'||only)){setCtx(g.chg); say('OK'+ctxTxt()+'. Check the card above, then tap the button.'); return true;}
+  if(!f)return false; if(only&&f.plan.kind!=='sub')return false;
+  var want=k==='sales'||only?'sub':'add', n=f.plan.lines.length; if(only)want='sub';
+  f.plan.kind=want; if(want==='sub')setCtx(f.plan); f.text=want==='sub'?'This is a sales report with '+n+' lines. Did we sell these today? Check each line, then tap the button and I will take them off stock.':'This is a delivery with '+n+' lines. Should I add these to stock? Check each wine and number, change what is wrong, then tap the button.';
+  say('OK'+(want==='sub'?ctxTxt():'')+', this is '+(want==='sub'?'sales (I will take them off stock)':'a delivery (I will add them to stock)')+'. Check the lines on the card above, then tap the button.'); return true;
 }
 function noteKind(n){
   var t=String(n||'').toLowerCase();
@@ -3391,7 +3457,7 @@ function handleExtra(a,c,text){
       var e2=ms[0]; if(!e2){e2={id:uid(),name:cap(nmv),qty:0}; ex.push(e2);} e2.qty=Math.round((e2.qty+q)*100)/100; rows.push({label:e2.name,code:'extra wine',delta:'+'+fm2(q),up:true,value:fm2(e2.qty)+' now'});
     }
   });
-  if(logL.length){c.log=c.log||[]; c.log.push({id:uid(),po:'',date:tdy(),ts:Date.now(),kind:'out',typed:1,lines:logL,sn:c.undo.length});}
+  if(logL.length){c.log=c.log||[]; c.log.push({id:uid(),po:'',date:(SXCTX&&SXCTX.date)||tdy(),outlet:(SXCTX&&SXCTX.outlet)||'',bd:(SXCTX&&SXCTX.date)?1:0,ts:Date.now(),kind:'out',typed:1,lines:logL,sn:c.undo.length});}
   save();
   var parts=[]; if(rows.length)parts.push((isSell?'Extra wines updated: ':'Extra wines added: ')+rows.length+(rows.length===1?' wine':' wines')+'. The normal stock was not touched.');
   notes.forEach(function(n){parts.push(n);});
@@ -3435,7 +3501,7 @@ function movCollect(c,it){
   var out=[], per=glassesPer(c,it);
   (c.log||[]).forEach(function(e){(e.lines||[]).forEach(function(l){
     if(l.extra)return; var m=rptItem(c.inv,l); if(!m||m.id!==it.id)return; var q=parseFloat(l.qty)||0; if(!q)return;
-    var real=!!(e.typed&&e.ts), day=real?isoL(new Date(e.ts-SVC_CUT*3600000)):e.date, eq=l.gl?q/per:q;
+    var real=!!(e.typed&&e.ts&&!e.bd), day=real?isoL(new Date(e.ts-SVC_CUT*3600000)):e.date, eq=l.gl?q/per:q;
     out.push({day:day,ts:e.ts||0,time:real?hhmm(e.ts):'',kind:e.kind==='in'?'in':'out',eq:Math.round(eq*100)/100,gl:l.gl?q:0,why:l.why||'',po:e.po||''});
   });});
   out.sort(function(a,b){return a.day<b.day?-1:a.day>b.day?1:(a.ts-b.ts);}); return out;
@@ -3491,7 +3557,7 @@ function rpKind(low){
 }
 function rpLast(n,label){var t=tdy(), f=addDays(t,-(n-1)); return {from:f,to:t,label:dmyShort(f)+' \u2013 '+dmyShort(t),name:label||('Last '+n+' days')};}
 function rpPeriod(low){
-  var t=tdy(), m;
+  var t=sxToday(), m;
   low=low.replace(/\b(?:son|last|past)\s+bir\s+(hafta|g[uü]n|ay)\b/g,'last 1 $1').replace(/\b(?:son|last|past)\s+iki\s+(hafta|g[uü]n|ay)\b/g,'last 2 $1');
   if((m=low.match(/\b(?:last|past|previous|son)\s+(\d{1,3})\s*(days?|g[uü]n|weeks?|hafta|months?|ay)\b/))){
     var n=+m[1], u=m[2], f;
@@ -3499,6 +3565,7 @@ function rpPeriod(low){
     if(/^(?:week|hafta)/.test(u))return rpLast(Math.max(1,n)*7,'Last '+n+(n===1?' week':' weeks'));
     f=isoL(new Date(+t.slice(0,4),+t.slice(5,7)-1-Math.min(12,n),+t.slice(8,10))); return {from:f,to:t,label:dmyShort(f)+' \u2013 '+dmyShort(t),name:'Last '+n+(n===1?' month':' months')};
   }
+  if(!/\b(?:last|this|past|previous)\s+(?:week|month|year)\b/.test(low)){var sd=sxDateOf(low); if(sd)return {from:sd,to:sd,label:dmyShort(sd),name:sd===t?'Today':(sd===addDays(t,-1)?'Yesterday':dmyShort(sd))};}
   if(/\byesterday\b|\bd[uü]n\b/.test(low)){var y=addDays(t,-1); return {from:y,to:y,label:dmyShort(y),name:'Yesterday'};}
   if(/\btoday\b|\bbug[uü]n\b/.test(low))return {from:t,to:t,label:dmyShort(t),name:'Today'};
   if(/\b(?:last|previous)\s+week\b|ge[cç]en\s+hafta/.test(low)){var R=rptRange('week',addDays(t,-7)); return {from:R.from,to:R.to,label:R.label,name:'Last week'};}
@@ -3517,9 +3584,9 @@ function rpType(c,low){
   return hit;
 }
 function rpIds(spec){return spec.dept==='all'?A.filter(function(x){return (x.pour>0||x.stock)&&S.chats[x.id]&&(S.chats[x.id].log||[]).length;}).map(function(x){return x.id;}):[spec.dept];}
-function rpDay(e){var real=!!(e.typed&&e.ts); return real?isoL(new Date(e.ts-SVC_CUT*3600000)):e.date;}
+function rpDay(e){var real=!!(e.typed&&e.ts&&!e.bd); return real?isoL(new Date(e.ts-SVC_CUT*3600000)):e.date;}
 function rpAgg(spec){
-  var R={rows:[],byKey:{},tot:{eq:0,b:0,g:0,val:0,rev:0,sold:0,used:0,waste:0},days:{},dels:[],uncosted:0,lines:0};
+  var R={rows:[],byKey:{},tot:{eq:0,b:0,g:0,val:0,rev:0,sold:0,used:0,waste:0},days:{},dels:[],uncosted:0,lines:0,byOut:{}};
   var ids=rpIds(spec);
   if(spec.kind==='value'){
     ids.forEach(function(id){var c=S.chats[id]; if(!c)return; c.inv.forEach(function(it){
@@ -3531,6 +3598,7 @@ function rpAgg(spec){
     ids.forEach(function(id){var c=S.chats[id]; if(!c)return; (c.log||[]).forEach(function(e){
       var day=rpDay(e); if(day<spec.from||day>spec.to)return;
       if(spec.kind==='purchases'?e.kind!=='in':e.kind==='in')return;
+      if(spec.outlet&&e.outlet!==spec.outlet)return;
       var dq=0, dn=0, di=[];
       (e.lines||[]).forEach(function(l){
         if(l.extra)return; var why=l.why||(e.kind==='out'?'sold':'in');
@@ -3545,6 +3613,7 @@ function rpAgg(spec){
         if(why==='waste'){R.tot.waste+=eq; if(l.flat)R.tot.flat=(R.tot.flat||0)+eq;} else if(why==='used'||why==='served')R.tot.used+=eq; else R.tot.sold+=eq;
         if(!cost)R.uncosted++; R.days[day]=(R.days[day]||0)+eq;
       });
+      if(dq&&spec.kind==='sales'){var ok0=e.outlet||'No outlet'; R.byOut[ok0]=(R.byOut[ok0]||0)+dq;}
       if(dn&&spec.kind==='purchases')R.dels.push({day:day,po:e.po||'',qty:dq,lines:dn,dept:id,items:di,time:(e.typed&&e.ts)?hhmm(e.ts):''});
     });});
   }
@@ -3559,12 +3628,13 @@ function rpTitle(spec){
 function rpSummary(spec,R){
   var u=(function(){return 'bottles';})(), top=R.rows.slice(0,3).map(function(r){return r.name+' '+fm2(r.eq);}).join(', ');
   if(spec.kind==='value')return 'Stock value'+(spec.filt?' ('+spec.filt+')':'')+': '+money(R.tot.val)+' AED at cost for '+fm2(R.tot.eq)+' '+u+'.'+(R.uncosted?' '+R.uncosted+(R.uncosted===1?' item has':' items have')+' no cost yet, so they count as zero.':'');
-  if(!R.lines)return rpTitle(spec)+', '+spec.label+': nothing recorded in this period.';
-  var t=rpTitle(spec)+', '+spec.label+': ';
+  if(!R.lines)return rpTitle(spec)+(spec.outlet?' \u00b7 '+spec.outlet:'')+', '+spec.label+': nothing recorded in this period.';
+  var t=rpTitle(spec)+(spec.outlet?' \u00b7 '+spec.outlet:'')+', '+spec.label+': ';
   if(spec.kind==='purchases')t+=fm2(R.tot.eq)+' '+u+' received in '+R.dels.length+(R.dels.length===1?' delivery':' deliveries')+(R.tot.val?', worth '+money(R.tot.val)+' AED at cost':'')+'.';
   else if(spec.kind==='sales')t+=fm2(R.tot.b)+' bottles'+(R.tot.g?' and '+fm2(R.tot.g)+' glasses':'')+' sold'+(R.tot.rev?', '+money(R.tot.rev)+' AED at list price':'')+'.';
   else if(spec.kind==='waste')t+=fm2(R.tot.eq)+' '+u+' wasted'+(R.tot.val?', worth '+money(R.tot.val)+' AED at cost':'')+'.';
   else t+=fm2(R.tot.eq)+' '+u+' left stock: '+fm2(R.tot.sold)+' sold, '+fm2(R.tot.used)+' used, '+fm2(R.tot.waste)+' wasted'+(R.tot.val?' ('+money(R.tot.val)+' AED at cost)':'')+'.';
+  if(spec.kind==='sales'&&!spec.outlet&&Object.keys(R.byOut).length){var bo=SXOUT.map(function(o){return o+' '+(R.byOut[o]?fm2(R.byOut[o]):'\u2013');}); if(R.byOut['No outlet'])bo.push('No outlet '+fm2(R.byOut['No outlet'])); t+=' By outlet: '+bo.join(' \u00b7 ')+'.';}
   return t+(top?' Most: '+top+'.':'');
 }
 var RPCAT=/(?:what|which)\s+(?:kind\s+of\s+|type\s+of\s+|sort\s+of\s+)?reports?|reports?\s+(?:can|could|do)\s+you|\b(?:list|show)\s+(?:of\s+)?(?:the\s+)?(?:available\s+)?reports\b|available\s+reports|what\s+can\s+you\s+report|^\s*reports?\s*[?.!]?\s*$|hangi\s+rapor|ne\s+rapor|rapor(?:lar)?\s*(?:neler|listesi|[cç]e[sş]it)/i;
@@ -3595,6 +3665,7 @@ function prepIntent(a,c,text){
   if(!(a.pour>0||a.stock||a.id==='omar'))return null;
   var lines=text.split(/\n+/).filter(function(x){return x.trim();}); if(lines.length>3)return null;
   var first=lines[0]||''; if(/^\s*(sold|add|added|received?|wasted|flat|remove|set|cost|use|save|discard)\b/i.test(first)&&/\d/.test(first))return null;
+  if(sxIsCmd(text))return null;
   var low=text.toLowerCase(), kind=rpKind(low), per0=rpPeriod(low);
   if(!kind){return (/\breports?\b|\brapor/.test(low)&&text.length<60&&!(a.pour>0&&c.inv.length&&wrFind(a,c,text)))?{kind:'',per:per0}:null;}
   var per=per0, ask=/\b(report|reports|summary|list|show|give|write|prepare|make|total|how much|how many|what)\b|rapor|g[oö]ster|\bver\b|\byaz\b|haz[ıi]rla|ne kadar|ka[cç]/.test(low);
@@ -3611,6 +3682,7 @@ function handlePrep(a,c,text){
   if(!per&&it.kind!=='value'){per=rpLast(7,'Last 7 days'); note=' I used the last 7 days. Say \u201clast month\u201d, \u201cthis month\u201d or \u201clast 30 days\u201d for another period.';}
   if(!per)per={from:tdy(),to:tdy(),label:'Today',name:'Today'};
   var spec={kind:it.kind,from:per.from,to:per.to,label:per.label,name:per.name||per.label,filt:a.id==='omar'?null:rpType(c,low),dept:a.id==='omar'?'all':a.id};
+  if(it.kind==='sales')spec.outlet=sxOutlet(low);
   var R=rpAgg(spec);
   return [{text:rpSummary(spec,R)+note+(R.lines?'':'\nMy records start when deliveries and sales are sent through me, so earlier periods stay empty.'),prep:spec}];
 }
@@ -3644,6 +3716,7 @@ function rxIntent(a,c,text){
   var lines=text.split(/\n+/).filter(function(x){return x.trim();}); if(lines.length>2||text.length>140)return null;
   var low=text.toLowerCase(), first=lines[0]||'', per=rxRange(low);
   if(/^\s*(sold|add|added|received?|wasted|flat|remove|set|cost|use|save|discard)\b/i.test(first)&&/\d/.test(first)&&!per)return null;
+  if(sxIsCmd(text))return null;
   var pur=/\bpurchas\w*|\bdeliver\w*|\bgoods in\b|\breceiv\w*|\bbought\b|\bal[ıi]m\b|\bsat[ıi]n alma/.test(low), sal=/\bsales?\b|\bsold\b|\bselling\b|\bsat[ıi][sş]/.test(low);
   if(pur===sal)return null;
   var starts=/^\s*(?:(?:the|show|give|get|make|prepare|download|print|send)\s+(?:me\s+)?(?:the\s+|a\s+)?)?(?:[a-z]+\s+)?(?:sales?|sold|purchas\w*|deliver\w*)\b/.test(low);
@@ -3653,7 +3726,7 @@ function rxIntent(a,c,text){
   if(kind==='sales'){var hb=/\bbottles?\b/.test(low), hg=/\bglass(?:es)?\b/.test(low); vm=hb&&!hg?'b':(hg&&!hb?'g':'all');}
   var cost=/\bwith\s+(?:the\s+)?(?:cost|costs|price|prices|margin)\b|\bcosts?\b|\bmargins?\b|\bprices?\b/.test(low), note='';
   if(!per){per=rpLast(7,'Last 7 days'); note=' I used the last 7 days. Say for example “4 to 8 October” or “last month” for another period.';}
-  var spec={kind:kind,from:per.from,to:per.to,label:per.label,name:per.name||per.label,filt:a.id==='omar'?null:rpType(c,low),dept:a.id==='omar'?'all':a.id,vm:vm,cost:cost};
+  var spec={kind:kind,from:per.from,to:per.to,label:per.label,name:per.name||per.label,filt:a.id==='omar'?null:rpType(c,low),dept:a.id==='omar'?'all':a.id,vm:vm,cost:cost}; if(kind==='sales')spec.outlet=sxOutlet(low);
   if(per.mode)spec.mode=per.mode; spec.mode=rxMode(spec);
   return {spec:spec,note:note};
 }
@@ -3797,7 +3870,7 @@ function cmpSide(c,day,idset,cutoff){
   var R={b:0,g:0,rev:0,n:0,by:{}}, st=new Date(+day.slice(0,4),+day.slice(5,7)-1,+day.slice(8,10),SVC_CUT).getTime();
   (c.log||[]).forEach(function(e){
     if(e.kind==='in'||rpDay(e)!==day)return;
-    if(cutoff!=null&&e.typed&&e.ts&&(e.ts-st)>cutoff)return;
+    if(cutoff!=null&&e.typed&&e.ts&&!e.bd&&(e.ts-st)>cutoff)return;
     (e.lines||[]).forEach(function(l){
       if(l.extra)return; var why=l.why||(e.kind==='out'?'sold':'in'); if(why!=='sold')return;
       var q=parseFloat(l.qty)||0; if(!q)return; var it=rptItem(c.inv,l);
@@ -5573,6 +5646,7 @@ function bubble0(m){
     function cgSave(){try{save();}catch(e){}}
     var cnt={ok:0,check:0,'new':0}; cg.lines.forEach(function(l){cnt[l.k==='new'?'new':(l.k==='check'?'check':'ok')]++;});
     if(cg.lines.length>4){var smr=el('div','sumr'); smr.appendChild(el('span',null,cg.lines.length+' lines')); if(cnt.ok)smr.appendChild(el('span','tg ok',cnt.ok+' matched')); if(cnt.check)smr.appendChild(el('span','tg chk',cnt.check+' check')); if(cnt['new'])smr.appendChild(el('span','tg new',cnt['new']+' new')); d.appendChild(smr);}
+    if(cg.sx&&cg.mode==='sub')d.appendChild(sxBar(cg,function(){cgSave(); refreshChat(cid);}));
     cg.lines.forEach(function(l,i){
       var row=el('div','ri cgr'+(l.k==='check'?' hl':'')), left=el('div','pl'), t=el('div','nm',l.name);
       var pendForm=null, wineD=!cc.noMenu&&cg.mode!=='par', nfl=wineD&&l.k==='new'&&!l.nwOk;
@@ -5643,16 +5717,24 @@ function bubble0(m){
     if(cg.mode==='order'&&cg.lines.length)cb.appendChild(mkBtn('Create PDF','ghost sm',function(){orderPdf(cc,cg.lines);}));
     if(cg.done)cb.appendChild(el('span','cdn',cg.done==='ok'?'✓ Confirmed. '+MD[1]+'.':'Cancelled. Nothing was changed.'));
     else{
+      function goSx(){
+        if(cg.sx&&cg.mode==='sub'){
+          if(!cg.outlet&&!cg.sxOpt){toast('Choose the outlet first: Ling, Ling Bar or Ling Ultra Lounge.'); return;}
+          var du=(!cg.outlet||cg.sxOpt)?null:(cc.log||[]).filter(function(e){return e.kind==='out'&&e.card&&e.outlet===cg.outlet&&e.date===cg.date;})[0];
+          if(du){mmAsk(cg.outlet+' already has a sales report for '+dmy(cg.date)+'. Add this one as well?','Add it','Cancel',function(){applyChg(cid,m);}); return;}
+        }
+        applyChg(cid,m);
+      }
       var blkL=(!cc.noMenu&&cg.mode!=='par')?cg.lines.filter(function(l){return l.k==='new'&&!l.nwOk&&l.qty>0;}):[], blk=blkL.length>0;
       var pb1=mkBtn('✓ '+(cg.mode==='add'&&cg.lines.length>6?'Add all '+cg.lines.length+' to stock':MD[0]),'',function(){
         if(blk){toast(blkL.length+(blkL.length===1?' wine is':' wines are')+' not found. Search for it, or skip it.'); var rr=cbox.querySelector('.tg.new'); if(rr&&rr.scrollIntoView)try{rr.scrollIntoView({block:'center',behavior:'smooth'});}catch(e){} return;}
-        applyChg(cid,m);}); if(blk)pb1.style.opacity='.55'; cb.appendChild(pb1);
+        goSx();}); if(blk)pb1.style.opacity='.55'; cb.appendChild(pb1);
       if(blk){
         cb.appendChild(el('span','cdn',blkL.length+(blkL.length===1?' wine is':' wines are')+' not found (marked “not found”).'));
         cb.appendChild(mkBtn('Skip '+(blkL.length===1?'it':'them')+' and add the rest','ghost sm',function(){
           blkL.forEach(function(l){var ix=cg.lines.indexOf(l); if(ix>-1)cg.lines.splice(ix,1);}); cgSave();
           if(!cg.lines.some(function(l){return l.qty>0;})){cg.done='cancel'; cgSave(); refreshChat(cid); return;}
-          applyChg(cid,m);}));
+          goSx();}));
       }
       cb.appendChild(mkBtn('Cancel','ghost sm',function(){cg.done='cancel'; cgSave(); refreshChat(cid);}));
     }
@@ -5691,12 +5773,13 @@ function bubble0(m){
     d.appendChild(cb0);
   } else if(m.plan&&m.plan.lines){
     var pc=el('div','ec'), pin=[], pid=m.who||cur, cc=S.chats[pid];
-    if(m.plan.done){if(m.plan.po||m.plan.date){var ph=el('p',null,(m.plan.po?'PO '+m.plan.po:'')+(m.plan.po&&m.plan.date?' · ':'')+(m.plan.date?dmy(m.plan.date):'')); ph.style.fontWeight='600'; pc.appendChild(ph);}}
+    if(m.plan.done){if(m.plan.po||m.plan.date||m.plan.outlet){var ph=el('p',null,(m.plan.outlet?m.plan.outlet+' · ':'')+(m.plan.po?'PO '+m.plan.po:'')+(m.plan.po&&m.plan.date?' · ':'')+(m.plan.date?dmy(m.plan.date):'')); ph.style.fontWeight='600'; pc.appendChild(ph);}}
     else if(m.plan.kind!=='count'){
       var hr=el('div','er'); hr.style.flexWrap='wrap';
       var pi=el('input','eq'); pi.type='text'; pi.value=m.plan.po||''; pi.placeholder='PO number'; pi.setAttribute('aria-label','PO number'); pi.style.width='38%'; pi.addEventListener('input',function(){m.plan.po=pi.value;});
       var di=el('input','eq'); di.type='date'; di.value=/^\d{4}-\d{2}-\d{2}$/.test(m.plan.date||'')?m.plan.date:''; di.setAttribute('aria-label','Document date'); di.style.width='58%'; di.style.minWidth='0'; di.addEventListener('input',function(){m.plan.date=di.value;});
       hr.appendChild(pi); hr.appendChild(di); pc.appendChild(hr);
+      if(m.plan.kind==='sub')pc.appendChild(sxBar(m.plan,function(){save(); refreshChat(pid);},true));
     }
     if(!m.plan.done&&m.plan.lines.length>4){var nk={ok:0,chk:0,nw:0}; m.plan.lines.forEach(function(l){if(!l.wid)nk.nw++; else if(l.strong)nk.ok++; else nk.chk++;}); var smp=el('div','sumr'); smp.appendChild(el('span',null,m.plan.lines.length+' lines')); if(nk.ok)smp.appendChild(el('span','tg ok',nk.ok+' matched')); if(nk.chk)smp.appendChild(el('span','tg chk',nk.chk+' check')); if(nk.nw)smp.appendChild(el('span','tg new',nk.nw+' new')); pc.appendChild(smp);}
     pc.classList.add('chg'); if(m.pageMode)COUNTPIN={m:m,pin:pin};
@@ -6024,7 +6107,7 @@ try{setTimeout(function(){snapNow('Opened the app');},6000); document.addEventLi
   }
   window.addEventListener('resize',apply); window.addEventListener('orientationchange',function(){setTimeout(apply,60);}); apply();
 })();
-var APPVER='Sidekick 119'; try{themeApply();}catch(e){}
+var APPVER='Sidekick 120'; try{themeApply();}catch(e){}
 var KEYNAME='dutybuddy.apikey', inClaude=false;
 function storedKey(){try{return localStorage.getItem(KEYNAME)||'';}catch(e){return '';}}
 function keyOn(){try{return localStorage.getItem('dutybuddy.keyoff')!=='1';}catch(e){return true;}}
@@ -6424,7 +6507,7 @@ function sendPhoto(file,note){
 }
 
 
-var INVPROMPT='You read a photo of a restaurant document. Decide what it is. The first line is exactly one of:\nTYPE: delivery (a supplier invoice or delivery note: stock coming in)\nTYPE: sales (a sales or items-sold report: stock going out)\nTYPE: unknown\nTYPE: label (a photo of a wine bottle or a wine label, with no quantities; write nothing else)\nTYPE: other (not about drinks)\nThen, only if printed, one line PO: with the purchase order, picklist or invoice number (digits as printed, for example PO: 01386199), and one line DATE: with the document date as YYYY-MM-DD. Dates on these documents are month/day/year, so 10/30/2026 is DATE: 2026-10-30. Skip a line that is not printed.\nThen one line per wine, champagne, sake, spirit or other drink item, exactly like this: code|name|qty\nOn a pick list the Item column reads “code - description”: the code is the number before the dash. The quantity is the number picked next to the unit (EACH 6 gives 6, BOTTLES2 gives 2, BOTTLES 12 gives 12). Ignore handwritten notes such as W-37, circles, signatures and stamps.\n- code: the item code if one is printed, otherwise leave it empty.\n- name: copy the description exactly as printed. Do not correct, translate or shorten it.\n- qty: the quantity delivered or sold, in bottles or units, digits only (a decimal point is allowed). If you cannot read it, write ?.\nOn a Micros point-of-sale sales report each row is: an 8-digit item number, an abbreviated name that ends in GL (glass) or BT (bottle), a unit price such as 155.00AED, and then the quantity sold, which is the first whole number after the price and can be negative. Use that quantity, never the price. Put the 8-digit number in code, keep GL or BT at the end of name, and ignore Report Group, Subtotal and Total rows. Set TYPE: sales.\nSkip food, totals, taxes, dates and headers. Write nothing else.';
+var INVPROMPT='You read a photo of a restaurant document. Decide what it is. The first line is exactly one of:\nTYPE: delivery (a supplier invoice or delivery note: stock coming in)\nTYPE: sales (a sales or items-sold report: stock going out)\nTYPE: unknown\nTYPE: label (a photo of a wine bottle or a wine label, with no quantities; write nothing else)\nTYPE: other (not about drinks)\nThen, if the top of a sales report names the outlet (Ling, Ling Bar or Ling Ultra Lounge), one line OUTLET: with that name. Then, only if printed, one line PO: with the purchase order, picklist or invoice number (digits as printed, for example PO: 01386199), and one line DATE: with the document date as YYYY-MM-DD. Dates on these documents are month/day/year, so 10/30/2026 is DATE: 2026-10-30. Skip a line that is not printed.\nThen one line per wine, champagne, sake, spirit or other drink item, exactly like this: code|name|qty\nOn a pick list the Item column reads “code - description”: the code is the number before the dash. The quantity is the number picked next to the unit (EACH 6 gives 6, BOTTLES2 gives 2, BOTTLES 12 gives 12). Ignore handwritten notes such as W-37, circles, signatures and stamps.\n- code: the item code if one is printed, otherwise leave it empty.\n- name: copy the description exactly as printed. Do not correct, translate or shorten it.\n- qty: the quantity delivered or sold, in bottles or units, digits only (a decimal point is allowed). If you cannot read it, write ?.\nOn a Micros point-of-sale sales report each row is: an 8-digit item number, an abbreviated name that ends in GL (glass) or BT (bottle), a unit price such as 155.00AED, and then the quantity sold, which is the first whole number after the price and can be negative. Use that quantity, never the price. Put the 8-digit number in code, keep GL or BT at the end of name, and ignore Report Group, Subtotal and Total rows. Set TYPE: sales.\nSkip food, totals, taxes, dates and headers. Write nothing else.';
 async function readInvoice(file,note){
   var sample=null; try{sample=await getSample();}catch(e){sample=null;}
   if(!sample)return {err:'Reading pictures needs Online mode. Open Settings, tap Online and paste your Google key. Until then, type or paste the text.'};
@@ -6440,9 +6523,10 @@ async function readInvoice(file,note){
   return invMerge(passes,!!firstErr);
 }
 async function readInvoiceOnce(sample,o){
-  var r=await sample(INVPROMPT+(o.note?'\n\nThe person who sent this photo wrote: \u201c'+o.note+'\u201d. Use it to decide what the document is and to resolve unclear lines.':''),o), txt=String(r.text||'').replace(/```[a-z]*/gi,''), type='unknown', lines=[], po='', dt='';
+  var r=await sample(INVPROMPT+(o.note?'\n\nThe person who sent this photo wrote: \u201c'+o.note+'\u201d. Use it to decide what the document is and to resolve unclear lines.':''),o), txt=String(r.text||'').replace(/```[a-z]*/gi,''), type='unknown', lines=[], po='', dt='', outl='';
   txt.split(/\r?\n/).forEach(function(l){
     l=l.trim(); var m=l.match(/^TYPE:\s*(delivery|sales|unknown|label|other)/i); if(m){type=m[1].toLowerCase(); return;}
+    m=l.match(/^OUTLET:\s*(.+)$/i); if(m){outl=m[1].trim(); return;}
     m=l.match(/^PO:\s*#?\s*([A-Za-z0-9\-\/]{3,24})/i); if(m){po=m[1]; return;}
     m=l.match(/^DATE:\s*(\d{4})-(\d{2})-(\d{2})/i); if(m){dt=m[1]+'-'+m[2]+'-'+m[3]; return;}
     var p=l.split('|'); if(p.length<3)return;
@@ -6450,7 +6534,7 @@ async function readInvoiceOnce(sample,o){
     if(!nm||/^name$/i.test(nm))return;
     lines.push({code:cd,raw:nm,qty:(q==='?'||q==='')?'':q});
   });
-  return {type:type,lines:lines,po:po,date:dt};
+  return {type:type,lines:lines,po:po,date:dt,outlet:outl};
 }
 function invToks(n){return foldS(n).split(/[^a-z0-9]+/).filter(function(w){return w.length>1;});}
 function invJac(a,b){if(!a.length||!b.length)return 0; var sa={}, i, n=0; a.forEach(function(w){sa[w]=1;}); var u=Object.keys(sa).length; b.forEach(function(w){if(sa[w]){n++; sa[w]=0;}else if(sa[w]===undefined)u++;}); return n/u;}
@@ -6482,7 +6566,7 @@ function invMerge(passes,partial){
   });
   lines.sort(function(x,y){return x.order-y.order;});
   var type=invTop(passes.map(function(P){return P.type;}).filter(function(t){return t!=='unknown';})).v||'unknown', po=invTop(passes.map(function(P){return P.po;}).filter(Boolean)).v||'', dt=invTop(passes.map(function(P){return P.date;}).filter(Boolean)).v||'';
-  return {type:type,lines:lines,po:po,date:dt,checked:{passes:k,sure:sure,unsure:unsure}};
+  return {type:type,lines:lines,po:po,date:dt,outlet:invTop(passes.map(function(P){return P.outlet;}).filter(Boolean)).v||'',checked:{passes:k,sure:sure,unsure:unsure}};
 }
 async function imgSetup(file){
   var sample=null; try{sample=await getSample();}catch(e){sample=null;}
@@ -6606,23 +6690,25 @@ async function limitWait(id,e,file,note,tries){
 async function invoiceFlow(id,file,note,tries){
   var c=S.chats[id], r;
   try{r=await readInvoice(file,note); var nk0=(PHPEND[id]&&PHPEND[id].kind!==undefined)?PHPEND[id].kind:noteKind(note); if(r&&!r.err&&r.type!=='label'&&r.lines&&r.lines.length&&(nk0==='delivery'||nk0==='sales'||nk0==='count'))r.type=nk0;}catch(e){if(e&&e.code==='rate_limited'){await limitWait(id,e,file,note,tries); return;} r={err:(e&&e.code&&ERR[e.code])||'I could not read that picture. Try a flatter, brighter photo.'};}
-  hideTyping(); delete PHPEND[id];
+  hideTyping(); var sxP=(PHPEND[id]&&PHPEND[id].sx)||{}; delete PHPEND[id];
   if(r.err)push(id,{from:'bot',text:r.err});
   else if(r.type==='label'){hideTyping(); await labelFlow(id,file); return;}
   else if(r.type==='other'||!r.lines.length)push(id,{from:'bot',text:'I could not find any wine lines in that picture. Send a clearer photo, or type it, for example “Add 12 Sancerre”.'});
   else if(r.type==='sales'&&looksMicros(microsRows(r.lines.map(function(l){return {mx:/^\d{8}$/.test(l.code)?l.code:'',name:l.raw,qty:l.qty};})))){
-    var mr0=microsRows(r.lines.map(function(l){return {mx:/^\d{8}$/.test(l.code)?l.code:'',name:l.raw,qty:l.qty};})); var vt0=r.checked&&r.checked.unsure?'I am not sure about '+r.checked.unsure+' numbers in the picture, please compare them with the report. ':''; push(id,Object.assign({from:'bot'},microsCard(byId[id],c,mr0,vt0)));
+    var mr0=microsRows(r.lines.map(function(l){return {mx:/^\d{8}$/.test(l.code)?l.code:'',name:l.raw,qty:l.qty};})); var vt0=r.checked&&r.checked.unsure?'I am not sure about '+r.checked.unsure+' numbers in the picture, please compare them with the report. ':''; var snx=String(note||''); push(id,Object.assign({from:'bot'},microsCard(byId[id],c,mr0,vt0,{outlet:sxP.outlet||sxOutlet(snx)||sxOutlet(r.outlet||''),date:sxP.date||sxDateOf(snx)})));
   }else{
     var plan=buildPlan(c,r), n=plan.lines.length, ck=r.checked, vt=(ck&&ck.passes>1)?'I read the picture '+ck.passes+' times and compared every line: '+ck.sure+' agreed'+(ck.unsure?', '+ck.unsure+' I am not sure about (marked \u26a0, please check them against the paper). ':'. '):'';
     var tx=plan.kind==='count'?'I read '+n+' items from your stock count. Nothing is saved yet. Please check every line before I save it.':plan.kind==='add'?'This looks like a delivery'+(plan.po?' (PO '+plan.po+(plan.date?', '+dmy(plan.date):'')+')':'')+' with '+n+' lines. Should I add these to stock and save them under this PO? Check each wine and number, change what is wrong, then tap the button.':
       plan.kind==='sub'?'This looks like a sales report with '+n+' lines. Did we sell these today? Check each line, then tap the button and I will take them off stock.':
       'I found '+n+' lines but I am not sure if this is a delivery or a sales report. Check the lines, then tell me which it is.';
+    if(plan.kind==='sub'){var snp=String(note||''); plan.outlet=sxP.outlet||sxOutlet(snp)||sxOutlet(r.outlet||'')||''; var pdx=sxP.date||sxDateOf(snp); if(pdx)plan.date=pdx;}
     push(id,{from:'bot',text:vt+tx,plan:plan});
   }
   save(); refreshChat(id); renderList();
 }
 function stockPlanApply(id,m,sels,kind){
   var a=byId[id], c=S.chats[id]; if(!m.plan||m.plan.done)return;
+  if(kind==='sub'&&!m.plan.outlet){toast('Choose the outlet first: Ling, Ling Bar or Ling Ultra Lounge.'); return;}
   snap(c); var rows=[], notes=[], n=0, logL=[];
   sels.forEach(function(s){
     var v=s.sel.value, q=parseCount(s.qty.value); if(v==='skip'||q==null||q<=0)return;
@@ -6645,8 +6731,8 @@ function stockPlanApply(id,m,sels,kind){
   if(!n){c.undo.pop(); push(id,{from:'bot',text:'Nothing was changed.'});}
   else{
     c.log=c.log||[]; var po=String(m.plan.po||'').trim(), dt=/^\d{4}-\d{2}-\d{2}$/.test(m.plan.date||'')?m.plan.date:today();
-    c.log.push({id:uid(),po:po,date:dt,ts:Date.now(),kind:kind==='add'?'in':'out',lines:logL,sn:c.undo.length-1});
-    push(id,{from:'bot',text:(kind==='add'?'Added to stock: ':'Taken off stock: ')+n+(n===1?' item.':' items.')+(notes.length?'\n'+notes.join('\n'):'')+'\nSaved as '+(kind==='add'?'a delivery':'a sales report')+(po?' under PO '+po:'')+' on '+dmy(dt)+'. Ask me “what did we receive this month” to see the list. Say “undo” to reverse it.',rows:rows});
+    c.log.push({id:uid(),po:po,date:dt,outlet:kind==='add'?'':(m.plan.outlet||''),card:kind==='add'?0:1,ts:Date.now(),kind:kind==='add'?'in':'out',lines:logL,sn:c.undo.length-1});
+    push(id,{from:'bot',text:(kind==='add'?'Added to stock: ':'Taken off stock: ')+n+(n===1?' item.':' items.')+(notes.length?'\n'+notes.join('\n'):'')+'\nSaved as '+(kind==='add'?'a delivery':'a sales report')+(po?' under PO '+po:'')+' on '+dmy(dt)+'. Ask me “what did we receive this month” to see the list. Say “undo” to reverse it.',rows:rows}); if(kind!=='add')push(id,{from:'bot',text:sxDaySummary(c,dt)});
   }
   syncLow(); save(); refreshChat(id); renderList();
 }
@@ -8965,7 +9051,7 @@ function mkIso(y,m,d){var dt=new Date(y,m-1,d); if(dt.getMonth()!==m-1)return nu
 function parseDateAny(str,future){
   str=String(str||'').toLowerCase(); var m, now=new Date(), y=now.getFullYear(), r=null;
   if((m=str.match(/(\d{4})-(\d{1,2})-(\d{1,2})/)))return mkIso(+m[1],+m[2],+m[3]);
-  if((m=str.match(/(\d{1,2})[\/.](\d{1,2})[\/.](\d{4}|\d{2})\b/))){var yy=+m[3]; if(yy<100)yy+=2000; return mkIso(yy,+m[2],+m[1]);}
+  if((m=str.match(/(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{4}|\d{2})\b/))){var yy=+m[3]; if(yy<100)yy+=2000; return mkIso(yy,+m[2],+m[1]);}
   if((m=str.match(new RegExp('(\\d{1,2})(?:st|nd|rd|th)?\\s+(?:of\\s+)?('+MONRX+')\\b\\.?,?\\s*(\\d{4})?'))))r=[m[3]?+m[3]:null,monIdx(m[2])+1,+m[1]];
   else if((m=str.match(new RegExp('\\b('+MONRX+')\\b\\.?\\s+(\\d{1,2})(?:st|nd|rd|th)?\\b,?\\s*(\\d{4})?'))))r=[m[3]?+m[3]:null,monIdx(m[1])+1,+m[2]];
   else if((m=str.match(/(\d{1,2})[\/.](\d{1,2})\b/)))r=[null,+m[2],+m[1]];
@@ -14210,7 +14296,7 @@ syncStart();
 A.forEach(function(x){kbLoad(x.id).then(function(){kbResumeAll(x.id); kbBarUpdate(); if((libId===x.id||libId==='lib')&&!$('libView').hidden)renderLib(libId);});});
 kbLoad('lib').then(function(){kbResumeAll('lib'); kbBarUpdate(); if(libId==='lib'&&!$('libView').hidden)renderLib('lib');});
 document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible'){A.forEach(function(x){kbResumeAll(x.id);}); kbWake(); kbBarUpdate();}});
-if(window.__DB_TEST__)window.__DB_TEST__({getSample:getSample,beginDraft:beginDraft,dsave:dsave,getDraft:function(){return draft;},KEY:KEY,wineEditSheet:wineEditSheet,celDiffs:celDiffs,photoFollow:photoFollow,PHPEND:PHPEND,push:push,save:save,modGo:modGo,mcRows:mcRows,celOutIt:celOutIt,celIn:celIn,celLocs:celLocs,celApply:celApply,renderSettings:renderSettings,renderInfo:renderInfo,celStore:celStore,celShFree:celShFree,celWineFree:celWineFree,celShTot:celShTot,SS:function(){return S;},kbBest:kbBest,kbClean:kbClean,kbBuild:kbBuild,studySend:studySend,rsPlan:rsPlan,tbDim:tbDim,tbShape:tbShape,tbMerge:tbMerge,tbSnap:tbSnap,tbSplit:tbSplit,wineAny:wineAny,mxInit:mxInit,mxLearn:mxLearn,wineOpen:wineOpen,photoOrOcr:photoOrOcr,gqCount:gqCount,kbSlot:kbSlot,libAll:libAll,renderLib:renderLib,libPicker:libPicker,kbShare:kbShare,celInvTotals:celInvTotals,stkPdfRes:stkPdfRes,stkReportRes:stkReportRes,bkStatus:bkStatus,openBackup:openBackup,todoPoke:todoPoke,save:save,barPlan:barPlan,celSale:celSale,wineOpen:wineOpen,chgLoad:chgLoad,openSettings:openSettings,chgStore:chgStore,chgDiff:chgDiff,stkRows:stkRows,stkCounts:stkCounts,stkParse:stkParse,stkApplyImport:stkApplyImport,stkAccept:stkAccept,stkSheets:stkSheets,stkStore:stkStore,celParseCsv:celParseCsv,celStore:celStore,celParseRows:celParseRows,celParseCsv:celParseCsv,celApplyImport:celApplyImport,celRows:celRows,celXlsx:celXlsx,celCollect:celCollect,celApply:celApply,celSwap:celSwap,rtSeed:rtSeed,evMenuItems:evMenuItems,evFind:evFind,evAddDish:evAddDish,rtGridArr:rtGridArr,rtXlsx:rtXlsx,rtDiff:rtDiff,rtPages:rtPages,rtGrid:rtGrid,rtParseGrid:rtParseGrid,rtHandle:rtHandle,rtApplyImport:rtApplyImport,fpImportBuf:fpImportBuf,fpPut:fpPut,fpPlan:fpPlan,fpHandle:fpHandle,fpTablesOf:fpTablesOf,getS:function(){return S;},cmGet:cmGet,fileRoute:fileRoute,costRefresh:costRefresh,pbL:pbL,pbSearch:pbSearch,cmRecipeSheets:cmRecipeSheets,cmDishCost:cmDishCost,pcTeam:pcTeam,cxList:cxList,pbSet:pbSet,cmTouch:cmTouch,emMenu:emMenu,emPick:emPick,emCount:emCount,emPages:emPages,emDoc:emDoc,emOpenDiff:emOpenDiff,emApply:emApply,emTeam:emTeam,emCmd:emCmd,evIntentRx:evIntentRx,save:save,send:send,openChat:openChat,teamFlow:teamFlow,foreignGuard:foreignGuard,kbDetail:kbDetail,baseApply:baseApply,BASE:BASE,kbAdd:kbAdd,kbEnqueue:kbEnqueue,kbSearch:kbSearch,kbLoad:kbLoad,kbRemove:kbRemove,kbCloze:kbCloze,kbSlot:kbSlot,kbAnswer:kbAnswer,readAny:readAny,exportRows:exportRows,xlsxBuild:xlsxBuild,pdfBuild:pdfBuild,csvBuild:csvBuild,handleExport:handleExport,exportStock:exportStock,needsRules:needsRules,buildPrompt:buildPrompt,teamSpeakersFor:teamSpeakersFor,dataBlock:dataBlock,stockRows:stockRows,parseCount:parseCount,splitCount:splitCount,idfWeights:idfWeights,rankMatches:rankMatches,aliasSet:aliasSet,handleMatches:handleMatches,respond:respond,respondTeam:respondTeam,parseList:parseList,applyList:applyList,avatarSVG:avatarSVG,glassCard:glassCard,parseMenuText:parseMenuText,looksMenu:looksMenu,autoMatch:autoMatch,searchPool:searchPool,scoreName:scoreName,sendGlassEdit:sendGlassEdit,guessType:guessType,getS:function(){return S;},A:A});
+if(window.__DB_TEST__)window.__DB_TEST__({sendPhoto:sendPhoto,send:send,getSample:getSample,beginDraft:beginDraft,dsave:dsave,getDraft:function(){return draft;},KEY:KEY,wineEditSheet:wineEditSheet,celDiffs:celDiffs,photoFollow:photoFollow,PHPEND:PHPEND,push:push,save:save,modGo:modGo,mcRows:mcRows,celOutIt:celOutIt,celIn:celIn,celLocs:celLocs,celApply:celApply,renderSettings:renderSettings,renderInfo:renderInfo,celStore:celStore,celShFree:celShFree,celWineFree:celWineFree,celShTot:celShTot,SS:function(){return S;},kbBest:kbBest,kbClean:kbClean,kbBuild:kbBuild,studySend:studySend,rsPlan:rsPlan,tbDim:tbDim,tbShape:tbShape,tbMerge:tbMerge,tbSnap:tbSnap,tbSplit:tbSplit,wineAny:wineAny,mxInit:mxInit,mxLearn:mxLearn,wineOpen:wineOpen,photoOrOcr:photoOrOcr,gqCount:gqCount,kbSlot:kbSlot,libAll:libAll,renderLib:renderLib,libPicker:libPicker,kbShare:kbShare,celInvTotals:celInvTotals,stkPdfRes:stkPdfRes,stkReportRes:stkReportRes,bkStatus:bkStatus,openBackup:openBackup,todoPoke:todoPoke,save:save,barPlan:barPlan,celSale:celSale,wineOpen:wineOpen,chgLoad:chgLoad,openSettings:openSettings,chgStore:chgStore,chgDiff:chgDiff,stkRows:stkRows,stkCounts:stkCounts,stkParse:stkParse,stkApplyImport:stkApplyImport,stkAccept:stkAccept,stkSheets:stkSheets,stkStore:stkStore,celParseCsv:celParseCsv,celStore:celStore,celParseRows:celParseRows,celParseCsv:celParseCsv,celApplyImport:celApplyImport,celRows:celRows,celXlsx:celXlsx,celCollect:celCollect,celApply:celApply,celSwap:celSwap,rtSeed:rtSeed,evMenuItems:evMenuItems,evFind:evFind,evAddDish:evAddDish,rtGridArr:rtGridArr,rtXlsx:rtXlsx,rtDiff:rtDiff,rtPages:rtPages,rtGrid:rtGrid,rtParseGrid:rtParseGrid,rtHandle:rtHandle,rtApplyImport:rtApplyImport,fpImportBuf:fpImportBuf,fpPut:fpPut,fpPlan:fpPlan,fpHandle:fpHandle,fpTablesOf:fpTablesOf,getS:function(){return S;},cmGet:cmGet,fileRoute:fileRoute,costRefresh:costRefresh,pbL:pbL,pbSearch:pbSearch,cmRecipeSheets:cmRecipeSheets,cmDishCost:cmDishCost,pcTeam:pcTeam,cxList:cxList,pbSet:pbSet,cmTouch:cmTouch,emMenu:emMenu,emPick:emPick,emCount:emCount,emPages:emPages,emDoc:emDoc,emOpenDiff:emOpenDiff,emApply:emApply,emTeam:emTeam,emCmd:emCmd,evIntentRx:evIntentRx,save:save,send:send,openChat:openChat,teamFlow:teamFlow,foreignGuard:foreignGuard,kbDetail:kbDetail,baseApply:baseApply,BASE:BASE,kbAdd:kbAdd,kbEnqueue:kbEnqueue,kbSearch:kbSearch,kbLoad:kbLoad,kbRemove:kbRemove,kbCloze:kbCloze,kbSlot:kbSlot,kbAnswer:kbAnswer,readAny:readAny,exportRows:exportRows,xlsxBuild:xlsxBuild,pdfBuild:pdfBuild,csvBuild:csvBuild,handleExport:handleExport,exportStock:exportStock,needsRules:needsRules,buildPrompt:buildPrompt,teamSpeakersFor:teamSpeakersFor,dataBlock:dataBlock,stockRows:stockRows,parseCount:parseCount,splitCount:splitCount,idfWeights:idfWeights,rankMatches:rankMatches,aliasSet:aliasSet,handleMatches:handleMatches,respond:respond,respondTeam:respondTeam,parseList:parseList,applyList:applyList,avatarSVG:avatarSVG,glassCard:glassCard,parseMenuText:parseMenuText,looksMenu:looksMenu,autoMatch:autoMatch,searchPool:searchPool,scoreName:scoreName,sendGlassEdit:sendGlassEdit,guessType:guessType,getS:function(){return S;},A:A});
 })();
 </script>
 
