@@ -3494,7 +3494,7 @@ function listFix(text){
 }
 
 /* ================= WINE MOVEMENT REPORT: one wine, bought and sold, one month (list) or several months (weeks) ================= */
-var SVC_CUT=6, WR={on:false,spec:null};
+var SVC_CUT=4, WR={on:false,spec:null};
 function hhmm(ts){var d=new Date(ts); return pad2(d.getHours())+':'+pad2(d.getMinutes());}
 function wrStock(c,it){var per=glassesPer(c,it); return (it.qty||0)+(it.open>0?it.open/per:0);}
 function movCollect(c,it){
@@ -6107,7 +6107,7 @@ try{setTimeout(function(){snapNow('Opened the app');},6000); document.addEventLi
   }
   window.addEventListener('resize',apply); window.addEventListener('orientationchange',function(){setTimeout(apply,60);}); apply();
 })();
-var APPVER='Sidekick 120'; try{themeApply();}catch(e){}
+var APPVER='Sidekick 121'; try{themeApply();}catch(e){}
 var KEYNAME='dutybuddy.apikey', inClaude=false;
 function storedKey(){try{return localStorage.getItem(KEYNAME)||'';}catch(e){return '';}}
 function keyOn(){try{return localStorage.getItem('dutybuddy.keyoff')!=='1';}catch(e){return true;}}
